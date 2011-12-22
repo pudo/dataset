@@ -53,8 +53,7 @@ def _ensure_columns(engine, table, row, types={}):
             _type = _guess_type(row[column])
         log.debug("Creating column: %s (%s) on %r" % (column, 
             _type, table.name))
-        col = Column(column, _type)
-        col.create(table, connection=engine)
+        create_column(engine, table, column, _type)
 
 def _args_to_clause(table, args):
     clauses = []
@@ -62,8 +61,12 @@ def _args_to_clause(table, args):
         clauses.append(table.c[k] == v)
     return and_(*clauses)
 
+def create_column(engine, table, name, type):
+    if name not in table.columns.keys():
+        col = Column(name, type)
+        col.create(table, connection=engine)
 
-def add_row(engine, table, row, ensure=False, types={}):
+def add_row(engine, table, row, ensure=True, types={}):
     """ Add a row (type: dict). If ``ensure`` is set, any of 
     the keys of the row are not table columns, they will be type
     guessed and created. """
@@ -71,8 +74,7 @@ def add_row(engine, table, row, ensure=False, types={}):
         _ensure_columns(engine, table, row, types=types)
     engine.execute(table.insert(row))
 
-
-def update_row(engine, table, row, unique, ensure=False, types={}):
+def update_row(engine, table, row, unique, ensure=True, types={}):
     if not len(unique):
         return False
     clause = dict([(u, row.get(u)) for u in unique])
@@ -86,9 +88,17 @@ def update_row(engine, table, row, unique, ensure=False, types={}):
         log.warn("UPDATE: filter column does not exist: %s" % ke)
         return False
 
-def upsert(engine, table, row, unique, ensure=False, types={}):
+def upsert(engine, table, row, unique, ensure=True, types={}):
     if not update_row(engine, table, row, unique, ensure=ensure, types=types):
         add_row(engine, table, row, ensure=ensure, types=types)
+
+def update(engine, table, criteria, values, ensure=True, types={}):
+    if ensure:
+        _ensure_columns(engine, table, values, types=types)
+    q = table.update().values(values)
+    for column, value in criteria.items():
+        q = q.where(table.c[column]==value)
+    engine.execute(q)
 
 def resultiter(rp):
     """ SQLAlchemy ResultProxies are not iterable to get a 
