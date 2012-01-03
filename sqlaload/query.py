@@ -2,6 +2,7 @@ import logging
 from itertools import count
 
 from sqlalchemy.sql import expression, and_
+from sqlaload.schema import _ensure_columns
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ def find_one(engine, table, **kw):
 
 def find(engine, table, _limit=None, _step=5000, _offset=0, 
          order_by=None, **kw):
+    _ensure_columns(engine, table, kw)
 
     if order_by is None:
         order_by = [table.c.id.asc()]
