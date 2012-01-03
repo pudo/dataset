@@ -1,6 +1,7 @@
 import logging
+from itertools import count
 
-from sqlalchemy.sql import expression
+from sqlalchemy.sql import expression, and_
 
 log = logging.getLogger(__name__)
 
@@ -14,14 +15,47 @@ def resultiter(rp):
             break
         yield dict(zip(keys, row))
 
+def find_one(engine, table, **kw):
+    res = list(find(engine, table, _limit=1, **kw))
+    if not len(res):
+        return None
+    return res[0]
+
+def find(engine, table, _limit=None, _step=5000, _offset=0, 
+         order_by=None, **kw):
+
+    if order_by is None:
+        order_by = [table.c.id.asc()]
+
+    qargs = []
+    try:
+        for col, val in kw.items():
+            qargs.append(table.c[col]==val)
+    except KeyError:
+        return
+
+    for i in count():
+        qoffset = _offset + (_step * i)
+        qlimit = _step
+        if _limit is not None:
+            qlimit = min(_limit-(_step*i), _step)
+        if qlimit <= 0:
+            break
+        q = table.select(whereclause=and_(*qargs), limit=qlimit,
+                offset=qoffset, order_by=order_by)
+        rows = list(resultiter(engine.execute(q)))
+        if not len(rows):
+            return 
+        for row in rows:
+            yield row
+
 def distinct(engine, table, *columns):
     columns = [table.c[c] for c in columns]
     q = expression.select(columns, distinct=True)
-    return resultiter(engine.execute(q))
+    return list(resultiter(engine.execute(q)))
 
 def all(engine, table):
-    q = table.select()
-    return resultiter(engine.execute(q))
+    return find(engine, table)
 
 
 

@@ -1,17 +1,20 @@
 import logging
 from datetime import datetime
+from collections import defaultdict
 
 from sqlalchemy import create_engine
-from sqlalchemy import Integer, UnicodeText, Float, DateTime
+from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 from sqlalchemy.schema import Table, MetaData, Column
 from sqlalchemy.sql import and_, expression
 from migrate.versioning.util import construct_engine
 
 log = logging.getLogger(__name__)
 
+TABLES = defaultdict(dict)
+
 def connect(url):
     """ Create an engine for the given database URL. """
-    engine = create_engine(url)
+    engine = create_engine(url, pool_size=1)
     engine = construct_engine(engine)
     meta = MetaData()
     meta.bind = engine
@@ -24,20 +27,27 @@ def create_table(engine, table_name):
     col = Column('id', Integer, primary_key=True)
     table.append_column(col)
     table.create(engine)
+    TABLES[engine][table_name] = table
     return table
 
 def load_table(engine, table_name):
     log.debug("Loading table: %s on %r" % (table_name, engine))
-    return Table(table_name, engine._metadata, autoload=True)
+    table = Table(table_name, engine._metadata, autoload=True)
+    TABLES[engine][table_name] = table
+    return table
 
 def get_table(engine, table_name):
+    if table_name in TABLES[engine]:
+        return TABLES[engine][table_name]
     if engine.has_table(table_name):
         return load_table(engine, table_name)
     else:
         return create_table(engine, table_name)
 
 def _guess_type(sample):
-    if isinstance(sample, int):
+    if isinstance(sample, bool):
+        return Boolean
+    elif isinstance(sample, int):
         return Integer
     elif isinstance(sample, float):
         return Float
