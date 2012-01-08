@@ -28,6 +28,8 @@ def find(engine, table, _limit=None, _step=5000, _offset=0,
 
     if order_by is None:
         order_by = [table.c.id.asc()]
+    else:
+        order_by = [table.c[order_by].asc()]
 
     qargs = []
     try:
@@ -45,6 +47,7 @@ def find(engine, table, _limit=None, _step=5000, _offset=0,
             break
         q = table.select(whereclause=and_(*qargs), limit=qlimit,
                 offset=qoffset, order_by=order_by)
+        #print q
         rows = list(resultiter(engine.execute(q)))
         if not len(rows):
             return 
@@ -53,7 +56,8 @@ def find(engine, table, _limit=None, _step=5000, _offset=0,
 
 def distinct(engine, table, *columns):
     columns = [table.c[c] for c in columns]
-    q = expression.select(columns, distinct=True)
+    q = expression.select(columns, distinct=True, 
+            order_by=[c.asc() for c in columns])
     return list(resultiter(engine.execute(q)))
 
 def all(engine, table):
