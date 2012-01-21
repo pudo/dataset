@@ -14,7 +14,10 @@ TABLES = defaultdict(dict)
 
 def connect(url):
     """ Create an engine for the given database URL. """
-    engine = create_engine(url, pool_size=1)
+    kw = {}
+    if url.startswith('postgres'):
+        kw['pool_size'] = 1
+    engine = create_engine(url, **kw)
     engine = construct_engine(engine)
     meta = MetaData()
     meta.bind = engine
