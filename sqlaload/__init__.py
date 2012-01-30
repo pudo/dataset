@@ -6,3 +6,4 @@ from sqlaload.write import add_row, update_row
 from sqlaload.write import upsert, update
 from sqlaload.query import distinct, resultiter, all, find_one, find
 
+from sqlaload.util import dump_csv
