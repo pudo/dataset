@@ -40,12 +40,29 @@ def load_table(engine, table_name):
     return table
 
 def get_table(engine, table_name):
+    # Accept Connection objects here
+    if hasattr(engine, 'engine'):
+        engine = engine.engine
+
     if table_name in TABLES[engine]:
         return TABLES[engine][table_name]
     if engine.has_table(table_name):
         return load_table(engine, table_name)
     else:
         return create_table(engine, table_name)
+
+def drop_table(engine, table_name):
+    # Accept Connection objects here
+    if hasattr(engine, 'engine'):
+        engine = engine.engine
+    if table_name in TABLES[engine]:
+        table = TABLES[engine][table_name]
+    elif engine.has_table(table_name):
+        table = Table(table_name, engine._metadata)
+    else:
+        return
+    table.drop(engine)
+    TABLES[engine].pop(table_name, None)
 
 def _guess_type(sample):
     if isinstance(sample, bool):
