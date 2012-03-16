@@ -4,13 +4,14 @@ from collections import defaultdict
 
 from sqlalchemy import create_engine
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
-from sqlalchemy.schema import Table, MetaData, Column
+from sqlalchemy.schema import Table, MetaData, Column, Index
 from sqlalchemy.sql import and_, expression
 from migrate.versioning.util import construct_engine
 
 log = logging.getLogger(__name__)
 
 TABLES = defaultdict(dict)
+INDEXES = dict()
 
 def connect(url):
     """ Create an engine for the given database URL. """
@@ -96,4 +97,19 @@ def create_column(engine, table, name, type):
     if name not in table.columns.keys():
         col = Column(name, type)
         col.create(table, connection=engine)
+
+def create_index(engine, table, columns, name=None):
+    if not name:
+        sig = abs(hash('||'.join(columns)))
+        name = 'ix_%s_%s' % (table.name, sig)
+    if name in INDEXES:
+        return INDEXES[name]
+    try:
+        columns = [table.c[c] for c in columns]
+        idx = Index(name, *columns)
+        idx.create(engine)
+    except:
+        idx = None
+    INDEXES[name] = idx
+    return idx
 

@@ -1,6 +1,7 @@
 import logging
 
 from sqlaload.schema import _ensure_columns, _args_to_clause
+from sqlaload.schema import create_index
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +28,9 @@ def update_row(engine, table, row, unique, ensure=True, types={}):
         return False
 
 def upsert(engine, table, row, unique, ensure=True, types={}):
+    if ensure:
+        create_index(engine, table, unique)
+
     if not update_row(engine, table, row, unique, ensure=ensure, types=types):
         add_row(engine, table, row, ensure=ensure, types=types)
 
