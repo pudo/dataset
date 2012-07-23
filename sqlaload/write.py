@@ -42,3 +42,18 @@ def update(engine, table, criteria, values, ensure=True, types={}):
         q = q.where(table.c[column]==value)
     engine.execute(q)
 
+def delete(engine, table, **kw):
+    _ensure_columns(engine, table, kw)
+
+    qargs = []
+    try:
+        for col, val in kw.items():
+            qargs.append(table.c[col]==val)
+    except KeyError:
+        return
+
+    q = table.delete()
+    for k, v in kw.items():
+        q= q.where(table.c[k]==v)
+    engine.execute(q)
+
