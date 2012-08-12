@@ -18,8 +18,10 @@ INDEXES = dict()
 def connect(url):
     """ Create an engine for the given database URL. """
     kw = {}
-    #if url.startswith('postgres'):
-    #    kw['pool_size'] = 10
+    if url.startswith('postgres'):
+        #kw['pool_size'] = 5
+        from sqlalchemy.pool import NullPool
+        kw['poolclass'] = NullPool
     engine = create_engine(url, **kw)
     engine = construct_engine(engine)
     meta = MetaData()

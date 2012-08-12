@@ -54,6 +54,10 @@ def find(engine, table, _limit=None, _step=5000, _offset=0,
         for row in rows:
             yield row
 
+def query(engine, query):
+    for res in resultiter(engine.execute(query)):
+        yield res
+
 def distinct(engine, table, *columns):
     columns = [table.c[c] for c in columns]
     q = expression.select(columns, distinct=True, 
