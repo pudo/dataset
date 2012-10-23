@@ -24,7 +24,7 @@ def update_row(engine, table, row, unique, ensure=True, types={}):
         rp = engine.execute(stmt)
         return rp.rowcount > 0
     except KeyError, ke:
-        log.warn("UPDATE: filter column does not exist: %s" % ke)
+        log.warn("UPDATE: '%s' filter column does not exist: %s", table.name, ke)
         return False
 
 def upsert(engine, table, row, unique, ensure=True, types={}):
