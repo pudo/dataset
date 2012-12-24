@@ -22,7 +22,7 @@ def find_one(engine, table, **kw):
         return None
     return res[0]
 
-def find(engine, table, _limit=None, _step=5000, _offset=0, 
+def find(engine, table, _limit=None, _step=5000, _offset=0,
          order_by=None, **kw):
     _ensure_columns(engine, table, kw)
 
@@ -58,9 +58,18 @@ def query(engine, query):
     for res in resultiter(engine.execute(query)):
         yield res
 
-def distinct(engine, table, *columns):
+def distinct(engine, table, *columns, **kw):
     columns = [table.c[c] for c in columns]
-    q = expression.select(columns, distinct=True, 
+
+    qargs = []
+    try:
+        for col, val in kw.items():
+            qargs.append(table.c[col]==val)
+    except KeyError:
+        return
+
+    q = expression.select(columns, distinct=True,
+            whereclause=and_(*qargs),
             order_by=[c.asc() for c in columns])
     return list(resultiter(engine.execute(q)))
 
