@@ -59,14 +59,14 @@ def query(engine, query):
         yield res
 
 def distinct(engine, table, *columns, **kw):
-    columns = [table.c[c] for c in columns]
 
     qargs = []
     try:
+        columns = [table.c[c] for c in columns]
         for col, val in kw.items():
             qargs.append(table.c[col]==val)
     except KeyError:
-        return
+        return []
 
     q = expression.select(columns, distinct=True,
             whereclause=and_(*qargs),
