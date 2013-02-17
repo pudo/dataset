@@ -58,6 +58,6 @@ Feedback
 
 Please feel free create issues on the GitHub bug tracker at:
 
-* https://github.com/pudo/sqlaload/issues
+* https://github.com/okfn/sqlaload/issues
 
 
