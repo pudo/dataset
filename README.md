@@ -20,13 +20,15 @@ Example
 
 A typical use case for ``sqlaload`` may include code like this::
 
-    from sqlaload import connect, get_table, distinct, update
+```python
+from sqlaload import connect, get_table, distinct, update
     
-    engine = connect('sqlite:///customers.db')
-    table = get_table('customers')
-    for entry in distinct(engine, table, 'post_code', 'city')
-        lon, lat = geocode(entry['post_code'], entry['city'])
-        update(entry, {'lon': lon, 'lat': lat})
+engine = connect('sqlite:///customers.db')
+table = get_table(engine, 'customers')
+for entry in distinct(engine, table, 'post_code', 'city')
+    lon, lat = geocode(entry['post_code'], entry['city'])
+    update(entry, {'lon': lon, 'lat': lat})
+```
 
 In this example, we selected all distinct post codes and city names
 from an imaginary customers database, sent them through our 
@@ -36,19 +38,20 @@ geo information.
 Another example, updating data in a datastore, might look like 
 this::
 
-    from sqlaload import connect, get_table, upsert
+````python
+from sqlaload import connect, get_table, upsert
     
-    engine = connect('sqlite:///things.db')
-    table = get_table('data')
+engine = connect('sqlite:///things.db')
+table = get_table(engine, 'data')
     
-    for item in magic_data_source_that_produces_entries():
-        assert 'key1' in item
-        assert 'key2' in item
-        # this will either insert or update, depending on 
-        # whether an entry with the matching values for 
-        # 'key1' and 'key2' already exists:
-        upsert(engine, table, item, ['key1', 'key2'])
-
+for item in magic_data_source_that_produces_entries():
+    assert 'key1' in item
+    assert 'key2' in item
+    # this will either insert or update, depending on 
+    # whether an entry with the matching values for 
+    # 'key1' and 'key2' already exists:
+    upsert(engine, table, item, ['key1', 'key2'])
+```
 
 Feedback
 --------
