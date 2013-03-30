@@ -15,7 +15,7 @@ setup(
     keywords='sql sqlalchemy etl loading utility',
     author='Open Knowledge Foundation',
     author_email='info@okfn.org',
-    url='http://okfn.org',
+    url='http://github.com/okfn/sqlaload',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     namespace_packages=[],
