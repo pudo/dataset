@@ -1,10 +1,12 @@
 from setuptools import setup, find_packages
 
+long_desc = open('README.md', 'r').read()
+
 setup(
     name='sqlaload',
     version='0.2',
     description="Utility functions for using SQLAlchemy in ETL.",
-    long_description='',
+    long_description=long_desc,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
