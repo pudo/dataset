@@ -2,7 +2,7 @@ import logging
 from itertools import count
 
 from sqlalchemy.sql import expression, and_
-from sqlaload.schema import _ensure_columns
+from sqlaload.schema import _ensure_columns, get_table
 
 log = logging.getLogger(__name__)
 
@@ -17,19 +17,17 @@ def resultiter(rp):
         yield dict(zip(keys, row))
 
 def find_one(engine, table, **kw):
+    table = get_table(engine, table)
     res = list(find(engine, table, _limit=1, **kw))
     if not len(res):
         return None
     return res[0]
 
 def find(engine, table, _limit=None, _step=5000, _offset=0,
-         order_by=None, **kw):
+         order_by='id', **kw):
+    table = get_table(engine, table)
     _ensure_columns(engine, table, kw)
-
-    if order_by is None:
-        order_by = [table.c.id.asc()]
-    else:
-        order_by = [table.c[order_by].asc()]
+    order_by = [table.c[order_by].asc()]
 
     qargs = []
     try:
@@ -59,7 +57,7 @@ def query(engine, query):
         yield res
 
 def distinct(engine, table, *columns, **kw):
-
+    table = get_table(engine, table)
     qargs = []
     try:
         columns = [table.c[c] for c in columns]

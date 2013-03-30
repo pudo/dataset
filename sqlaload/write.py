@@ -1,7 +1,7 @@
 import logging
 
 from sqlaload.schema import _ensure_columns, _args_to_clause
-from sqlaload.schema import create_index
+from sqlaload.schema import create_index, get_table
 
 log = logging.getLogger(__name__)
 
@@ -9,6 +9,7 @@ def add_row(engine, table, row, ensure=True, types={}):
     """ Add a row (type: dict). If ``ensure`` is set, any of 
     the keys of the row are not table columns, they will be type
     guessed and created. """
+    table = get_table(engine, table)
     if ensure:
         _ensure_columns(engine, table, row, types=types)
     engine.execute(table.insert(row))
@@ -16,6 +17,7 @@ def add_row(engine, table, row, ensure=True, types={}):
 def update_row(engine, table, row, unique, ensure=True, types={}):
     if not len(unique):
         return False
+    table = get_table(engine, table)
     clause = dict([(u, row.get(u)) for u in unique])
     if ensure:
         _ensure_columns(engine, table, row, types=types)
@@ -28,6 +30,7 @@ def update_row(engine, table, row, unique, ensure=True, types={}):
         return False
 
 def upsert(engine, table, row, unique, ensure=True, types={}):
+    table = get_table(engine, table)
     if ensure:
         create_index(engine, table, unique)
 
@@ -35,6 +38,7 @@ def upsert(engine, table, row, unique, ensure=True, types={}):
         add_row(engine, table, row, ensure=ensure, types=types)
 
 def update(engine, table, criteria, values, ensure=True, types={}):
+    table = get_table(engine, table)
     if ensure:
         _ensure_columns(engine, table, values, types=types)
     q = table.update().values(values)
@@ -43,6 +47,7 @@ def update(engine, table, criteria, values, ensure=True, types={}):
     engine.execute(q)
 
 def delete(engine, table, **kw):
+    table = get_table(engine, table)
     _ensure_columns(engine, table, kw)
 
     qargs = []

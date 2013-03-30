@@ -46,6 +46,9 @@ def load_table(engine, table_name):
         return table
 
 def get_table(engine, table_name):
+    if isinstance(table_name, Table):
+        return table_name
+
     # Accept Connection objects here
     if hasattr(engine, 'engine'):
         engine = engine.engine
@@ -102,12 +105,14 @@ def _args_to_clause(table, args):
     return and_(*clauses)
 
 def create_column(engine, table, name, type):
+    table = get_table(engine, table)    
     with lock:
         if name not in table.columns.keys():
             col = Column(name, type)
             col.create(table, connection=engine)
 
 def create_index(engine, table, columns, name=None):
+    table = get_table(engine, table)    
     with lock:
         if not name:
             sig = abs(hash('||'.join(columns)))

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='sqlaload',
-    version='0.1',
+    version='0.2',
     description="Utility functions for using SQLAlchemy in ETL.",
     long_description='',
     classifiers=[
