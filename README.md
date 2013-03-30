@@ -14,6 +14,7 @@ include:
 * **Query helpers** for simple queries such as all rows in a table or
   all distinct values across a set of columns.
 
+****
 
 Examples
 --------
