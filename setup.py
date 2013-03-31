@@ -15,7 +15,7 @@ include:
 
 setup(
     name='sqlaload',
-    version='0.2.2',
+    version='0.2.3',
     description="Utility functions for using SQLAlchemy in ETL.",
     long_description=long_desc,
     classifiers=[
