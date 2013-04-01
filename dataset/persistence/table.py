@@ -82,6 +82,16 @@ class Table(object):
             self.insert(row, ensure=ensure, types=types)
 
     def delete(self, **kw):
+        """ Delete rows from the table. Keyword arguments can be used
+        to add column-based filters. The filter criterion will always
+        be equality:
+
+        .. code-block:: python
+
+            table.delete(place='Berlin')
+        
+        If no arguments are given, all records are deleted. 
+        """
         q = self._args_to_clause(kw)
         stmt = self.table.delete(q)
         self.database.engine.execute(stmt)
@@ -171,5 +181,8 @@ class Table(object):
         return self.database.query(q)
 
     def all(self):
+        """ Return all records in the table, ordered by their 
+        ``id``. This is an alias for calling ``find`` without
+        any arguments. """
         return self.find()
 
