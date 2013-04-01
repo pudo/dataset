@@ -9,6 +9,7 @@ from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy import Integer
 
 from dataset.persistence.table import Table
+from dataset.persistence.util import resultiter
 
 
 log = logging.getLogger(__name__)
@@ -27,7 +28,6 @@ class Database(object):
         self.metadata = MetaData()
         self.metadata.bind = self.engine
         self.tables = {}
-        self.indexes = {}
 
     def create_table(table_name):
         with self.lock:
@@ -58,9 +58,9 @@ class Database(object):
     def __getitem__(self, table_name):
         return self.get_table(table_name)
 
-    @classmethod
-    def connect(self, url):
-        return Database(url)
+    def query(self, query):
+        for res in resultiter(self.engine.execute(query)):
+            yield res
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
