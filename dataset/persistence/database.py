@@ -27,7 +27,13 @@ class Database(object):
         self.engine = construct_engine(engine)
         self.metadata = MetaData()
         self.metadata.bind = self.engine
-        self.tables = {}
+        self.metadata.reflect(self.engine)
+        self._tables = {}
+
+    @property
+    def tables(self):
+        """ Get a listing of all tables that exist in the database. """
+        return self.metadata.tables.keys()
 
     def create_table(self, table_name):
         """ Creates a new table. Returns a :py:class:`dataset.Table` instance."""
@@ -37,7 +43,7 @@ class Database(object):
             col = Column('id', Integer, primary_key=True)
             table.append_column(col)
             table.create(self.engine)
-            self.tables[table_name] = table
+            self._tables[table_name] = table
             return Table(self, table)
 
     def load_table(self, table_name):
@@ -45,7 +51,7 @@ class Database(object):
         with self.lock:
             log.debug("Loading table: %s on %r" % (table_name, self))
             table = SQLATable(table_name, self.metadata, autoload=True)
-            self.tables[table_name] = table
+            self._tables[table_name] = table
             return Table(self, table)
 
     def get_table(self, table_name):
@@ -53,8 +59,8 @@ class Database(object):
         Returns a :py:class:`dataset.Table` instance. Alternatively to *get_table*
         you can also get tables using the dict syntax."""
         with self.lock:
-            if table_name in self.tables:
-                return Table(self, self.tables[table_name])
+            if table_name in self._tables:
+                return Table(self, self._tables[table_name])
             if self.engine.has_table(table_name):
                 return self.load_table(table_name)
             else:

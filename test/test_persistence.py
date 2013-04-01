@@ -12,6 +12,9 @@ class DatabaseTestCase(unittest.TestCase):
         for row in TEST_DATA:
             self.tbl.insert(row)
 
+    def test_tables(self):
+        assert self.db.tables==['weather'], self.db.tables
+
     def test_create_table(self):
         table = self.db['foo']
         assert table.table.exists()
