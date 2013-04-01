@@ -2,19 +2,11 @@ import logging
 from itertools import count
 
 from sqlalchemy.sql import expression, and_
-from sqlaload.schema import _ensure_columns, get_table
+from dataset.schema import _ensure_columns, get_table
+from dataset.persistence.util import resultiter
 
 log = logging.getLogger(__name__)
 
-def resultiter(rp):
-    """ SQLAlchemy ResultProxies are not iterable to get a 
-    list of dictionaries. This is to wrap them. """
-    keys = rp.keys()
-    while True:
-        row = rp.fetchone()
-        if row is None:
-            break
-        yield dict(zip(keys, row))
 
 def find_one(engine, table, **kw):
     table = get_table(engine, table)

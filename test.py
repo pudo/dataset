@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from sqlaload import *
+from dataset import *
 
 TEST_DATA = [
     {
