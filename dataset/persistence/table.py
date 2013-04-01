@@ -23,7 +23,7 @@ class Table(object):
             self.table.drop(engine)
 
     def insert(self, row, ensure=True, types={}):
-        """ Add a row (type: dict). If ``ensure`` is set, any of 
+        """ Add a row (type: dict). If ``ensure`` is set, any of
         the keys of the row are not table columns, they will be type
         guessed and created. """
         if ensure:
