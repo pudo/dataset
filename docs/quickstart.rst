@@ -1,6 +1,6 @@
 
-Quick-start
-===========
+Quickstart
+==========
 
 
 .. toctree::
@@ -8,7 +8,7 @@ Quick-start
 
 Hi, welcome to the five-minute quick-start tutorial.
 
-At first you need to import the package :).::
+At first you need to import the dataset package :) ::
 
    import dataset
 
@@ -73,3 +73,18 @@ Searching for specific entries::
 
    # Returns all items
    table.find(country='China')
+
+Querying data
+-------------
+
+Querying data is easy. Dataset returns an iteratable result object::
+
+   result = db.query('SELECT ...')
+   for row in result:
+      print row
+
+Freezing your data
+------------------
+
+
+
