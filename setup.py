@@ -14,9 +14,9 @@ include:
   all distinct values across a set of columns."""
 
 setup(
-    name='sqlaload',
-    version='0.2.3',
-    description="Utility functions for using SQLAlchemy in ETL.",
+    name='dataset',
+    version='0.3',
+    description="Toolkit for Python-based data processing.",
     long_description=long_desc,
     classifiers=[
         "Development Status :: 3 - Alpha",
