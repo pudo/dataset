@@ -18,19 +18,49 @@ class Table(object):
         self.table = table
 
     def drop(self):
+        """ Drop the table from the database, deleting both the schema 
+        and all the contents within it.
+        
+        Note: the object will be in an unusable state after using this
+        command and should not be used again. If you want to re-create
+        the table, make sure to get a fresh instance from the
+        :py:class:`dataset.Database`. """
         with self.database.lock:
             self.database.tables.pop(self.table.name, None)
             self.table.drop(engine)
 
     def insert(self, row, ensure=True, types={}):
-        """ Add a row (type: dict). If ``ensure`` is set, any of 
-        the keys of the row are not table columns, they will be type
-        guessed and created. """
+        """ Add a row (type: dict) by inserting it into the database.
+        If ``ensure`` is set, any of the keys of the row are not
+        table columns, they will be created automatically. 
+        
+        During column creation, ``types`` will be checked for a key
+        matching the name of a column to be created, and the given 
+        SQLAlchemy column type will be used. Otherwise, the type is
+        guessed from the row's value, defaulting to a simple unicode
+        field. """
         if ensure:
             self._ensure_columns(row, types=types)
         self.database.engine.execute(self.table.insert(row))
 
     def update(self, row, unique, ensure=True, types={}):
+        """ Update a row in the database. The update is managed via
+        the set of column names stated in ``unique``: they will be 
+        used as filters for the data to be updated, using the values
+        in ``row``. Example:
+
+        .. code-block:: python
+
+            data = dict(id=10, title='I am a banana!')
+            table.update(data, ['id'])
+
+        This will update all entries matching the given ``id``, setting
+        their ``title`` column.
+
+        If keys in ``row`` update columns not present in the table, 
+        they will be created based on the settings of ``ensure`` and 
+        ``types``, matching the behaviour of ``insert``.
+        """
         if not len(unique):
             return False
         clause = [(u, row.get(u)) for u in unique]
