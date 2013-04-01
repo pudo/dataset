@@ -59,8 +59,7 @@ class Database(object):
         return self.get_table(table_name)
 
     def query(self, query):
-        for res in resultiter(self.engine.execute(query)):
-            yield res
+        return resultiter(self.engine.execute(query)):
 
     def __repr__(self):
         return '<Database(%s)>' % self.url

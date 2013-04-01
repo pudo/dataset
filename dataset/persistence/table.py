@@ -4,7 +4,7 @@ from itertools import count
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
 
-from dataset.persistence.util import guess_type, resultiter
+from dataset.persistence.util import guess_type
 
 
 log = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ class Table(object):
                 break
             q = self.table.select(whereclause=args, limit=qlimit,
                     offset=qoffset, order_by=order_by)
-            rows = list(resultiter(self.database.engine.execute(q)))
+            rows = list(self.database.query(q))
             if not len(rows):
                 return 
             for row in rows:
@@ -134,7 +134,7 @@ class Table(object):
         q = expression.select(columns, distinct=True,
                 whereclause=and_(*qargs),
                 order_by=[c.asc() for c in columns])
-        return resultiter(self.database.engine.execute(q))
+        return self.database.query(q)
 
     def all(self):
         return self.find()
