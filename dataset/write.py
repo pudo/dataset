@@ -1,7 +1,7 @@
 import logging
 
-from sqlaload.schema import _ensure_columns, _args_to_clause
-from sqlaload.schema import create_index, get_table
+from dataset.schema import _ensure_columns, _args_to_clause
+from dataset.schema import create_index, get_table
 
 log = logging.getLogger(__name__)
 
