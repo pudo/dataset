@@ -33,7 +33,7 @@ class Database(object):
     @property
     def tables(self):
         """ Get a listing of all tables that exist in the database. """
-        return set(self.metadata.tables.keys() + self.tables.keys())
+        return set(self.metadata.tables.keys() + self._tables.keys())
 
     def create_table(self, table_name):
         """ Creates a new table. The new table will automatically have
