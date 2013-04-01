@@ -44,6 +44,49 @@ class TableTestCase(unittest.TestCase):
             )
         assert len(self.tbl)==len(TEST_DATA)+1, len(self.tbl)
 
+    def test_upsert(self):
+        self.tbl.upsert({
+            'date': datetime(2011, 01, 02),
+            'temperature': -10,
+            'place': 'Berlin'},
+            ['place']
+            )
+        assert len(self.tbl)==len(TEST_DATA)+1, len(self.tbl)
+        self.tbl.upsert({
+            'date': datetime(2011, 01, 02),
+            'temperature': -10,
+            'place': 'Berlin'},
+            ['place']
+            )
+        assert len(self.tbl)==len(TEST_DATA)+1, len(self.tbl)
+
+    def test_delete(self):
+        self.tbl.insert({
+            'date': datetime(2011, 01, 02),
+            'temperature': -10,
+            'place': 'Berlin'}
+            )
+        assert len(self.tbl)==len(TEST_DATA)+1, len(self.tbl)
+        self.tbl.delete(place='Berlin')
+        assert len(self.tbl)==len(TEST_DATA), len(self.tbl)
+
+    def test_find_one(self):
+        self.tbl.insert({
+            'date': datetime(2011, 01, 02),
+            'temperature': -10,
+            'place': 'Berlin'}
+            )
+        d = self.tbl.find_one(place='Berlin')
+        assert d['temperature']==-10, d
+        d = self.tbl.find_one(place='Atlantis')
+        assert d is None, d
+
+    def test_find(self):
+        ds = list(self.tbl.find(place='Berkeley'))
+        assert len(ds)==3, ds
+        ds = list(self.tbl.find(place='Berkeley', _limit=2))
+        assert len(ds)==2, ds
+
     def test_distinct(self):
         x = list(self.tbl.distinct('place'))
         assert len(x)==2, x

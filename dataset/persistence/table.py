@@ -53,7 +53,8 @@ class Table(object):
 
     def delete(self, **kw):
         q = self._args_to_clause(kw)
-        self.database.engine.execute(q)
+        stmt = self.table.delete(q)
+        self.database.engine.execute(stmt)
 
     def _ensure_columns(self, row, types={}):
         for column in set(row.keys()) - set(self.table.columns.keys()):
@@ -66,7 +67,7 @@ class Table(object):
             self.create_column(column, _type)
 
     def _args_to_clause(self, args):
-        self._ensure_columns(kw)
+        self._ensure_columns(args)
         clauses = []
         for k, v in args.items():
             clauses.append(self.table.c[k] == v)
@@ -95,16 +96,15 @@ class Table(object):
             self.indexes[name] = idx
             return idx
 
-    def find_one(**kw):
-        res = list(self.find(self.database.engine,
-            self.table, _limit=1, **kw))
+    def find_one(self, **kw):
+        res = list(self.find(_limit=1, **kw))
         if not len(res):
             return None
         return res[0]
 
-    def find(engine, _limit=None, _step=5000, _offset=0,
+    def find(self, _limit=None, _step=5000, _offset=0,
              order_by='id', **kw):
-        order_by = [table.c[order_by].asc()]
+        order_by = [self.table.c[order_by].asc()]
         args = self._args_to_clause(kw)
 
         for i in count():
