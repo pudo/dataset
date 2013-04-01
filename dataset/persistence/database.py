@@ -29,7 +29,7 @@ class Database(object):
         self.metadata.bind = self.engine
         self.tables = {}
 
-    def create_table(table_name):
+    def create_table(self, table_name):
         with self.lock:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
@@ -51,15 +51,15 @@ class Database(object):
             if table_name in self.tables:
                 return Table(self, self.tables[table_name])
             if self.engine.has_table(table_name):
-                return load_table(engine, table_name)
+                return self.load_table(table_name)
             else:
-                return create_table(engine, table_name)
+                return self.create_table(table_name)
 
     def __getitem__(self, table_name):
         return self.get_table(table_name)
 
     def query(self, query):
-        return resultiter(self.engine.execute(query)):
+        return resultiter(self.engine.execute(query))
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
