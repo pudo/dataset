@@ -1,32 +1,13 @@
 import logging
 from datetime import datetime
 from collections import defaultdict
-from threading import RLock
 
-from sqlalchemy import create_engine
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 from sqlalchemy.schema import Table, MetaData, Column, Index
 from sqlalchemy.sql import and_, expression
-from migrate.versioning.util import construct_engine
 
 log = logging.getLogger(__name__)
-lock = RLock()
 
-def connect(url):
-    """ Create an engine for the given database URL. """
-    kw = {}
-    if url.startswith('postgres'):
-        #kw['pool_size'] = 5
-        from sqlalchemy.pool import NullPool
-        kw['poolclass'] = NullPool
-    engine = create_engine(url, **kw)
-    engine = construct_engine(engine)
-    meta = MetaData()
-    meta.bind = engine
-    engine._metadata = meta
-    engine._tables = dict()
-    engine._indexes = dict()
-    return engine
 
 def create_table(engine, table_name):
     with lock:
