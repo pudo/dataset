@@ -122,6 +122,10 @@ class Table(object):
             for row in rows:
                 yield row
 
+    def __len__(self):
+        d = self.database.query(self.table.count()).next()
+        return d.values().pop()
+
     def distinct(self, *columns, **kw):
         qargs = []
         try:

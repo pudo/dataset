@@ -27,6 +27,30 @@ class DatabaseTestCase(unittest.TestCase):
         assert r['num']==len(TEST_DATA), r
 
 
+class TableTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.db = connect('sqlite:///:memory:')
+        self.tbl = self.db['weather']
+        for row in TEST_DATA:
+            self.tbl.insert(row)
+
+    def test_insert(self):
+        assert len(self.tbl)==len(TEST_DATA), len(self.tbl)
+        self.tbl.insert({
+            'date': datetime(2011, 01, 02),
+            'temperature': -10,
+            'place': 'Berlin'}
+            )
+        assert len(self.tbl)==len(TEST_DATA)+1, len(self.tbl)
+
+    def test_distinct(self):
+        x = list(self.tbl.distinct('place'))
+        assert len(x)==2, x
+        x = list(self.tbl.distinct('place', 'date'))
+        assert len(x)==6, x
+
+
 
 if __name__ == '__main__':
     unittest.main()
