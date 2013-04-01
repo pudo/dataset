@@ -33,13 +33,13 @@ class Database(object):
     @property
     def tables(self):
         """ Get a listing of all tables that exist in the database. """
-        return set(self.metadata.tables.keys() + seld.tables.keys())
+        return set(self.metadata.tables.keys() + self._tables.keys())
 
     def create_table(self, table_name):
         """ Creates a new table. The new table will automatically have
         an `id` column, which is set to be an auto-incrementing integer
         as the primary key of the table.
-        
+
         Returns a :py:class:`dataset.Table` instance."""
         with self.lock:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
@@ -55,7 +55,7 @@ class Database(object):
         exist in the database. If the table exists, its columns will be
         reflected and are available on the :py:class:`dataset.Table`
         object.
-        
+
         Returns a :py:class:`dataset.Table` instance."""
         with self.lock:
             log.debug("Loading table: %s on %r" % (table_name, self))
@@ -82,7 +82,7 @@ class Database(object):
         """ Run a statement on the database directly, allowing for the
         execution of arbitrary read/write queries. A query can either be
         a plain text string, or a SQLAlchemy expression. The returned
-        iterator will yield each result sequentially. 
+        iterator will yield each result sequentially.
 
         .. code-block:: python
 
@@ -94,4 +94,3 @@ class Database(object):
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
-
