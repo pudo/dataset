@@ -1,10 +1,10 @@
-from sqlaload.schema import connect
-from sqlaload.schema import create_table, load_table, get_table, drop_table
-from sqlaload.schema import create_column
-from sqlaload.write import add_row, update_row
-from sqlaload.write import upsert, update, delete
-from sqlaload.query import distinct, resultiter, all, find_one, find, query
-from sqlaload.db import create
+from dataset.schema import connect
+from dataset.schema import create_table, load_table, get_table, drop_table
+from dataset.schema import create_column
+from dataset.write import add_row, update_row
+from dataset.write import upsert, update, delete
+from dataset.query import distinct, resultiter, all, find_one, find, query
+from dataset.db import create
 
 # shut up useless SA warning:
 import warnings
