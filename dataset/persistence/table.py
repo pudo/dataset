@@ -56,7 +56,7 @@ class Table(object):
         self.database.engine.execute(q)
 
     def _ensure_columns(self, row, types={}):
-        for column in set(row.keys()) - set(self.columns.keys()):
+        for column in set(row.keys()) - set(self.table.columns.keys()):
             if column in types:
                 _type = types[column]
             else:
