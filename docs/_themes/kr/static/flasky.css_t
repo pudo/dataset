@@ -16,7 +16,7 @@
 body {
     font-family: 'goudy old style', 'minion pro', 'bell mt', Georgia, 'Hiragino Mincho Pro';
     font-size: 17px;
-    background-color: white;
+    background-color: whitesmoke;
     color: #000;
     margin: 0;
     padding: 0;
@@ -45,7 +45,7 @@ hr {
 }
 
 div.body {
-    background-color: #ffffff;
+    background-color: whitesmoke;
     color: #3E4349;
     padding: 0 30px 0 30px;
 }
