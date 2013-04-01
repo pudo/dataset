@@ -1,23 +1,10 @@
 from setuptools import setup, find_packages
 
-long_desc = """A collection of wrappers and functions to make SQLAlchemy core easier 
-to use in ETL applications. SQLAlchemy is used only for database
-abstraction and not as an ORM, allowing users to write extraction
-scripts that can work with multiple database backends. Functions
-include:
-
-* **Automatic schema**. If a column is written that does not
-  exist on the table, it will be created automatically.
-* **Upserts**. Records are either created or updated, depdending on
-  whether an existing version can be found.
-* **Query helpers** for simple queries such as all rows in a table or
-  all distinct values across a set of columns."""
-
 setup(
     name='dataset',
     version='0.3',
     description="Toolkit for Python-based data processing.",
-    long_description=long_desc,
+    long_description="",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -26,9 +13,9 @@ setup(
         "Programming Language :: Python",
         ],
     keywords='sql sqlalchemy etl loading utility',
-    author='Open Knowledge Foundation',
+    author='Friedrich Lindenberg, Gregor Aisch, OKFN'
     author_email='info@okfn.org',
-    url='http://github.com/okfn/sqlaload',
+    url='http://github.com/pudo/dataset',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     namespace_packages=[],
