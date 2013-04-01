@@ -30,6 +30,7 @@ class Database(object):
         self.tables = {}
 
     def create_table(self, table_name):
+        """ Creates a new table. Returns a :py:class:`dataset.Table` instance."""
         with self.lock:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
@@ -40,6 +41,7 @@ class Database(object):
             return Table(self, table)
 
     def load_table(self, table_name):
+        """ Loads a table. Returns a :py:class:`dataset.Table` instance."""
         with self.lock:
             log.debug("Loading table: %s on %r" % (table_name, self))
             table = SQLATable(table_name, self.metadata, autoload=True)
@@ -47,6 +49,9 @@ class Database(object):
             return Table(self, table)
 
     def get_table(self, table_name):
+        """ Loads a table or creates it if it doesn't exist yet.
+        Returns a :py:class:`dataset.Table` instance. Alternatively to *get_table*
+        you can also get tables using the dict syntax."""
         with self.lock:
             if table_name in self.tables:
                 return Table(self, self.tables[table_name])
@@ -59,6 +64,14 @@ class Database(object):
         return self.get_table(table_name)
 
     def query(self, query):
+        """ Performs SQL queries on the database. You can iterate over the result.
+
+        .. code-block:: python
+
+            result = db.query('SELECT * FROM population WHERE population > 10000000')
+            for row in result:
+                print row
+        """
         return resultiter(self.engine.execute(query))
 
     def __repr__(self):
