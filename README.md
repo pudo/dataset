@@ -45,6 +45,19 @@ Another example, updating data in a datastore, might look like this:
     	upsert(engine, table, item, ['key1', 'key2'])
 
 
+Here's the same example, but using the object-oriented API:
+
+    import sqlaload
+
+    db = sqlaload.create('sqlite:///things.db')
+    table = db.get_table('data')
+
+    for item in magic_data_source_that_produces_entries():
+        assert 'key1' in item
+        assert 'key2' in item
+        table.upsert(item, ['key1', 'key2'])
+
+
 Functions
 ---------
 
@@ -72,6 +85,7 @@ The library currently exposes the following functions:
 * ``update_row(engine, table, row, unique, ensure=True, types={})`` will update a row or set of rows based on the data in the ``row`` dictionary and the column names specified in ``unique``. The remaining arguments are handled like those in ``add_row``. 
 * ``upsert(engine, table, row, unique, ensure=True, types={})`` will combine the semantics of ``update_row`` and ``add_row`` by first attempting to update existing data and otherwise (only if no record matching on the ``unique`` keys can be found) creating a new record.
 * ``delete(engine, table, **kw)`` will remove records from a table. ``**kw`` is the same as in ``find`` and can be used to limit the set of records to be removed.
+
 
 
 Feedback
