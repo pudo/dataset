@@ -1,3 +1,5 @@
 *.pyc
 *.egg-info
 dist/*
+.DS_Store
+.watchr
