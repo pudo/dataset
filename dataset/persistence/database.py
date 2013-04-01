@@ -33,10 +33,14 @@ class Database(object):
     @property
     def tables(self):
         """ Get a listing of all tables that exist in the database. """
-        return self.metadata.tables.keys()
+        return set(self.metadata.tables.keys() + seld.tables.keys())
 
     def create_table(self, table_name):
-        """ Creates a new table. Returns a :py:class:`dataset.Table` instance."""
+        """ Creates a new table. The new table will automatically have
+        an `id` column, which is set to be an auto-incrementing integer
+        as the primary key of the table.
+        
+        Returns a :py:class:`dataset.Table` instance."""
         with self.lock:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
@@ -47,7 +51,12 @@ class Database(object):
             return Table(self, table)
 
     def load_table(self, table_name):
-        """ Loads a table. Returns a :py:class:`dataset.Table` instance."""
+        """ Loads a table. This will fail if the tables does not already
+        exist in the database. If the table exists, its columns will be
+        reflected and are available on the :py:class:`dataset.Table`
+        object.
+        
+        Returns a :py:class:`dataset.Table` instance."""
         with self.lock:
             log.debug("Loading table: %s on %r" % (table_name, self))
             table = SQLATable(table_name, self.metadata, autoload=True)
@@ -70,7 +79,10 @@ class Database(object):
         return self.get_table(table_name)
 
     def query(self, query):
-        """ Performs SQL queries on the database. You can iterate over the result.
+        """ Run a statement on the database directly, allowing for the
+        execution of arbitrary read/write queries. A query can either be
+        a plain text string, or a SQLAlchemy expression. The returned
+        iterator will yield each result sequentially. 
 
         .. code-block:: python
 
