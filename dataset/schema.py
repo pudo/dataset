@@ -9,64 +9,9 @@ from sqlalchemy.sql import and_, expression
 log = logging.getLogger(__name__)
 
 
-def create_table(engine, table_name):
-    with lock:
-        log.debug("Creating table: %s on %r" % (table_name, engine))
-        table = Table(table_name, engine._metadata)
-        col = Column('id', Integer, primary_key=True)
-        table.append_column(col)
-        table.create(engine)
-        engine._tables[table_name] = table
-        return table
 
-def load_table(engine, table_name):
-    with lock:
-        log.debug("Loading table: %s on %r" % (table_name, engine))
-        table = Table(table_name, engine._metadata, autoload=True)
-        engine._tables[table_name] = table
-        return table
 
-def get_table(engine, table_name):
-    if isinstance(table_name, Table):
-        return table_name
 
-    # Accept Connection objects here
-    if hasattr(engine, 'engine'):
-        engine = engine.engine
-    
-    with lock:
-        if table_name in engine._tables:
-            return engine._tables[table_name]
-        if engine.has_table(table_name):
-            return load_table(engine, table_name)
-        else:
-            return create_table(engine, table_name)
-
-def drop_table(engine, table_name):
-    # Accept Connection objects here
-    if hasattr(engine, 'engine'):
-        engine = engine.engine
-
-    with lock:
-        if table_name in engine._tables:
-            table = engine._tables[table_name]
-        elif engine.has_table(table_name):
-            table = Table(table_name, engine._metadata)
-        else:
-            return
-        table.drop(engine)
-        engine._tables.pop(table_name, None)
-
-def _guess_type(sample):
-    if isinstance(sample, bool):
-        return Boolean
-    elif isinstance(sample, int):
-        return Integer
-    elif isinstance(sample, float):
-        return Float
-    elif isinstance(sample, datetime):
-        return DateTime
-    return UnicodeText
 
 def _ensure_columns(engine, table, row, types={}):
     columns = set(row.keys()) - set(table.columns.keys())
