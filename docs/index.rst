@@ -6,7 +6,6 @@
 dataset: databases for humans
 =============================
 
-dataset is a ETL
 Getting the databases out of your data's way::
 
    import dataset
@@ -28,9 +27,8 @@ Features include:
 
 Next steps:
 
-`Learn how to use dataset in five minutes <quickstart>`_
-
-`Browse the complete API docs <api>`_
+* Quickstart: `Learn how to use dataset in five minutes <quickstart>`_
+* API: `Browse the complete API docs <api>`_
 
 
 
