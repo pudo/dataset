@@ -142,6 +142,12 @@ class Table(object):
             return None
         return res[0]
 
+    def _args_to_order_by(self, order_by):
+        if order_by[0] == '-':
+            return self.table.c[order_by[1:]].desc()
+        else:
+            return self.table.c[order_by].asc()
+
     def find(self, _limit=None, _step=5000, _offset=0,
              order_by='id', **filter):
         """Performs a simple search on the table.
@@ -151,11 +157,16 @@ class Table(object):
             results = table.find(country='France', year=1980)
             # just return the first 10 rows
             results = table.find(country='France', _limit=10)
-            # sort results by a column
+            # sort results by a column 'year'
             results = table.find(country='France', order_by='year')
+            # return all rows sorted by multiple columns (by year in descending order)
+            results = table.find(order_by=['country', '-year'])
 
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>` instead."""
-        order_by = [self.table.c[order_by].asc()]
+        if isinstance(order_by, (str, unicode)):
+            order_by = [order_by]
+        order_by = [self._args_to_order_by(o) for o in order_by]
+
         args = self._args_to_clause(filter)
 
         for i in count():
