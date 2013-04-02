@@ -38,7 +38,11 @@ class Table(object):
         matching the name of a column to be created, and the given
         SQLAlchemy column type will be used. Otherwise, the type is
         guessed from the row's value, defaulting to a simple unicode
-        field. """
+        field.
+        ::
+            data = dict(id=10, title='I am a banana!')
+            table.insert(data, ['id'])
+        """
         if ensure:
             self._ensure_columns(row, types=types)
         self.database.engine.execute(self.table.insert(row))
@@ -133,7 +137,7 @@ class Table(object):
             return idx
 
     def find_one(self, **filter):
-        """Works just like :py:meth:`find() <dataset.Table.find>` but returns only the first result.
+        """Works just like :py:meth:`find() <dataset.Table.find>` but returns only one result.
         ::
             row = table.find_one(country='United States')
         """
@@ -157,6 +161,9 @@ class Table(object):
             results = table.find(country='France', year=1980)
             # just return the first 10 rows
             results = table.find(country='France', _limit=10)
+
+        You can sort the results by single or multiple columns. For descending order
+        please append a minus sign to the column name::
             # sort results by a column 'year'
             results = table.find(country='France', order_by='year')
             # return all rows sorted by multiple columns (by year in descending order)

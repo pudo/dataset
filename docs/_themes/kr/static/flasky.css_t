@@ -350,13 +350,13 @@ pre {
 }
 
 dl pre, blockquote pre, li pre {
-    margin-left: -60px;
-    padding-left: 60px;
+    margin-left: 0px;
+    padding-left: 15px;
 }
 
 dl dl pre {
-    margin-left: -90px;
-    padding-left: 90px;
+    margin-left: 0px;
+    padding-left: 15px;
 }
 
 tt {
