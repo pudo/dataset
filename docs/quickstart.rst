@@ -69,14 +69,14 @@ Searching for specific entries::
    # Returns all items
    table.find(country='China')
 
-Querying data
--------------
+Running custom SQL queries
+--------------------------
 
-Querying data is easy. Dataset returns an iteratable result object::
+Of course the main reason you're using a database is that you want to use the full power of SQL queries. Here's how you run them using dataset::
 
-   result = db.query('SELECT ...')
-   for row in result:
-      print row
+   result = db.query('SELECT country, COUNT(*) cnt FROM population GROUP BY year')
+   for row in res:
+      print row.country, row.cnt
 
 Freezing your data
 ------------------
