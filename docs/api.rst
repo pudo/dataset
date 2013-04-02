@@ -8,12 +8,13 @@ Database
 --------
 
 .. autoclass:: dataset.Database
-   :members: get_table, create_table, load_table, query
-   :undoc-members:
+   :members: get_table, create_table, load_table, query, tables
+   :special-members:
+
 
 Table
 -----
 
 .. autoclass:: dataset.Table
-   :members:
-   :undoc-members:
+   :members: columns, drop, insert, update, upsert, find, find_one, distinct, create_column, create_index, all
+   :special-members:

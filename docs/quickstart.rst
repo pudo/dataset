@@ -74,9 +74,9 @@ Running custom SQL queries
 
 Of course the main reason you're using a database is that you want to use the full power of SQL queries. Here's how you run them using dataset::
 
-   result = db.query('SELECT country, COUNT(*) cnt FROM population GROUP BY year')
-   for row in res:
-      print row.country, row.cnt
+   result = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user ORDER BY c DESC')
+   for row in result:
+      print row['user'], row['c']
 
 Freezing your data
 ------------------

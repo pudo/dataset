@@ -17,20 +17,28 @@ class Table(object):
         self.database = database
         self.table = table
 
+    @property
+    def columns(self):
+        """ Get a listing of all columns that exist in the table. """
+        return set(self.table.columns.keys())
+
     def drop(self):
-        """ Drop the table from the database, deleting both the schema
+        """
+        Drop the table from the database, deleting both the schema
         and all the contents within it.
 
         Note: the object will be in an unusable state after using this
         command and should not be used again. If you want to re-create
         the table, make sure to get a fresh instance from the
-        :py:class:`Database <dataset.Database>`. """
+        :py:class:`Database <dataset.Database>`.
+        """
         with self.database.lock:
             self.database.tables.pop(self.table.name, None)
             self.table.drop(engine)
 
     def insert(self, row, ensure=True, types={}):
-        """ Add a row (type: dict) by inserting it into the table.
+        """
+        Add a row (type: dict) by inserting it into the table.
         If ``ensure`` is set, any of the keys of the row are not
         table columns, they will be created automatically.
 
@@ -40,6 +48,7 @@ class Table(object):
         guessed from the row's value, defaulting to a simple unicode
         field.
         ::
+
             data = dict(id=10, title='I am a banana!')
             table.insert(data, ['id'])
         """
@@ -48,11 +57,13 @@ class Table(object):
         self.database.engine.execute(self.table.insert(row))
 
     def update(self, row, keys, ensure=True, types={}):
-        """ Update a row in the table. The update is managed via
+        """
+        Update a row in the table. The update is managed via
         the set of column names stated in ``keys``: they will be
         used as filters for the data to be updated, using the values
         in ``row``.
         ::
+
             # update all entries with id matching 10, setting their title columns
             data = dict(id=10, title='I am a banana!')
             table.update(data, ['id'])
@@ -75,9 +86,11 @@ class Table(object):
             return False
 
     def upsert(self, row, keys, ensure=True, types={}):
-        """An UPSERT is a smart combination of insert and update. If rows with matching ``keys`` exist
+        """
+        An UPSERT is a smart combination of insert and update. If rows with matching ``keys`` exist
         they will be updated, otherwise a new row is inserted in the table.
         ::
+
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
@@ -88,8 +101,10 @@ class Table(object):
             self.insert(row, ensure=ensure, types=types)
 
     def delete(self, **filter):
-        """Delete rows matching the ``filter`` arguments.
+        """
+        Delete rows matching the ``filter`` arguments.
         ::
+
             table.delete(year=2010)
         """
         q = self._args_to_clause(filter)
@@ -137,8 +152,10 @@ class Table(object):
             return idx
 
     def find_one(self, **filter):
-        """Works just like :py:meth:`find() <dataset.Table.find>` but returns only one result.
+        """
+        Works just like :py:meth:`find() <dataset.Table.find>` but returns only one result.
         ::
+
             row = table.find_one(country='United States')
         """
         res = list(self.find(_limit=1, **filter))
@@ -154,17 +171,21 @@ class Table(object):
 
     def find(self, _limit=None, _offset=0, _step=5000,
              order_by='id', **filter):
-        """Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
+        """
+        Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
         ::
+
             results = table.find(country='France')
             results = table.find(country='France', year=1980)
 
-        Using 
+        Using ``_limit``::
+
             # just return the first 10 rows
             results = table.find(country='France', _limit=10)
 
         You can sort the results by single or multiple columns. Append a minus sign
         to the column name for descending order::
+
             # sort results by a column 'year'
             results = table.find(country='France', order_by='year')
             # return all rows sorted by multiple columns (by year in descending order)
@@ -197,9 +218,11 @@ class Table(object):
         return d.values().pop()
 
     def distinct(self, *columns, **filter):
-        """Returns all rows of a table, but removes rows in with duplicate values in ``columns`.
+        """
+        Returns all rows of a table, but removes rows in with duplicate values in ``columns``.
         Interally this creates a `DISTINCT statement <http://www.w3schools.com/sql/sql_distinct.asp>`_.
         ::
+
             # returns only one row per year, ignoring the rest
             table.distinct('year')
             # works with multiple columns, too
@@ -221,8 +244,10 @@ class Table(object):
         return self.database.query(q)
 
     def all(self):
-        """Returns all rows of the table as simple dictionaries. This is simply a shortcut
+        """
+        Returns all rows of the table as simple dictionaries. This is simply a shortcut
         to *find()* called with no arguments.
         ::
+
             rows = table.all()"""
         return self.find()
