@@ -40,7 +40,10 @@ class Database(object):
         an `id` column, which is set to be an auto-incrementing integer
         as the primary key of the table.
 
-        Returns a :py:class:`dataset.Table` instance."""
+        Returns a :py:class:`Table <dataset.Table>` instance.
+        ::
+            table = db.create_table('population')
+        """
         with self.lock:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
@@ -53,10 +56,12 @@ class Database(object):
     def load_table(self, table_name):
         """ Loads a table. This will fail if the tables does not already
         exist in the database. If the table exists, its columns will be
-        reflected and are available on the :py:class:`dataset.Table`
+        reflected and are available on the :py:class:`Table <dataset.Table>`
         object.
 
-        Returns a :py:class:`dataset.Table` instance."""
+        Returns a :py:class:`Table <dataset.Table>` instance.
+        ::
+            table = db.load_table('population')"""
         with self.lock:
             log.debug("Loading table: %s on %r" % (table_name, self))
             table = SQLATable(table_name, self.metadata, autoload=True)
@@ -64,9 +69,15 @@ class Database(object):
             return Table(self, table)
 
     def get_table(self, table_name):
-        """ Loads a table or creates it if it doesn't exist yet.
-        Returns a :py:class:`dataset.Table` instance. Alternatively to *get_table*
-        you can also get tables using the dict syntax."""
+        """ Smart wrapper around *load_table* and *create_table*. Either loads a table
+        or creates it if it doesn't exist yet.
+
+        Returns a :py:class:`Table <dataset.Table>` instance.
+        ::
+            table = db.get_table('population')
+            # you can also use the short-hand syntax:
+            table = db['population']
+        """
         with self.lock:
             if table_name in self._tables:
                 return Table(self, self._tables[table_name])
@@ -83,9 +94,7 @@ class Database(object):
         execution of arbitrary read/write queries. A query can either be
         a plain text string, or a SQLAlchemy expression. The returned
         iterator will yield each result sequentially.
-
-        .. code-block:: python
-
+        ::
             result = db.query('SELECT * FROM population WHERE population > 10000000')
             for row in result:
                 print row

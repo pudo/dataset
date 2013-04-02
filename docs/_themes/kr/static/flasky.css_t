@@ -14,9 +14,10 @@
 /* -- page layout ----------------------------------------------------------- */
 
 body {
-    font-family: 'goudy old style', 'minion pro', 'bell mt', Georgia, 'Hiragino Mincho Pro';
+    font-family: "Georgia", "Open Sans", OpenSansRegular, sans-serif;
     font-size: 17px;
-    background-color: whitesmoke;
+    background-color: white;
+    font-weight: 400;
     color: #000;
     margin: 0;
     padding: 0;
@@ -45,7 +46,7 @@ hr {
 }
 
 div.body {
-    background-color: whitesmoke;
+    background-color: white;
     color: #3E4349;
     padding: 0 30px 0 30px;
 }
@@ -98,7 +99,7 @@ div.sphinxsidebarwrapper p.logo {
 
 div.sphinxsidebar h3,
 div.sphinxsidebar h4 {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: 'Antic Slab' ,'Garamond', 'Georgia', serif;
     color: #444;
     font-size: 24px;
     font-weight: normal;
@@ -127,7 +128,7 @@ div.sphinxsidebar p {
 }
 
 div.sphinxsidebar ul {
-    margin: 10px 0;
+    margin: 10px 0 30px;
     padding: 0;
     color: #000;
 }
@@ -156,10 +157,11 @@ div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: 'Antic Slab', "Open Sans", OpenSansRegular, sans-serif;
     font-weight: normal;
     margin: 30px 0px 10px 0px;
     padding: 0;
+    text-shadow: 1px 1px 3px #ddd;
 }
 
 div.body h1 { margin-top: 0; padding-top: 0; font-size: 240%; }
@@ -244,9 +246,14 @@ p.admonition-title:after {
     content: ":";
 }
 
-pre, tt {
+pre {
     font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
-    font-size: 0.9em;
+    font-size: 0.8em;
+}
+
+tt {
+    font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 0.95em;
 }
 
 img.screenshot {
@@ -359,6 +366,7 @@ tt {
 
 tt.xref, a tt {
     background-color: #FBFBFB;
+    color: #2277bb;
     border-bottom: 1px solid white;
 }
 

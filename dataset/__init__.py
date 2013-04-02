@@ -9,8 +9,7 @@ from dataset.persistence.table import Table
 
 def connect(url):
     """ Opens a new connection to a database. *url* can be any valid `SQLAlchemy engine URL`_. Returns
-    an instance of :py:class:`dataset.Database.
-
+    an instance of :py:class:`Database <dataset.Database>`.
     ::
         db = dataset.connect('sqlite:///factbook.db')
 
