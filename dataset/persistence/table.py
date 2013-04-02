@@ -82,7 +82,7 @@ class Table(object):
             stmt = self.table.update(filters, row)
             rp = self.database.engine.execute(stmt)
             return rp.rowcount > 0
-        except KeyError, ke:
+        except KeyError:
             return False
 
     def upsert(self, row, keys, ensure=True, types={}):
