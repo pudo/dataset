@@ -1,0 +1,25 @@
+<h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
+
+
+<ul class="custom-index container"></ul>
+<script type="text/javascript">
+
+$(function() {
+    var ul = $('ul.custom-index');
+    $('dl.class').each(function(i, el) {
+        var name = $('tt.descname', el).html(), id = $('dt', el).attr('id'),
+            li = $('<li><a href="#' + id + '">' + name + '</a></li>');
+        ul.append(li);
+        var ul_ = $('<ul />');
+        li.append(ul_);
+        $('dl.method', el).each(function(i, el) {
+            var name = $('tt.descname', el).html(), id = $('dt', el).attr('id');
+            ul_.append('<li><a href="#' + id + '">' + name + '</a></li>');
+        });
+    });
+
+});
+
+</script>
+
+

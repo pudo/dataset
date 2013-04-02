@@ -152,18 +152,19 @@ class Table(object):
         else:
             return self.table.c[order_by].asc()
 
-    def find(self, _limit=None, _step=5000, _offset=0,
+    def find(self, _limit=None, _offset=0, _step=5000,
              order_by='id', **filter):
-        """Performs a simple search on the table.
+        """Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
         ::
             results = table.find(country='France')
-            # combining multiple conditions (AND)
             results = table.find(country='France', year=1980)
+
+        Using 
             # just return the first 10 rows
             results = table.find(country='France', _limit=10)
 
-        You can sort the results by single or multiple columns. For descending order
-        please append a minus sign to the column name::
+        You can sort the results by single or multiple columns. Append a minus sign
+        to the column name for descending order::
             # sort results by a column 'year'
             results = table.find(country='France', order_by='year')
             # return all rows sorted by multiple columns (by year in descending order)

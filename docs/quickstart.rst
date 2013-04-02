@@ -5,36 +5,34 @@ Quickstart
 
 Hi, welcome to the five-minute quick-start tutorial.
 
+Connecting to a database
+------------------------
+
 At first you need to import the dataset package :) ::
 
    import dataset
 
-To connect to a database you need to identify it using what is called an engine url. Here are a few examples::
+To connect to a database you need to identify it by its `URL <http://docs.sqlalchemy.org/en/latest/core/engines.html#engine-creation-api>`_, which basically is a string of the form ``"dialect://user:password@host/dbname"``. Here are a few common examples::
 
    # connecting to a SQLite database
-   db = dataset.connect('sqlite:///factbook.db')
+   db = dataset.connect('sqlite:///mydatabase.db')
 
-   # connecting to a MySQL database
+   # connecting to a MySQL database with user and password
    db = dataset.connect('mysql://user:password@localhost/mydatabase')
 
    # connecting to a PostgreSQL database
    db = dataset.connect('postgresql://scott:tiger@localhost:5432/mydatabase')
 
-If you want to learn more about how to connect to various databases, have a look at the `SQLAlchemy documentation`_.
-
-.. _SQLAlchemy documentation: http://docs.sqlalchemy.org/en/latest/core/engines.html#engine-creation-api
 
 Storing data
 ------------
 
-At first you need to get a reference to the table in which you want to store your data. You don't
-need to worry about whether the table already exists or not, since dataset will create it automatically::
+To store some data you need to get a reference to a table. You don't need to worry about whether the table already exists or not, since dataset will create it automatically::
 
    # get a reference to the table 'person'
    table = db['person']
 
-Now storing data in a table is a matter of a single function call. Just pass a `dict`_ to *insert*. Note
-that you don't need to create the columns *name* and *age* – dataset will do this automatically::
+Now storing data in a table is a matter of a single function call. Just pass a `dict`_ to *insert*. Note that you don't need to create the columns *name* and *age* – dataset will do this automatically::
 
    # Insert a new record.
    table.insert(dict(name='John Doe', age=46))

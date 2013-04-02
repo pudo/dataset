@@ -103,7 +103,7 @@ div.sphinxsidebar h4 {
     color: #000;
     font-size: 24px;
     font-weight: normal;
-    margin: 0 0 5px 0;
+    margin: 30px 0 5px 0;
     padding: 0;
 }
 
@@ -128,7 +128,7 @@ div.sphinxsidebar p {
 }
 
 div.sphinxsidebar ul {
-    margin: 10px 0 30px;
+    margin: 10px 0px;
     padding: 0;
     color: #000;
 }
