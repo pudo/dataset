@@ -16,7 +16,7 @@
 body {
     font-family: "Georgia", "Open Sans", OpenSansRegular, sans-serif;
     font-size: 16px;
-    background-color: white;
+    background: #fff;
     font-weight: 400;
     color: #000;
     margin: 0;
@@ -100,7 +100,7 @@ div.sphinxsidebarwrapper p.logo {
 div.sphinxsidebar h3,
 div.sphinxsidebar h4 {
     font-family: 'Antic Slab' ,'Garamond', 'Georgia', serif;
-    color: #444;
+    color: #000;
     font-size: 24px;
     font-weight: normal;
     margin: 0 0 5px 0;
@@ -112,7 +112,7 @@ div.sphinxsidebar h4 {
 }
 
 div.sphinxsidebar h3 a {
-    color: #444;
+    color: #000;
 }
 
 div.sphinxsidebar p.logo a,
@@ -157,11 +157,12 @@ div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    font-family: 'Antic Slab', "Open Sans", OpenSansRegular, sans-serif;
+    font-family: 'Antic Slab', serif;
     font-weight: normal;
     margin: 30px 0px 10px 0px;
     padding: 0;
     text-shadow: 1px 1px 3px #ddd;
+    color: #000;
 }
 
 div.body h1 { margin-top: 0; padding-top: 0; font-size: 250%; }
@@ -248,7 +249,7 @@ p.admonition-title:after {
 
 pre {
     font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
-    font-size: 0.8em;
+    font-size: 0.88em;
 }
 
 tt {
@@ -541,4 +542,9 @@ a:hover tt {
 
 .revsys-inline {
     display: none!important;
+}
+
+div.sphinxsidebar #searchbox input[type="text"] {
+    width: 140px;
+    padding: 4px 3px;
 }

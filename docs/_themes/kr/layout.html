@@ -7,13 +7,25 @@
   {% endif %}
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 {% endblock %}
-{%- block relbar2 %}{% endblock %}
+
+{% block sidebarlogo %}
+<iframe width="200px" scrolling="0" height="35px" frameborder="0" allowtransparency="true" src="http://ghbtns.com/github-btn.html?user=pudo&amp;repo=dataset&amp;type=watch&amp;count=true&amp;size=large"></iframe>
+{% endblock %}
+
+{% block sidebar2 %}
+  {{ sidebar() }}
+  <a href="http://www.mozillaopennews.org/" style="position:relative;top:40px"><img src="_static/knight_mozilla_on.jpg" /></a>
+{% endblock %}
+
 {%- block footer %}
     <div class="footer">
       &copy; Copyright {{ copyright }}.
     </div>
-    <a href="https://github.com/pudo/dataset" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    <div>
+
+    </div>
+    <a style="position: absolute; top: 0; right: 0; border: 0;" href="https://github.com/pudo/dataset" class="github">
+        <img src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
     </a>
 
 

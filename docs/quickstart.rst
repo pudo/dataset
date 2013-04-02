@@ -3,9 +3,6 @@ Quickstart
 ==========
 
 
-.. toctree::
-   :maxdepth: 2
-
 Hi, welcome to the five-minute quick-start tutorial.
 
 At first you need to import the dataset package :) ::

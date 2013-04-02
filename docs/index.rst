@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-dataset: databases for humans
-=============================
+dataset: databases for busy nerds
+=================================
 
 Getting the databases out of your data's way::
 
@@ -13,7 +13,8 @@ Getting the databases out of your data's way::
    db = dataset.connect('sqlite:///weather.db')
    db['temperature'].find()
 
-Features include:
+Features
+--------
 
 * **Automatic schema**. If a table or column is written that does not
   exist in the database, it will be created automatically.
@@ -22,20 +23,12 @@ Features include:
 * **Query helpers** for simple queries such as all rows in a table or
   all distinct values across a set of columns.
 
+Contents
+--------
+
 .. toctree::
    :maxdepth: 2
 
-Next steps:
-
-* Quickstart: `Learn how to use dataset in five minutes <quickstart>`_
-* API: `Browse the complete API docs <api>`_
-
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   quickstart
+   api
 
