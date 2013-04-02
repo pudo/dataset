@@ -3,7 +3,7 @@ Quickstart
 ==========
 
 
-Hi, welcome to the five-minute quick-start tutorial.
+Hi, welcome to the twelve-minute quick-start tutorial.
 
 Connecting to a database
 ------------------------
@@ -49,37 +49,72 @@ Updating existing entries is easy, too::
 
    table.update(dict(name='John Doe', age=47), ['name'])
 
+Inspecting databases and tables
+-------------------------------
+
+When dealing with unknown databases we might want to check its structure first. To begin with, let's find out what tables are stored in the database:
+
+   >>> print db.tables
+   set([u'user', u'action'])
+
+Now, let's list all columns available in the table ``user``:
+
+   >>> print db['user'].columns
+   set([u'id', u'name', u'email', u'pwd', u'country'])
+
+Using ``len()`` we can get the total number of rows in a table:
+
+   >>> print len(db['user'])
+   187
+
 Reading data from tables
 ------------------------
 
-Checking::
+Now let's get some real data out of the table::
 
-   table = db['population']
-
-   # Let's grab a list of all items/rows/entries in the table:
-   table.all()
-
-   table.distinct()
+   users = db['user'].all()
 
 Searching for specific entries::
 
-   # Returns the first item where the column country equals 'China'
-   table.find_one(country='China')
+   # All users from China
+   users = table.find(country='China')
 
-   # Returns all items
-   table.find(country='China')
+   # Get a specific user
+   john = table.find_one(email='john.doe@example.org')
+
+Using  :py:meth:`distinct() <dataset.Table.distinct>` we can grab a set of rows with unique values in one or more columns::
+
+   # Get one user per country
+   db['user'].distinct('country')
+
 
 Running custom SQL queries
 --------------------------
 
-Of course the main reason you're using a database is that you want to use the full power of SQL queries. Here's how you run them using dataset::
+Of course the main reason you're using a database is that you want to use the full power of SQL queries. Here's how you run them with ``dataset``::
 
-   result = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user ORDER BY c DESC')
+   result = db.query('SELECT country, COUNT(*) c FROM user GROUP BY country')
    for row in result:
-      print row['user'], row['c']
-
-Freezing your data
-------------------
+      print row['country'], row['c']
 
 
+Exporting your data
+-------------------
 
+While playing around with your database in Python is a nice thing, sometimes we want to use our data –or parts of it– elsewhere, say in a interactive web application. Therefor ``dataset`` supports serializing rows of data into static files such as JSON using the :py:meth:`freeze() <dataset.freeze>` function::
+
+   # export all users into a single JSON
+   result = db['users'].all()
+   dataset.freeze(result, 'users.json')
+
+You can create one file per row by setting ``mode`` to "item"::
+
+   # export one JSON file per user
+   dataset.freeze(result, 'users/{{ id }}.json', mode='item')
+
+
+Since this is a common operation we made it available via command line utility ``datafreeze``. Read more about the `freezefile markup <https://github.com/spiegelonline/datafreeze#example-freezefileyaml>`_.
+
+.. code-block:: bash
+
+   $ datafreeze freezefile.yaml

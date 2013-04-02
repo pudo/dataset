@@ -12,9 +12,9 @@ dataset: databases for lazy people
 
 Although managing data in relational database has plenty of benefits, we find them rarely being used in the typical day-to-day work with small to medium scale datasets. But why is that? Why do we see an awful lot of data stored in static files in CSV or JSON format?
 
-Because **programmers are lazy**, and thus they tend to prefer the easiest solution they find. And managing data in a databases simply wasn't the simplest solution to store a bunch of structured data. This is where ``dataset`` steps in!
+Because **programmers are lazy**, and thus they tend to prefer the easiest solution they find. And managing data in a databases simply wasn't the simplest solution to store a bunch of structured data. This is where **dataset** steps in!
 
-Dataset is here to **take the pain out of databases**. It makes reading and writing data in databases as simple as reading and writing JSON files.
+In short, **dataset** makes reading and writing data in databases as simple as reading and writing JSON files.
 
 ::
 
@@ -37,7 +37,7 @@ Features
   whether an existing version can be found.
 * **Query helpers** for simple queries such as :py:meth:`all <dataset.Table.all>` rows in a table or
   all :py:meth:`distinct <dataset.Table.distinct>` values across a set of columns.
-* **Compatibility**: Being built on top of `SQLAlchemy <http://www.sqlalchemy.org/>`_, ``dataset`` works with all major databases, such as SQLite, PostgreSQL and MySQL.
+* **Compatibility**: Being built on top of `SQLAlchemy <http://www.sqlalchemy.org/>`_, ``dataset` works with all major databases, such as SQLite, PostgreSQL and MySQL.
 
 Contents
 --------

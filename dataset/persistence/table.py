@@ -19,7 +19,12 @@ class Table(object):
 
     @property
     def columns(self):
-        """ Get a listing of all columns that exist in the table. """
+        """
+        Get a listing of all columns that exist in the table.
+
+        >>> print 'age' in table.columns
+        True
+        """
         return set(self.table.columns.keys())
 
     def drop(self):
@@ -129,6 +134,12 @@ class Table(object):
         return and_(*clauses)
 
     def create_column(self, name, type):
+        """
+        Explicitely create a new column ``name`` of a specified type. ``type`` must be a `SQLAlchemy column type <http://docs.sqlalchemy.org/en/rel_0_8/core/types.html>`_.
+        ::
+
+            table.create_column('person', sqlalchemy.String)
+        """
         with self.database.lock:
             if name not in self.table.columns.keys():
                 col = Column(name, type)
@@ -136,6 +147,12 @@ class Table(object):
                            connection=self.database.engine)
 
     def create_index(self, columns, name=None):
+        """
+        Create an index to speed up queries on a table. If no ``name`` is given a random name is created.
+        ::
+
+            table.create_index(['name', 'country'])
+        """
         with self.database.lock:
             if not name:
                 sig = abs(hash('||'.join(columns)))
