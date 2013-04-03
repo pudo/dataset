@@ -32,7 +32,11 @@ class Database(object):
 
     @property
     def tables(self):
-        """ Get a listing of all tables that exist in the database. """
+        """ Get a listing of all tables that exist in the database.
+
+        >>> print db.tables
+        set([u'user', u'action'])
+        """
         return set(self.metadata.tables.keys() + self._tables.keys())
 
     def create_table(self, table_name):
