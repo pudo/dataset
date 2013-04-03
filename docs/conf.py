@@ -100,7 +100,7 @@ html_theme = 'kr'
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = {
-#     'codebgcolor': ''
+#     'stickysidebar': "true"
 # }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -136,7 +136,11 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+    'index': ['sidebarlogo.html', 'sourcelink.html', 'searchbox.html'],
+    'api': ['sidebarlogo.html', 'autotoc.html', 'sourcelink.html', 'searchbox.html'],
+    '**': ['sidebarlogo.html', 'localtoc.html', 'sourcelink.html', 'searchbox.html']
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -152,7 +156,7 @@ html_static_path = ['_static']
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
