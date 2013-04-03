@@ -548,3 +548,7 @@ div.sphinxsidebar #searchbox input[type="text"] {
     width: 140px;
     padding: 4px 3px;
 }
+
+.highlight .nv {
+    color: #C65D09!important;
+}

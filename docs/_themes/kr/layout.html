@@ -11,11 +11,12 @@
 
 {% block sidebar2 %}
   {{ sidebar() }}
-  <a href="http://www.mozillaopennews.org/" style="position:relative;top:40px"><img src="_static/knight_mozilla_on.jpg" /></a>
 {% endblock %}
 
 {%- block footer %}
-    <div class="footer">
+    <div class="footer" style="position:relative">
+        <a href="http://www.mozillaopennews.org/" style="position:absolute;left:10px;bottom:-10px"><img src="_static/knight_mozilla_on.jpg" /></a>
+
       &copy; Copyright {{ copyright }}.
     </div>
     <div>
