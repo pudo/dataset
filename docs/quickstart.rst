@@ -102,6 +102,10 @@ Of course the main reason you're using a database is that you want to use the fu
    for row in result:
       print row['country'], row['c']
 
+If you are familiar with `SQLAlchemy query expressions <http://docs.sqlalchemy.org/ru/latest/orm/query.html#the-query-object>`_ you can use them, too::
+
+   q = session.query(MyClass).filter_by(name = 'some name')
+   result = db.query(q)
 
 Exporting data
 --------------
