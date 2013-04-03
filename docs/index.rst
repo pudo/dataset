@@ -10,11 +10,12 @@ dataset: databases for lazy people
    :hidden:
 
 
-Although managing data in relational database has plenty of benefits, we find them rarely being used in the typical day-to-day work with small to medium scale datasets. But why is that? Why do we see an awful lot of data stored in static files in CSV or JSON format?
+Although managing data in relational database has plenty of benefits, they're rarely used in day-to-day work with small to medium scale datasets. But why is that? Why do we see an awful lot of data stored in static files in CSV or JSON format, even though they are hard
+to query and update incrementally?
 
-The answer is that **programmers are lazy**, and thus they tend to prefer the easiest solution they find. And in **Python**, a database wasn't the simplest solution for storing a bunch of structured data. This is what **dataset** is going to change!
+The answer is that **programmers are lazy**, and thus they tend to prefer the easiest solution they find. And in **Python**, a database isn't the simplest solution for storing a bunch of structured data. This is what **dataset** is going to change!
 
-In short, dataset combines the straightforwardness of NoSQL interfaces with the full power and flexibility of relational databases. It makes database management as simple as reading and writing JSON files.
+In short, dataset combines the straightforwardness of JSON files or a NoSQL store with the full power and flexibility of relational databases.
 
 ::
 
