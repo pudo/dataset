@@ -103,10 +103,10 @@ Of course the main reason you're using a database is that you want to use the fu
       print row['country'], row['c']
 
 
-Exporting your data
--------------------
+Exporting data
+--------------
 
-While playing around with your database in Python is a nice thing, sometimes we want to use our data –or parts of it– elsewhere, say in a interactive web application. Therefor ``dataset`` supports serializing rows of data into static files such as JSON using the :py:meth:`freeze() <dataset.freeze>` function::
+While playing around with our database in Python is a nice thing, sometimes we want to use the data –or parts of it– elsewhere, say in an interactive web application. Therefor ``dataset`` supports serializing rows of data into static files such as JSON using the :py:meth:`freeze() <dataset.freeze>` function::
 
    # export all users into a single JSON
    result = db['users'].all()
