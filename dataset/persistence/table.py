@@ -274,7 +274,8 @@ class Table(object):
 
     def __iter__(self):
         """
-        Allows for iterating over all rows in the table without explicelty calling :py:meth:`all() <dataset.Table.all>`.
+        Allows for iterating over all rows in the table without explicetly
+        calling :py:meth:`all() <dataset.Table.all>`.
         ::
 
             for row in table:
