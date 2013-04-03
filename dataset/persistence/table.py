@@ -231,6 +231,9 @@ class Table(object):
                 yield row
 
     def __len__(self):
+        """
+        Returns the number of rows in the table.
+        """
         d = self.database.query(self.table.count()).next()
         return d.values().pop()
 
@@ -268,3 +271,14 @@ class Table(object):
 
             rows = table.all()"""
         return self.find()
+
+    def __iter__(self):
+        """
+        Allows for iterating over all rows in the table without explicelty calling :py:meth:`all() <dataset.Table.all>`.
+        ::
+
+            for row in table:
+                print row
+        """
+        for row in self.all():
+            yield row
