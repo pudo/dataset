@@ -74,13 +74,18 @@ Now let's get some real data out of the table::
 
    users = db['user'].all()
 
-Searching for specific entries::
+If we simply want to iterate over all rows in a table, we can ommit :py:meth:`all() <dataset.Table.all>`::
+
+   for user in db['user']:
+      print user['email']
+
+We can search for specific entries using :py:meth:`find() <dataset.Table.find>` and :py:meth:`find_one() <dataset.Table.find_one>`::
 
    # All users from China
    users = table.find(country='China')
 
    # Get a specific user
-   john = table.find_one(email='john.doe@example.org')
+   john = table.find_one(name='John Doe')
 
 Using  :py:meth:`distinct() <dataset.Table.distinct>` we can grab a set of rows with unique values in one or more columns::
 
