@@ -12,9 +12,9 @@ dataset: databases for lazy people
 
 Although managing data in relational database has plenty of benefits, we find them rarely being used in the typical day-to-day work with small to medium scale datasets. But why is that? Why do we see an awful lot of data stored in static files in CSV or JSON format?
 
-Because **programmers are lazy** they tend to prefer the easiest solution they find. And in **Python**, a database wasn't the simplest solution for storing a bunch of structured data. This is what **dataset** is going to change!
+Because **programmers are lazy**, and thus they tend to prefer the easiest solution they find. And in **Python**, a database wasn't the simplest solution for storing a bunch of structured data. This is what **dataset** is going to change!
 
-In short, dataset combines the straightforwardness of No-SQL interfaces with the full power and flexibility of relational databases.
+In short, dataset combines the straightforwardness of NoSQL interfaces with the full power and flexibility of relational databases.
 
 ::
 
@@ -48,3 +48,7 @@ Contents
    quickstart
    api
 
+Contributors
+------------
+
+``dataset`` is written and maintained by `Friedrich Lindenberg <https://github.com/pudo>`_ and `Gregor Aisch <https://github.com/gka>`_. Its code is largely based on the preceding libraries `sqlaload <https://github.com/okfn/sqlaload>`_ and `datafreeze <https://github.com/spiegelonline/datafreeze>`_. And of course, we're standing on the `shoulders of giants <http://www.sqlalchemy.org/>`_.
