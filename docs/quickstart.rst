@@ -118,7 +118,7 @@ use the full power of SQL queries. Here's how you run them with ``dataset``::
       print row['country'], row['c']
 
 The :py:meth:`query() <dataset.Table.query>` method can also be used to 
-access the underlying SQLAlchemy core API, which allows for the
+access the underlying `SQLAlchemy core API <http://docs.sqlalchemy.org/ru/latest/orm/query.html#the-query-object>`_, which allows for the
 programmatic construction of more complex queries::
 
    table = db['users'].table
