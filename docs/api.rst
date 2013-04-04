@@ -4,6 +4,8 @@ API documentation
 
 .. autofunction:: dataset.connect
 
+.. autofunction:: dataset.freeze
+
 Database
 --------
 

@@ -17,18 +17,18 @@ OPERATIONS = {
 
 class Serializer(object):
 
-    def __init__(self, engine):
-        self.engine = engine
-        self.config = engine.config
+    def __init__(self, export, query):
+        self.export = export
+        self.query = query
         self._paths = []
         self._get_basepath()
 
     def _get_basepath(self):
-        prefix = self.config.get('prefix')
+        prefix = self.export.get('prefix')
         prefix = os.path.abspath(prefix)
         prefix = os.path.realpath(prefix)
         self._prefix = prefix
-        filename = self.config.get('filename')
+        filename = self.export.get('filename')
         if filename is None:
             raise FreezeException("No 'filename' is specified")
         self._basepath = os.path.join(prefix, filename)
@@ -56,20 +56,19 @@ class Serializer(object):
 
     @property
     def mode(self):
-        mode = self.config.get_normalized('mode', 'list')
+        mode = self.export.get_normalized('mode', 'list')
         if mode not in ['list', 'item']:
             raise FreezeException("Invalid mode: %s" % mode)
         return mode
 
     @property
     def wrap(self):
-        return self.config.get_bool('wrap',
+        return self.export.get_bool('wrap',
                 default=self.mode=='list')
 
     def serialize(self):
         self.init()
-        query = self.engine.query()
-        for row in query:
+        for row in self.query:
             self.write(self.file_name(row), row)
         self.close()
 

@@ -1,9 +1,10 @@
 import logging
 import argparse
 
+from sqlalchemy.exc import ProgrammingError
 from dataset.util import FreezeException
-from dataset.freeze.config import Configuration
-from dataset.freeze.engine import ExportEngine
+from dataset.persistence.database import Database
+from dataset.freeze.config import Configuration, Export
 from dataset.freeze.format import get_serializer
 
 
@@ -16,6 +17,37 @@ parser = argparse.ArgumentParser(
 parser.add_argument('config', metavar='CONFIG', type=str,
                    help='freeze file cofiguration')
 
+def freeze(database, query, format='csv', filename='freeze.csv', 
+        prefix='.', meta={}, indent=2, mode='list', wrap=True, **kw):
+    """
+    Perform a data export of a given SQL statement. This is a very
+    flexible exporter, allowing for various output formats, metadata
+    assignment, and file name templating to dump each record (or a set
+    of records) into individual files.
+    """
+    kw.update({
+            'database': database,
+            'query': query,
+            'format': format,
+            'filename': filename,
+            'prefix': prefix,
+            'meta': meta, 
+            'indent': indent,
+            'mode': mode,
+            'wrap': wrap
+        })      
+    return freeze_export(Export(kw))
+    
+def freeze_export(export):
+    try:
+        database = Database(export.get('database'))
+        query = database.query(export.get('query'))
+        serializer_cls = get_serializer(export)
+        serializer = serializer_cls(export, query)
+        serializer.serialize()
+    except ProgrammingError, pe:
+        raise FreezeException("Invalid query: %s" % pe)
+
 def main():
     try: 
         args = parser.parse_args()
@@ -25,13 +57,10 @@ def main():
                 log.info("Skipping: %s", export.name)
                 continue
             log.info("Running: %s", export.name)
-            engine = ExportEngine(export)
-            query = engine.query()
-            serializer_cls = get_serializer(export)
-            serializer = serializer_cls(engine)
-            serializer.serialize()
+            freeze_export(export)
     except FreezeException, fe:
         log.error(fe)
 
 if __name__ == '__main__':
     main()
+

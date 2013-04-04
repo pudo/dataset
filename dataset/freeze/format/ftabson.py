@@ -13,11 +13,11 @@ class TabsonSerializer(JSONSerializer):
                 d = [row.get(k) for k in keys]
                 data.append(d)
         result = {
-            'count': len(result),
+            'count': self.query.count,
             'fields': fields,
             'data': data
             }
-        meta = self.config.get('meta')
+        meta = self.export.get('meta', {})
         if meta is not None:
             result['meta'] = meta
         return result

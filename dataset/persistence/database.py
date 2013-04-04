@@ -9,7 +9,7 @@ from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy import Integer
 
 from dataset.persistence.table import Table
-from dataset.persistence.util import resultiter
+from dataset.persistence.util import ResultIter
 
 
 log = logging.getLogger(__name__)
@@ -37,7 +37,8 @@ class Database(object):
         >>> print db.tables
         set([u'user', u'action'])
         """
-        return set(self.metadata.tables.keys() + self._tables.keys())
+        return list(set(self.metadata.tables.keys() +
+            self._tables.keys()))
 
     def create_table(self, table_name):
         """
@@ -111,7 +112,8 @@ class Database(object):
             for row in res:
                 print row['user'], row['c']
         """
-        return resultiter(self.engine.execute(query))
+        return ResultIter(self.engine.execute(query))
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
+

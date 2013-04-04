@@ -15,15 +15,22 @@ def guess_type(sample):
     return UnicodeText
 
 
-def resultiter(rp):
+class ResultIter(object):
     """ SQLAlchemy ResultProxies are not iterable to get a 
     list of dictionaries. This is to wrap them. """
-    keys = rp.keys()
-    while True:
-        row = rp.fetchone()
-        if row is None:
-            break
-        yield dict(zip(keys, row))
 
+    def __init__(self, rp):
+        self.rp = rp
+        self.count = rp.rowcount
+        self.keys = self.rp.keys()
+
+    def next(self):
+        row = self.rp.fetchone()
+        if row is None:
+            raise StopIteration
+        return dict(zip(self.keys, row))
+
+    def __iter__(self):
+        return self
 
 

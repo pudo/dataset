@@ -21,15 +21,14 @@ class JSONSerializer(Serializer):
         self.buckets[path].append(result)
 
     def wrap(self, result):
-        count = len(result)
         if self.mode == 'item':
             result = result[0]
         if self.wrap:
             result = {
-                'count': count,
+                'count': self.query.count,
                 'results': result
                 }
-            meta = self.config.get('meta')
+            meta = self.export.get('meta', {})
             if meta is not None:
                 result['meta'] = meta
         return result
@@ -40,6 +39,6 @@ class JSONSerializer(Serializer):
             fh = open(path, 'wb')
             json.dump(result, fh,
                     cls=JSONEncoder,
-                    indent=self.config.get_int('indent'))
+                    indent=self.export.get_int('indent'))
             fh.close()
 

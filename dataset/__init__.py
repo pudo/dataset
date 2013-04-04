@@ -5,7 +5,7 @@ warnings.filterwarnings(
 
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
-
+from dataset.freeze.app import freeze
 
 def connect(url):
     """
@@ -18,3 +18,5 @@ def connect(url):
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
     """
     return Database(url)
+
+

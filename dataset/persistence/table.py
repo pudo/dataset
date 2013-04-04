@@ -319,3 +319,4 @@ class Table(object):
         """
         for row in self.all():
             yield row
+
