@@ -61,6 +61,34 @@ class Table(object):
             self._ensure_columns(row, types=types)
         self.database.engine.execute(self.table.insert(row))
 
+    def insert_many(self, rows, ensure=True, types={}):
+        """
+        Add many rows at a time, which is significantly faster than adding
+        them one by one. The rows are automatically processed in chunks of
+        1000 per commit.
+        ::
+
+            rows = [dict(name='Dolly')] * 10000
+            table.insert_many(rows)
+        """
+        def _process_chunk(chunk):
+            if ensure:
+                for row in chunk:
+                    self._ensure_columns(row, types=types)
+            self.table.insert().execute(chunk)
+        chunk_size = 1000
+        chunk = []
+        i = 0
+        for row in rows:
+            chunk.append(row)
+            i += 1
+            if i == chunk_size:
+                _process_chunk(chunk)
+                chunk = []
+                i = 0
+        if i > 0:
+            _process_chunk(chunk)
+
     def update(self, row, keys, ensure=True, types={}):
         """
         Update a row in the table. The update is managed via

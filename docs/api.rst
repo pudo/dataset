@@ -16,5 +16,5 @@ Table
 -----
 
 .. autoclass:: dataset.Table
-   :members: columns, drop, insert, update, upsert, find, find_one, distinct, create_column, create_index, all
+   :members: columns, drop, insert, update, upsert, find, find_one, distinct, create_column, create_index, all, insert_many
    :special-members: __len__, __iter__

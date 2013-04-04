@@ -96,6 +96,11 @@ class TableTestCase(unittest.TestCase):
         x = list(self.tbl.distinct('place', 'date'))
         assert len(x)==6, x
 
+    def test_insert_many(self):
+        data = TEST_DATA * 5000
+        self.tbl.insert_many(data)
+        assert len(self.tbl) == len(data) + 6
+
 
 
 if __name__ == '__main__':
