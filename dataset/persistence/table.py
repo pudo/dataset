@@ -143,8 +143,8 @@ class Table(object):
         .. code-block:: python
 
             table.delete(place='Berlin')
-        
-        If no arguments are given, all records are deleted. 
+
+        If no arguments are given, all records are deleted.
         """
         q = self._args_to_clause(filter)
         stmt = self.table.delete(q)
@@ -173,7 +173,7 @@ class Table(object):
         ``type`` must be a `SQLAlchemy column type <http://docs.sqlalchemy.org/en/rel_0_8/core/types.html>`_.
         ::
 
-            table.create_column('person', sqlalchemy.String)
+            table.create_column('created_at', sqlalchemy.DateTime)
         """
         with self.database.lock:
             if name not in self.table.columns.keys():
