@@ -23,9 +23,14 @@ setup(
     zip_safe=False,
     install_requires=[
         'sqlalchemy>=0.7',
-        'sqlalchemy-migrate>=0.7'
+        'sqlalchemy-migrate>=0.7',
+        "argparse >= 1.2.1",
+        "PyYAML >= 3.10"
     ],
     tests_require=[],
-    entry_points=\
-    """ """,
+    entry_points={
+        'console_scripts': [
+            'datafreeze = dataset.freeze.app:main',
+        ]
+    }
 )

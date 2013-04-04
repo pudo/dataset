@@ -1,0 +1,45 @@
+import json
+from datetime import datetime
+from collections import defaultdict
+
+from dataset.freeze.format.common import Serializer
+
+
+class JSONEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+
+
+class JSONSerializer(Serializer):
+
+    def init(self):
+        self.buckets = defaultdict(list)
+
+    def write(self, path, result):
+        self.buckets[path].append(result)
+
+    def wrap(self, result):
+        count = len(result)
+        if self.mode == 'item':
+            result = result[0]
+        if self.wrap:
+            result = {
+                'count': count,
+                'results': result
+                }
+            meta = self.config.get('meta')
+            if meta is not None:
+                result['meta'] = meta
+        return result
+
+    def close(self):
+        for path, result in self.buckets.items():
+            result = self.wrap(result)
+            fh = open(path, 'wb')
+            json.dump(result, fh,
+                    cls=JSONEncoder,
+                    indent=self.config.get_int('indent'))
+            fh.close()
+
