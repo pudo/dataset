@@ -5,6 +5,7 @@ from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
 
 from dataset.persistence.util import guess_type
+from dataset.util import DatasetException
 
 
 log = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class Table(object):
         self.indexes = {}
         self.database = database
         self.table = table
+        self._is_dropped = False
 
     @property
     def columns(self):
@@ -37,9 +39,14 @@ class Table(object):
         the table, make sure to get a fresh instance from the
         :py:class:`Database <dataset.Database>`.
         """
+        self._is_dropped = True
         with self.database.lock:
             self.database.tables.pop(self.table.name, None)
             self.table.drop(engine)
+
+    def _check_dropped(self):
+        if self._is_dropped:
+            raise DatasetException('the table has been dropped. this object should not be used again.')
 
     def insert(self, row, ensure=True, types={}):
         """
@@ -57,6 +64,7 @@ class Table(object):
             data = dict(title='I am a banana!')
             table.insert(data)
         """
+        self._check_dropped()
         if ensure:
             self._ensure_columns(row, types=types)
         self.database.engine.execute(self.table.insert(row))
@@ -79,6 +87,7 @@ class Table(object):
                 for row in chunk:
                     self._ensure_columns(row, types=types)
             self.table.insert().execute(chunk)
+        self._check_dropped()
         chunk = []
         i = 0
         for row in rows:
@@ -107,6 +116,7 @@ class Table(object):
         they will be created based on the settings of ``ensure`` and
         ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
+        self._check_dropped()
         if not len(keys):
             return False
         clause = [(u, row.get(u)) for u in keys]
@@ -129,6 +139,7 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
+        self._check_dropped()
         if ensure:
             self.create_index(keys)
 
@@ -146,6 +157,7 @@ class Table(object):
 
         If no arguments are given, all records are deleted.
         """
+        self._check_dropped()
         q = self._args_to_clause(filter)
         stmt = self.table.delete(q)
         self.database.engine.execute(stmt)
@@ -175,6 +187,7 @@ class Table(object):
 
             table.create_column('created_at', sqlalchemy.DateTime)
         """
+        self._check_dropped()
         with self.database.lock:
             if name not in self.table.columns.keys():
                 col = Column(name, type)
@@ -188,6 +201,7 @@ class Table(object):
 
             table.create_index(['name', 'country'])
         """
+        self._check_dropped()
         with self.database.lock:
             if not name:
                 sig = abs(hash('||'.join(columns)))
@@ -210,6 +224,7 @@ class Table(object):
 
             row = table.find_one(country='United States')
         """
+        self._check_dropped()
         res = list(self.find(_limit=1, **filter))
         if not len(res):
             return None
@@ -245,6 +260,7 @@ class Table(object):
 
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>`
         instead."""
+        self._check_dropped()
         if isinstance(order_by, (str, unicode)):
             order_by = [order_by]
         order_by = [self._args_to_order_by(o) for o in order_by]
@@ -286,6 +302,7 @@ class Table(object):
             # you can also combine this with a filter
             table.distinct('year', country='China')
         """
+        self._check_dropped()
         qargs = []
         try:
             columns = [self.table.c[c] for c in columns]
