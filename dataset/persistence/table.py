@@ -34,10 +34,9 @@ class Table(object):
         Drop the table from the database, deleting both the schema
         and all the contents within it.
 
-        Note: the object will be in an unusable state after using this
-        command and should not be used again. If you want to re-create
-        the table, make sure to get a fresh instance from the
-        :py:class:`Database <dataset.Database>`.
+        Note: the object will raise an Exception if you use it after
+        dropping the table. If you want to re-create the table, make
+        sure to get a fresh instance from the :py:class:`Database <dataset.Database>`.
         """
         self._is_dropped = True
         with self.database.lock:
