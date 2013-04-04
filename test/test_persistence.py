@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime
 
 from dataset import connect
+from dataset.util import DatasetException
 from sample_data import TEST_DATA
 
 class DatabaseTestCase(unittest.TestCase):
@@ -101,6 +102,16 @@ class TableTestCase(unittest.TestCase):
         self.tbl.insert_many(data)
         assert len(self.tbl) == len(data) + 6
 
+    def test_drop_warning(self):
+        assert self.tbl._is_dropped is False, 'table shouldn\'t be dropped yet'
+        self.tbl.drop()
+        assert self.tbl._is_dropped is True, 'table should be dropped now'
+        try:
+            list(self.tbl.all())
+        except DatasetException:
+            pass
+        else:
+            assert False, 'we should not reach else block, no exception raised!'
 
 
 if __name__ == '__main__':
