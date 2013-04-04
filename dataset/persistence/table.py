@@ -54,8 +54,8 @@ class Table(object):
         field.
         ::
 
-            data = dict(id=10, title='I am a banana!')
-            table.insert(data, ['id'])
+            data = dict(title='I am a banana!')
+            table.insert(data)
         """
         if ensure:
             self._ensure_columns(row, types=types)
