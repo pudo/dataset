@@ -61,11 +61,14 @@ class Table(object):
             self._ensure_columns(row, types=types)
         self.database.engine.execute(self.table.insert(row))
 
-    def insert_many(self, rows, ensure=True, types={}):
+    def insert_many(self, rows, chunk_size=1000, ensure=True, types={}):
         """
         Add many rows at a time, which is significantly faster than adding
-        them one by one. The rows are automatically processed in chunks of
-        1000 per commit.
+        them one by one. Per default the rows are processed in chunks of
+        1000 per commit, unless you specify a different ``chunk_size``.
+
+        See :py:meth:`insert() <dataset.Table.insert>` for details on
+        the other parameters.
         ::
 
             rows = [dict(name='Dolly')] * 10000
@@ -76,7 +79,6 @@ class Table(object):
                 for row in chunk:
                     self._ensure_columns(row, types=types)
             self.table.insert().execute(chunk)
-        chunk_size = 1000
         chunk = []
         i = 0
         for row in rows:
@@ -103,7 +105,7 @@ class Table(object):
 
         If keys in ``row`` update columns not present in the table,
         they will be created based on the settings of ``ensure`` and
-        ``types``, matching the behaviour of :py:meth:`insert() <dataset.Table.insert>`.
+        ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
         if not len(keys):
             return False
