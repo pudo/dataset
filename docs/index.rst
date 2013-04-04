@@ -15,7 +15,19 @@ to query and update incrementally?
 
 The answer is that **programmers are lazy**, and thus they tend to prefer the easiest solution they find. And in **Python**, a database isn't the simplest solution for storing a bunch of structured data. This is what **dataset** is going to change!
 
-In short, dataset combines the straightforwardness of JSON files or a NoSQL store with the full power and flexibility of relational databases.
+**dataset** provides two key functions that make using SQL databases in
+Python a breeze: 
+
+* A simple abstraction layer removes most direct SQL statements without
+  the necessity for a full ORM model - essentially, databases can be
+  used like a JSON file or NoSQL store.
+
+* Database contents can be exported (*frozen*) using a sophisticated
+  plain file generator with JSON and CSV support. Exports can be configured
+  to include metadata and dynamic file names depending on the exported 
+  data.
+
+The exporter can also be used as a command-line tool, ``datafreeze``. 
 
 ::
 
