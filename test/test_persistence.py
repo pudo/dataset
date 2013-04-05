@@ -140,5 +140,13 @@ class TableTestCase(unittest.TestCase):
         m = self.tbl.find_one(place='Berkeley', date=date)
         assert m['temperature'] == -10, 'new temp. should be -10'
 
+    def test_create_column(self):
+        from sqlalchemy import FLOAT
+        tbl = self.tbl
+        tbl.create_column('foo', FLOAT)
+        assert 'foo' in tbl.table.c, tbl.table.c
+        assert FLOAT == type(tbl.table.c['foo'].type), tbl.table.c['foo'].type
+        assert 'foo' in tbl.columns, tbl.columns
+
 if __name__ == '__main__':
     unittest.main()
