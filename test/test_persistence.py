@@ -138,7 +138,7 @@ class TableTestCase(unittest.TestCase):
         )
         assert res, 'update should return True'
         m = self.tbl.find_one(place='Berkeley', date=date)
-        assert m['temperature'] == -10, 'new temp. should be -10'
+        assert m['temperature'] == -10, 'new temp. should be -10 but is %d' % m['temperature']
 
     def test_create_column(self):
         from sqlalchemy import FLOAT
