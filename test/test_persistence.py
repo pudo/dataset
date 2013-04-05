@@ -74,6 +74,8 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
         self.tbl.delete(place='Berlin')
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
+        self.tbl.delete()
+        assert len(self.tbl) == 0, len(self.tbl)
 
     def test_find_one(self):
         self.tbl.insert({
