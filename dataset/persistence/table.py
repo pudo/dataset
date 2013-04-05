@@ -157,8 +157,11 @@ class Table(object):
         If no arguments are given, all records are deleted.
         """
         self._check_dropped()
-        q = self._args_to_clause(filter)
-        stmt = self.table.delete(q)
+        if len(filter) > 0:
+            q = self._args_to_clause(filter)
+            stmt = self.table.delete(q)
+        else:
+            stmt = self.table.delete()
         self.database.engine.execute(stmt)
 
     def _ensure_columns(self, row, types={}):
