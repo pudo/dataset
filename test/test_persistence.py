@@ -127,12 +127,16 @@ class TableTestCase(unittest.TestCase):
         assert c == len(self.tbl)
 
     def test_update(self):
-        self.tbl.upsert({
-            'date': datetime(2011, 01, 02),
+        date = datetime(2011, 01, 02)
+        res = self.tbl.update({
+            'date': date,
             'temperature': -10,
-            'place': 'Berlin'},
-            ['place']
+            'place': 'Berkeley'},
+            ['place', 'date']
         )
+        assert res, 'update should return True'
+        m = self.tbl.find_one(place='Berkeley', date=date)
+        assert m['temperature'] == -10, 'new temp. should be -10'
 
 if __name__ == '__main__':
     unittest.main()
