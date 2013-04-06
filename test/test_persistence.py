@@ -42,12 +42,13 @@ class TableTestCase(unittest.TestCase):
 
     def test_insert(self):
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
-        self.tbl.insert({
+        last_id = self.tbl.insert({
             'date': datetime(2011, 01, 02),
             'temperature': -10,
             'place': 'Berlin'}
         )
         assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert self.tbl.find_one(id=last_id)['place'] == 'Berlin'
 
     def test_upsert(self):
         self.tbl.upsert({

@@ -66,7 +66,8 @@ class Table(object):
         self._check_dropped()
         if ensure:
             self._ensure_columns(row, types=types)
-        self.database.engine.execute(self.table.insert(row))
+        res = self.database.engine.execute(self.table.insert(row))
+        return res.lastrowid
 
     def insert_many(self, rows, chunk_size=1000, ensure=True, types={}):
         """
