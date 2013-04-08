@@ -4,8 +4,6 @@ API documentation
 
 .. autofunction:: dataset.connect
 
-.. autofunction:: dataset.freeze
-
 Database
 --------
 
@@ -20,3 +18,9 @@ Table
 .. autoclass:: dataset.Table
    :members: columns, find, find_one, all, distinct, insert, insert_many, update, upsert,   create_column, create_index, drop
    :special-members: __len__, __iter__
+
+
+Data Export
+-----------
+
+.. autofunction:: dataset.freeze
