@@ -37,7 +37,7 @@ def freeze(database, query, format='csv', filename='freeze.csv',
         'mode': mode,
         'wrap': wrap
     })
-    return freeze_export(Export(kw))
+    return freeze_export(Export({}, kw))
 
 
 def freeze_export(export):
