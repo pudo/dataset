@@ -12,13 +12,14 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(
-        description='Generate static JSON and CSV extracts from a SQL database.',
-        epilog='For further information, please check the documentation.')
+    description='Generate static JSON and CSV extracts from a SQL database.',
+    epilog='For further information, please check the documentation.')
 parser.add_argument('config', metavar='CONFIG', type=str,
-                   help='freeze file cofiguration')
+                    help='freeze file cofiguration')
 
-def freeze(database, query, format='csv', filename='freeze.csv', 
-        prefix='.', meta={}, indent=2, mode='list', wrap=True, **kw):
+
+def freeze(database, query, format='csv', filename='freeze.csv',
+           prefix='.', meta={}, indent=2, mode='list', wrap=True, **kw):
     """
     Perform a data export of a given SQL statement. This is a very
     flexible exporter, allowing for various output formats, metadata
@@ -26,18 +27,19 @@ def freeze(database, query, format='csv', filename='freeze.csv',
     of records) into individual files.
     """
     kw.update({
-            'database': database,
-            'query': query,
-            'format': format,
-            'filename': filename,
-            'prefix': prefix,
-            'meta': meta, 
-            'indent': indent,
-            'mode': mode,
-            'wrap': wrap
-        })      
+        'database': database,
+        'query': query,
+        'format': format,
+        'filename': filename,
+        'prefix': prefix,
+        'meta': meta,
+        'indent': indent,
+        'mode': mode,
+        'wrap': wrap
+    })
     return freeze_export(Export(kw))
-    
+
+
 def freeze_export(export):
     try:
         database = Database(export.get('database'))
@@ -48,8 +50,9 @@ def freeze_export(export):
     except ProgrammingError, pe:
         raise FreezeException("Invalid query: %s" % pe)
 
+
 def main():
-    try: 
+    try:
         args = parser.parse_args()
         config = Configuration(args.config)
         for export in config.exports:
@@ -63,4 +66,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
