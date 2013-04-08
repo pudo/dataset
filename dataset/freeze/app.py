@@ -26,8 +26,6 @@ def freeze(database, query, format='csv', filename='freeze.csv',
     assignment, and file name templating to dump each record (or a set
     of records) into individual files.
     """
-    if isinstance(database, (str, unicode)):
-        database = Database(database)
     kw.update({
         'database': database,
         'query': query,
@@ -45,6 +43,8 @@ def freeze(database, query, format='csv', filename='freeze.csv',
 def freeze_export(export):
     try:
         database = export.get('database')
+        if isinstance(database, (str, unicode)):
+            database = Database(database)
         query = database.query(export.get('query'))
         serializer_cls = get_serializer(export)
         serializer = serializer_cls(export, query)
