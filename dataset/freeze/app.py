@@ -18,7 +18,7 @@ parser.add_argument('config', metavar='CONFIG', type=str,
                     help='freeze file cofiguration')
 
 
-def freeze(database, query, format='csv', filename='freeze.csv',
+def freeze(result, format='csv', filename='freeze.csv',
            prefix='.', meta={}, indent=2, mode='list', wrap=True, **kw):
     """
     Perform a data export of a given SQL statement. This is a very
@@ -27,8 +27,6 @@ def freeze(database, query, format='csv', filename='freeze.csv',
     of records) into individual files.
     """
     kw.update({
-        'database': database,
-        'query': query,
         'format': format,
         'filename': filename,
         'prefix': prefix,
@@ -37,15 +35,16 @@ def freeze(database, query, format='csv', filename='freeze.csv',
         'mode': mode,
         'wrap': wrap
     })
-    return freeze_export(Export({}, kw))
+    return freeze_export(Export({}, kw), result=result)
 
 
-def freeze_export(export):
+def freeze_export(export, result=None):
     try:
-        database = export.get('database')
-        if isinstance(database, (str, unicode)):
-            database = Database(database)
-        query = database.query(export.get('query'))
+        if result is None:
+            database = Database(export.get('database'))
+            query = database.query(export.get('query'))
+        else:
+            query = result
         serializer_cls = get_serializer(export)
         serializer = serializer_cls(export, query)
         serializer.serialize()
