@@ -5,6 +5,7 @@ from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
 
 from dataset.persistence.util import guess_type
+from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
 
 
@@ -270,6 +271,13 @@ class Table(object):
 
         args = self._args_to_clause(filter)
 
+        # query total number of rows first
+        count_query = self.table.count(whereclause=args, limit=_limit, offset=_offset)
+        rp = self.database.engine.execute(count_query)
+        total_row_count = rp.fetchone()[0]
+
+        queries = []
+
         for i in count():
             qoffset = _offset + (_step * i)
             qlimit = _step
@@ -277,13 +285,11 @@ class Table(object):
                 qlimit = min(_limit - (_step * i), _step)
             if qlimit <= 0:
                 break
-            q = self.table.select(whereclause=args, limit=qlimit,
-                                  offset=qoffset, order_by=order_by)
-            rows = list(self.database.query(q))
-            if not len(rows):
-                return
-            for row in rows:
-                yield row
+            if qoffset > total_row_count:
+                break
+            queries.append(self.table.select(whereclause=args, limit=qlimit,
+                                             offset=qoffset, order_by=order_by))
+        return ResultIter((self.database.engine.execute(q) for q in queries))
 
     def __len__(self):
         """
@@ -337,6 +343,4 @@ class Table(object):
             for row in table:
                 print row
         """
-        for row in self.all():
-            yield row
-
+        return self.all()
