@@ -395,6 +395,10 @@ a:hover tt {
     background: #EEE;
 }
 
+li {
+  margin-bottom: 0.3em;
+}
+
 
 @media screen and (max-width: 870px) {
 
@@ -515,6 +519,7 @@ a:hover tt {
         min-height: 0;
         padding: 0;
     }
+
 
     .rtd_doc_footer {
         display: none;

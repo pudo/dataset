@@ -144,9 +144,8 @@ You can create one file per row by setting ``mode`` to "item"::
    # export one JSON file per user
    dataset.freeze(result, 'users/{{ id }}.json', format='json', mode='item')
 
-
 Since this is a common operation we made it available via command line
-utility ``datafreeze``. Read more about the `freezefile markup <https://github.com/spiegelonline/datafreeze#example-freezefileyaml>`_.
+utility ``datafreeze``. Read more about the :doc:`freezefile markup <freezefile>`.
 
 .. code-block:: bash
 

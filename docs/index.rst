@@ -22,12 +22,12 @@ Python a breeze:
   the necessity for a full ORM model - essentially, databases can be
   used like a JSON file or NoSQL store.
 
-* Database contents can be exported (*frozen*) using a sophisticated
-  plain file generator with JSON and CSV support. Exports can be configured
-  to include metadata and dynamic file names depending on the exported 
-  data.
+* Database contents can be exported (*frozen*) using a :doc:`sophisticated
+  plain file generator <freezefile>` with JSON and CSV support. Exports can be configured
+  to include metadata and dynamic file names depending on the exported
+  data. The exporter can also be used as a command-line tool, ``datafreeze``.
 
-The exporter can also be used as a command-line tool, ``datafreeze``. 
+A simple data loading script using **dataset** might look like this:
 
 ::
 
@@ -55,6 +55,8 @@ Features
 * **Query helpers** for simple queries such as :py:meth:`all <dataset.Table.all>` rows in a table or
   all :py:meth:`distinct <dataset.Table.distinct>` values across a set of columns.
 * **Compatibility**: Being built on top of `SQLAlchemy <http://www.sqlalchemy.org/>`_, ``dataset`` works with all major databases, such as SQLite, PostgreSQL and MySQL.
+* **Scripted exports**: Data can be exported based on a scripted
+  configuration, making the process easy and replicable.
 
 Contents
 --------
@@ -63,6 +65,7 @@ Contents
    :maxdepth: 2
 
    quickstart
+   freezefile
    api
 
 Contributors
