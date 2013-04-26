@@ -1,6 +1,8 @@
 import json
 import yaml
 
+from dataset.util import FreezeException
+
 
 TRUISH = ['true', 'yes', '1', 'on']
 
