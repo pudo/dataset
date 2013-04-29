@@ -267,6 +267,7 @@ class Table(object):
         self._check_dropped()
         if isinstance(order_by, (str, unicode)):
             order_by = [order_by]
+        order_by = filter(lambda o: o in self.table.columns, order_by)
         order_by = [self._args_to_order_by(o) for o in order_by]
 
         args = self._args_to_clause(filter)
@@ -275,6 +276,10 @@ class Table(object):
         count_query = self.table.count(whereclause=args, limit=_limit, offset=_offset)
         rp = self.database.engine.execute(count_query)
         total_row_count = rp.fetchone()[0]
+
+        if total_row_count > _step and len(order_by) == 0:
+            _step = total_row_count
+            log.warn("query cannot be broken into smaller sections because it is unordered")
 
         queries = []
 
