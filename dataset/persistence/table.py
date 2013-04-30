@@ -147,7 +147,7 @@ class Table(object):
         if not self.update(row, keys, ensure=ensure, types=types):
             self.insert(row, ensure=ensure, types=types)
 
-    def delete(self, **filter):
+    def delete(self, **_filter):
         """ Delete rows from the table. Keyword arguments can be used
         to add column-based filters. The filter criterion will always
         be equality:
@@ -159,8 +159,8 @@ class Table(object):
         If no arguments are given, all records are deleted.
         """
         self._check_dropped()
-        if len(filter) > 0:
-            q = self._args_to_clause(filter)
+        if len(_filter) > 0:
+            q = self._args_to_clause(_filter)
             stmt = self.table.delete(q)
         else:
             stmt = self.table.delete()
@@ -221,7 +221,7 @@ class Table(object):
             self.indexes[name] = idx
             return idx
 
-    def find_one(self, **filter):
+    def find_one(self, **_filter):
         """
         Works just like :py:meth:`find() <dataset.Table.find>` but returns only one result.
         ::
@@ -229,7 +229,7 @@ class Table(object):
             row = table.find_one(country='United States')
         """
         self._check_dropped()
-        res = list(self.find(_limit=1, **filter))
+        res = list(self.find(_limit=1, **_filter))
         if not len(res):
             return None
         return res[0]
@@ -241,7 +241,7 @@ class Table(object):
             return self.table.c[order_by].asc()
 
     def find(self, _limit=None, _offset=0, _step=5000,
-             order_by='id', **filter):
+             order_by='id', **_filter):
         """
         Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
         ::
@@ -262,6 +262,10 @@ class Table(object):
             # return all rows sorted by multiple columns (by year in descending order)
             results = table.find(order_by=['country', '-year'])
 
+        By default :py:meth:`find() <dataset.Table.find>` will break the
+        query into chunks of ``_step`` rows to prevent huge tables
+        from being loaded into memory at once.
+
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>`
         instead."""
         self._check_dropped()
@@ -270,12 +274,15 @@ class Table(object):
         order_by = filter(lambda o: o in self.table.columns, order_by)
         order_by = [self._args_to_order_by(o) for o in order_by]
 
-        args = self._args_to_clause(filter)
+        args = self._args_to_clause(_filter)
 
         # query total number of rows first
         count_query = self.table.count(whereclause=args, limit=_limit, offset=_offset)
         rp = self.database.engine.execute(count_query)
         total_row_count = rp.fetchone()[0]
+
+        if _step is None or _step is False or _step == 0:
+            _step = total_row_count
 
         if total_row_count > _step and len(order_by) == 0:
             _step = total_row_count
@@ -303,7 +310,7 @@ class Table(object):
         d = self.database.query(self.table.count()).next()
         return d.values().pop()
 
-    def distinct(self, *columns, **filter):
+    def distinct(self, *columns, **_filter):
         """
         Returns all rows of a table, but removes rows in with duplicate values in ``columns``.
         Interally this creates a `DISTINCT statement <http://www.w3schools.com/sql/sql_distinct.asp>`_.
@@ -320,7 +327,7 @@ class Table(object):
         qargs = []
         try:
             columns = [self.table.c[c] for c in columns]
-            for col, val in filter.items():
+            for col, val in _filter.items():
                 qargs.append(self.table.c[col] == val)
         except KeyError:
             return []
