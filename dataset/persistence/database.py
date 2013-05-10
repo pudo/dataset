@@ -1,5 +1,5 @@
 import logging
-from threading import RLock
+import threading
 
 from sqlalchemy import create_engine
 from migrate.versioning.util import construct_engine
@@ -22,13 +22,42 @@ class Database(object):
         if url.startswith('postgres'):
             kw['poolclass'] = NullPool
         engine = create_engine(url, **kw)
-        self.lock = RLock()
+        self.lock = threading.RLock()
+        self.local = threading.local()
         self.url = url
         self.engine = construct_engine(engine)
         self.metadata = MetaData()
         self.metadata.bind = self.engine
         self.metadata.reflect(self.engine)
         self._tables = {}
+
+    @property
+    def executable(self):
+        """ The current connection or engine against which statements 
+        will be executed. """
+        if hasattr(self.local, 'connection'):
+            return self.local.connection
+        return self.engine
+
+    def begin(self):
+        """ Enter a transaction explicitly. No data will be written 
+        until the transaction has been committed. """
+        if not hasattr(self.local, 'connection'):
+            self.local.connection = self.engine.connect()
+        if not hasattr(self.local, 'tx'):
+            self.local.tx = self.local.connection.begin()
+
+    def commit(self):
+        """ Commit the current transaction, making all statements executed
+        since the transaction was begun permanent. """
+        self.local.tx.commit()
+        del self.local.tx
+
+    def rollback(self):
+        """ Roll back the current transaction, discarding all statements
+        executed since the transaction was begun. """
+        self.local.tx.rollback()
+        del self.local.tx
 
     @property
     def tables(self):
@@ -55,7 +84,7 @@ class Database(object):
             table = SQLATable(table_name, self.metadata)
             col = Column('id', Integer, primary_key=True)
             table.append_column(col)
-            table.create(self.engine)
+            table.create(self.executable)
             self._tables[table_name] = table
             return Table(self, table)
 
@@ -112,7 +141,7 @@ class Database(object):
             for row in res:
                 print row['user'], row['c']
         """
-        return ResultIter(self.engine.execute(query))
+        return ResultIter(self.executable.execute(query))
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
