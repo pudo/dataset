@@ -39,10 +39,10 @@ class Table(object):
         dropping the table. If you want to re-create the table, make
         sure to get a fresh instance from the :py:class:`Database <dataset.Database>`.
         """
+        self.database._acquire()
         self._is_dropped = True
-        with self.database.lock:
-            self.database._tables.pop(self.table.name, None)
-            self.table.drop(self.database.executable)
+        self.database._tables.pop(self.table.name, None)
+        self.table.drop(self.database.engine)
 
     def _check_dropped(self):
         if self._is_dropped:
@@ -198,11 +198,14 @@ class Table(object):
             table.create_column('created_at', sqlalchemy.DateTime)
         """
         self._check_dropped()
-        with self.database.lock:
+        self.database._acquire()
+        try:
             if name not in self.table.columns.keys():
                 col = Column(name, type)
                 col.create(self.table,
-                           connection=self.database.engine)
+                       connection=self.database.engine)
+        finally:
+            self.database._release()
 
     def create_index(self, columns, name=None):
         """
@@ -212,20 +215,22 @@ class Table(object):
             table.create_index(['name', 'country'])
         """
         self._check_dropped()
-        with self.database.lock:
-            if not name:
-                sig = abs(hash('||'.join(columns)))
-                name = 'ix_%s_%s' % (self.table.name, sig)
-            if name in self.indexes:
-                return self.indexes[name]
-            try:
-                columns = [self.table.c[c] for c in columns]
-                idx = Index(name, *columns)
-                idx.create(self.database.engine)
-            except:
-                idx = None
-            self.indexes[name] = idx
-            return idx
+        if not name:
+            sig = abs(hash('||'.join(columns)))
+            name = 'ix_%s_%s' % (self.table.name, sig)
+        if name in self.indexes:
+            return self.indexes[name]
+        try:
+            self.database._acquire()
+            columns = [self.table.c[c] for c in columns]
+            idx = Index(name, *columns)
+            idx.create(self.database.engine)
+        except:
+            idx = None
+        finally:
+            self.database._release()
+        self.indexes[name] = idx
+        return idx
 
     def find_one(self, **_filter):
         """
