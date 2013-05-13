@@ -84,7 +84,7 @@ class Database(object):
             table = SQLATable(table_name, self.metadata)
             col = Column('id', Integer, primary_key=True)
             table.append_column(col)
-            table.create(self.executable)
+            table.create(self.engine)
             self._tables[table_name] = table
             return Table(self, table)
 

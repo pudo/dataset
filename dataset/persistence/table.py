@@ -202,7 +202,7 @@ class Table(object):
             if name not in self.table.columns.keys():
                 col = Column(name, type)
                 col.create(self.table,
-                           connection=self.database.executable)
+                           connection=self.database.engine)
 
     def create_index(self, columns, name=None):
         """
@@ -221,7 +221,7 @@ class Table(object):
             try:
                 columns = [self.table.c[c] for c in columns]
                 idx = Index(name, *columns)
-                idx.create(self.database.executable)
+                idx.create(self.database.engine)
             except:
                 idx = None
             self.indexes[name] = idx
