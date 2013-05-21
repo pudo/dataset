@@ -16,6 +16,8 @@ parser = argparse.ArgumentParser(
     epilog='For further information, please check the documentation.')
 parser.add_argument('config', metavar='CONFIG', type=str,
                     help='freeze file cofiguration')
+parser.add_argument('--db', default=None,
+                    help='Override the freezefile database URI')
 
 
 def freeze(result, format='csv', filename='freeze.csv',
@@ -91,6 +93,8 @@ def main():
         args = parser.parse_args()
         config = Configuration(args.config)
         for export in config.exports:
+            if args.db is not None:
+                export.data['database'] = args.db
             if export.skip:
                 log.info("Skipping: %s", export.name)
                 continue

@@ -22,7 +22,10 @@ freeze file as its argument:
 
     datafreeze Freezefile.yaml
 
-Freeze files can be either written in JSON or in YAML.
+Freeze files can be either written in JSON or in YAML. The database URI 
+indicated in the Freezefile can also be overridden via the command line:
+
+    datafreeze --db sqlite:///foo.db Freezefile.yaml
 
 
 Example Freezefile.yaml
