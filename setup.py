@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dataset',
-    version='0.3.3',
+    version='0.3.4',
     description="Toolkit for Python-based data processing.",
     long_description="",
     classifiers=[
