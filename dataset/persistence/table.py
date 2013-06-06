@@ -121,6 +121,13 @@ class Table(object):
         if not len(keys):
             return False
         clause = [(u, row.get(u)) for u in keys]
+        """
+        Don't update the key itself, so remove any keys from the row dict
+        """
+        for key in keys:
+            if key in row.keys():
+                del row[key]
+
         if ensure:
             self._ensure_columns(row, types=types)
         try:
@@ -180,7 +187,10 @@ class Table(object):
         self._ensure_columns(args)
         clauses = []
         for k, v in args.items():
-            clauses.append(self.table.c[k] == v)
+            if isinstance(v, list) or isinstance(v, tuple):
+                clauses.append(self.table.c[k].in_(v))
+            else:
+                clauses.append(self.table.c[k] == v)
         return and_(*clauses)
 
     def create_column(self, name, type):
