@@ -1,5 +1,5 @@
 import logging
-from threading import RLock
+import threading
 
 from sqlalchemy import create_engine
 from migrate.versioning.util import construct_engine
@@ -22,7 +22,8 @@ class Database(object):
         if url.startswith('postgres'):
             kw['poolclass'] = NullPool
         engine = create_engine(url, **kw)
-        self.lock = RLock()
+        self.lock = threading.RLock()
+        self.local = threading.local()
         self.url = url
         self.engine = construct_engine(engine)
         self.metadata = MetaData()
@@ -30,6 +31,49 @@ class Database(object):
         if reflectMetadata:
             self.metadata.reflect(self.engine)
         self._tables = {}
+
+    @property
+    def executable(self):
+        """ The current connection or engine against which statements
+        will be executed. """
+        if hasattr(self.local, 'connection'):
+            return self.local.connection
+        return self.engine
+
+    def _acquire(self):
+        self.lock.acquire()
+
+    def _release(self):
+        if not hasattr(self.local, 'tx'):
+            self.lock.release()
+        else:
+            self.local.must_release = True
+
+    def begin(self):
+        """ Enter a transaction explicitly. No data will be written
+        until the transaction has been committed. """
+        if not hasattr(self.local, 'connection'):
+            self.local.connection = self.engine.connect()
+        if not hasattr(self.local, 'tx'):
+            self.local.tx = self.local.connection.begin()
+
+    def commit(self):
+        """ Commit the current transaction, making all statements executed
+        since the transaction was begun permanent. """
+        self.local.tx.commit()
+        del self.local.tx
+        if not hasattr(self.local, 'must_release'):
+            self.lock.release()
+            del self.local.must_release
+
+    def rollback(self):
+        """ Roll back the current transaction, discarding all statements
+        executed since the transaction was begun. """
+        self.local.tx.rollback()
+        del self.local.tx
+        if not hasattr(self.local, 'must_release'):
+            self.lock.release()
+            del self.local.must_release
 
     @property
     def tables(self):
@@ -51,7 +95,8 @@ class Database(object):
 
             table = db.create_table('population')
         """
-        with self.lock:
+        self._acquire()
+        try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
             col = Column('id', Integer, primary_key=True)
@@ -59,6 +104,8 @@ class Database(object):
             table.create(self.engine)
             self._tables[table_name] = table
             return Table(self, table)
+        finally:
+            self._release()
 
     def load_table(self, table_name):
         """
@@ -72,11 +119,14 @@ class Database(object):
 
             table = db.load_table('population')
         """
-        with self.lock:
+        self._acquire()
+        try:
             log.debug("Loading table: %s on %r" % (table_name, self))
             table = SQLATable(table_name, self.metadata, autoload=True)
             self._tables[table_name] = table
             return Table(self, table)
+        finally:
+            self._release()
 
     def get_table(self, table_name):
         """
@@ -90,13 +140,16 @@ class Database(object):
             # you can also use the short-hand syntax:
             table = db['population']
         """
-        with self.lock:
-            if table_name in self._tables:
-                return Table(self, self._tables[table_name])
+        if table_name in self._tables:
+            return Table(self, self._tables[table_name])
+        self._acquire()
+        try:
             if self.engine.has_table(table_name):
                 return self.load_table(table_name)
             else:
                 return self.create_table(table_name)
+        finally: 
+            self._release()
 
     def __getitem__(self, table_name):
         return self.get_table(table_name)
@@ -113,7 +166,7 @@ class Database(object):
             for row in res:
                 print row['user'], row['c']
         """
-        return ResultIter(self.engine.execute(query))
+        return ResultIter(self.executable.execute(query))
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
