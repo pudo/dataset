@@ -213,7 +213,7 @@ class Table(object):
             if name not in self.table.columns.keys():
                 col = Column(name, type)
                 col.create(self.table,
-                       connection=self.database.engine)
+                           connection=self.database.executable)
         finally:
             self.database._release()
 

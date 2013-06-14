@@ -46,8 +46,14 @@ class Database(object):
     def _release(self):
         if not hasattr(self.local, 'tx'):
             self.lock.release()
+            self.local.must_release = False
         else:
             self.local.must_release = True
+
+    def _release_internal(self):
+        if not hasattr(self.local, 'must_release') and self.local.must_release:
+            self.lock.release()
+            self.local.must_release = False
 
     def begin(self):
         """ Enter a transaction explicitly. No data will be written
@@ -62,18 +68,14 @@ class Database(object):
         since the transaction was begun permanent. """
         self.local.tx.commit()
         del self.local.tx
-        if not hasattr(self.local, 'must_release'):
-            self.lock.release()
-            del self.local.must_release
+        self._release_internal()
 
     def rollback(self):
         """ Roll back the current transaction, discarding all statements
         executed since the transaction was begun. """
         self.local.tx.rollback()
         del self.local.tx
-        if not hasattr(self.local, 'must_release'):
-            self.lock.release()
-            del self.local.must_release
+        self._release_internal()
 
     @property
     def tables(self):
@@ -83,7 +85,7 @@ class Database(object):
         set([u'user', u'action'])
         """
         return list(set(self.metadata.tables.keys() +
-            self._tables.keys()))
+                        self._tables.keys()))
 
     def create_table(self, table_name):
         """
@@ -148,7 +150,7 @@ class Database(object):
                 return self.load_table(table_name)
             else:
                 return self.create_table(table_name)
-        finally: 
+        finally:
             self._release()
 
     def __getitem__(self, table_name):
