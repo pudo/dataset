@@ -118,7 +118,7 @@ class Table(object):
         ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
         self._check_dropped()
-        if not len(keys):
+        if not len(keys) or len(keys)==len(row):
             return False
         clause = [(u, row.get(u)) for u in keys]
         """
