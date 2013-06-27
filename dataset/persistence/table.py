@@ -244,7 +244,7 @@ class Table(object):
 
     def find_one(self, **_filter):
         """
-        Works just like :py:meth:`find() <dataset.Table.find>` but returns only one result.
+        Works just like :py:meth:`find() <dataset.Table.find>` but returns one result, or None.
         ::
 
             row = table.find_one(country='United States')
