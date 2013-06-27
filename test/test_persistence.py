@@ -66,6 +66,15 @@ class TableTestCase(unittest.TestCase):
         )
         assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
 
+    def test_upsert_all_key(self):
+        for i in range(0,2):
+            self.tbl.upsert({
+                'date': datetime(2011, 01, 02),
+                'temperature': -10,
+                'place': 'Berlin'},
+                ['date', 'temperature', 'place']
+            )
+
     def test_delete(self):
         self.tbl.insert({
             'date': datetime(2011, 01, 02),
