@@ -44,7 +44,7 @@ class DatabaseTestCase(unittest.TestCase):
 class TableTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db = connect(url='sqlite:///:memory:')
+        self.db = connect('sqlite:///:memory:')
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
