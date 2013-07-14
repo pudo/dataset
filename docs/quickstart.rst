@@ -23,6 +23,11 @@ To connect to a database you need to identify it by its `URL <http://docs.sqlalc
    # connecting to a PostgreSQL database
    db = dataset.connect('postgresql://scott:tiger@localhost:5432/mydatabase')
 
+It is also possible to define the `URL` as an environment variable called `DATABASE_URL`
+so you can initialize database connection without explicitly passing an `URL`::
+
+   db = dataset.connect()
+
 Depending on which database you're using, you may also have to install
 the database bindings to support that database. SQLite is included in
 the Python core, but PostgreSQL requires ``psycopg2`` to be installed. 

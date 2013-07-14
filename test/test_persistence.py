@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import datetime
 
@@ -9,10 +10,18 @@ from sample_data import TEST_DATA
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db = connect('sqlite:///:memory:')
+        os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+        self.db = connect()
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
+
+    def tearDown(self):
+        # ensure env variable was unset
+        del os.environ['DATABASE_URL']
+
+    def test_valid_database_url(self):
+        assert self.db.url, os.environ['DATABASE_URL']
 
     def test_tables(self):
         assert self.db.tables == ['weather'], self.db.tables
