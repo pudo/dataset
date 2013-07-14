@@ -1,3 +1,4 @@
+import os
 # shut up useless SA warning:
 import warnings
 warnings.filterwarnings(
@@ -10,10 +11,11 @@ from dataset.freeze.app import freeze
 __all__ = ['Database', 'Table', 'freeze', 'connect']
 
 
-def connect(url, reflectMetadata=True):
+def connect(url=None, reflectMetadata=True):
     """
-    Opens a new connection to a database. *url* can be any valid `SQLAlchemy engine URL`_. Returns
-    an instance of :py:class:`Database <dataset.Database>`. Set *reflectMetadata* to False if you
+    Opens a new connection to a database. *url* can be any valid `SQLAlchemy engine URL`_.
+    If *url* is not defined it will try to use *DATABASE_URL* from environment variable.
+    Returns an instance of :py:class:`Database <dataset.Database>`. Set *reflectMetadata* to False if you
     don't want the entire database schema to be pre-loaded. This significantly speeds up
     connecting to large databases with lots of tables.
     ::
@@ -22,4 +24,5 @@ def connect(url, reflectMetadata=True):
 
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
     """
+    url = os.environ.get('DATABASE_URL', url)
     return Database(url, reflectMetadata)
