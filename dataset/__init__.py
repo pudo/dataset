@@ -24,5 +24,6 @@ def connect(url=None, reflectMetadata=True):
 
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
     """
-    url = os.environ.get('DATABASE_URL', url)
+    if url is None:
+        url = os.environ.get('DATABASE_URL', url)
     return Database(url, reflectMetadata)
