@@ -1,5 +1,6 @@
 import logging
 import threading
+from urlparse import parse_qs
 
 from sqlalchemy import create_engine
 from migrate.versioning.util import construct_engine
@@ -17,16 +18,25 @@ log = logging.getLogger(__name__)
 
 class Database(object):
 
-    def __init__(self, url, reflectMetadata=True):
+    def __init__(self, url, schema=None, reflectMetadata=True):
         kw = {}
         if url.startswith('postgres'):
             kw['poolclass'] = NullPool
-        engine = create_engine(url, **kw)
         self.lock = threading.RLock()
         self.local = threading.local()
+        if '?' in url:
+            url, query = url.split('?', 1)
+            query = parse_qs(query)
+            if schema is None:
+                # le pop
+                schema_qs = query.pop('schema', query.pop('searchpath', []))
+                if len(schema_qs):
+                    schema = schema_qs.pop()
+        self.schema = schema
+        engine = create_engine(url, **kw)
         self.url = url
         self.engine = construct_engine(engine)
-        self.metadata = MetaData()
+        self.metadata = MetaData(schema=schema)
         self.metadata.bind = self.engine
         if reflectMetadata:
             self.metadata.reflect(self.engine)
@@ -146,7 +156,7 @@ class Database(object):
             return Table(self, self._tables[table_name])
         self._acquire()
         try:
-            if self.engine.has_table(table_name):
+            if self.engine.has_table(table_name, schema=self.schema):
                 return self.load_table(table_name)
             else:
                 return self.create_table(table_name)
@@ -172,4 +182,3 @@ class Database(object):
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
-
