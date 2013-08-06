@@ -8,7 +8,6 @@ from dataset.freeze.config import Configuration, Export
 from dataset.freeze.format import get_serializer
 
 
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(
@@ -104,4 +103,5 @@ def main():
         log.error(fe)
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     main()
