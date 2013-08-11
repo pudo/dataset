@@ -147,6 +147,10 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
+        # check whether keys arg is a string and format as a list
+        if isinstance(keys, basestring):
+            keys = [keys]
+            
         self._check_dropped()
         if ensure:
             self.create_index(keys)
