@@ -117,6 +117,10 @@ class Table(object):
         they will be created based on the settings of ``ensure`` and
         ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
+        # check whether keys arg is a string and format as a list
+        if isinstance(keys, basestring):
+            keys = [keys]
+            
         self._check_dropped()
         if not len(keys) or len(keys)==len(row):
             return False
