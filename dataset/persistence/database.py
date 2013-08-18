@@ -166,19 +166,22 @@ class Database(object):
     def __getitem__(self, table_name):
         return self.get_table(table_name)
 
-    def query(self, query):
+    def query(self, query, **kw):
         """
         Run a statement on the database directly, allowing for the
         execution of arbitrary read/write queries. A query can either be
         a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/ru/latest/core/tutorial.html#selecting>`_. The returned
         iterator will yield each result sequentially.
+
+        Any keyword arguments will be passed into the query to perform
+        parameter binding. 
         ::
 
             res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
             for row in res:
                 print row['user'], row['c']
         """
-        return ResultIter(self.executable.execute(query))
+        return ResultIter(self.executable.execute(query, **kw))
 
     def __repr__(self):
         return '<Database(%s)>' % self.url
