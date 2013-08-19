@@ -20,7 +20,8 @@ parser.add_argument('--db', default=None,
 
 
 def freeze(result, format='csv', filename='freeze.csv',
-           prefix='.', meta={}, indent=2, mode='list', wrap=True, **kw):
+           prefix='.', meta={}, indent=2, mode='list',
+           wrap=True, callback=None, **kw):
     """
     Perform a data export of a given result set. This is a very
     flexible exporter, allowing for various output formats, metadata
@@ -54,7 +55,8 @@ def freeze(result, format='csv', filename='freeze.csv',
 
         *json*
             A JSON file containing a list of dictionaries for each row
-            in the table.
+            in the table. If a ``callback`` is given, JSON with padding 
+            (JSONP) will be generated.
 
         *tabson*
             Tabson is a smart combination of the space-efficiency of the
@@ -67,6 +69,7 @@ def freeze(result, format='csv', filename='freeze.csv',
         'prefix': prefix,
         'meta': meta,
         'indent': indent,
+        'callback': callback,
         'mode': mode,
         'wrap': wrap
     })

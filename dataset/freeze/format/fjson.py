@@ -37,8 +37,13 @@ class JSONSerializer(Serializer):
         for path, result in self.buckets.items():
             result = self.wrap(result)
             fh = open(path, 'wb')
-            json.dump(result, fh,
+            data = json.dumps(result,
                     cls=JSONEncoder,
                     indent=self.export.get_int('indent'))
+            if self.export.get('callback'):
+                data = "%s && %s(%s);" % (self.export.get('callback'),
+                                         self.export.get('callback'),
+                                         data)
+            fh.write(data)
             fh.close()
 
