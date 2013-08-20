@@ -3,6 +3,7 @@ import argparse
 
 from sqlalchemy.exc import ProgrammingError
 from dataset.util import FreezeException
+from dataset.persistence.table import Table
 from dataset.persistence.database import Database
 from dataset.freeze.config import Configuration, Export
 from dataset.freeze.format import get_serializer
@@ -32,6 +33,9 @@ def freeze(result, format='csv', filename='freeze.csv',
 
         result = db['person'].all()
         dataset.freeze(result, format='json', filename='all-persons.json')
+        
+    If ``result`` is a table (rather than a result set), all records in
+    the table are exported (as if ``result.all()`` had been called).
 
 
     freeze supports two values for ``mode``:
@@ -73,7 +77,8 @@ def freeze(result, format='csv', filename='freeze.csv',
         'mode': mode,
         'wrap': wrap
     })
-    return freeze_export(Export({}, kw), result=result)
+    records = result.all() if isinstance(result, Table) else result
+    return freeze_export(Export({}, kw), result=records)
 
 
 def freeze_export(export, result=None):
