@@ -7,7 +7,7 @@ from migrate.versioning.util import construct_engine
 from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import MetaData, Column, Index
 from sqlalchemy.schema import Table as SQLATable
-from sqlalchemy import Integer
+from sqlalchemy import Integer, String
 
 from dataset.persistence.table import Table
 from dataset.persistence.util import ResultIter
@@ -97,10 +97,16 @@ class Database(object):
         return list(set(self.metadata.tables.keys() +
                         self._tables.keys()))
 
-    def create_table(self, table_name):
+    def create_table(self, table_name, primary_id=None, is_integer=False):
         """
-        Creates a new table. The new table will automatically have an `id` column, which is
-        set to be an auto-incrementing integer as the primary key of the table.
+        Creates a new table. The new table will automatically have an `id` column 
+        unless specified via optional parameter primary_id, which will be used 
+        as the primary key of the table. Automatic id is set to be an 
+        auto-incrementing integer, while the type of custom primary_id can be a 
+        string (i.e. VARCHAR(255)) by default or an integer via integer flag. 
+        The caller will be responsible for the uniqueness of manually specified primary_id.
+
+        This custom id feature is only available via direct create_table call. 
 
         Returns a :py:class:`Table <dataset.Table>` instance.
         ::
@@ -111,7 +117,14 @@ class Database(object):
         try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
-            col = Column('id', Integer, primary_key=True)
+            if not primary_id:
+                col = Column('id', Integer, primary_key=True)
+            else:
+                if is_integer:
+                    col = Column(primary_id, Integer, primary_key=True, autoincrement=False)
+                else:
+                    col = Column(primary_id, String(255), primary_key=True)
+
             table.append_column(col)
             table.create(self.engine)
             self._tables[table_name] = table
