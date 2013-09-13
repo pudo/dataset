@@ -11,7 +11,7 @@ from sqlalchemy import Integer, String
 
 from dataset.persistence.table import Table
 from dataset.persistence.util import ResultIter
-
+from dataset.util import DatasetException
 
 log = logging.getLogger(__name__)
 
@@ -97,14 +97,14 @@ class Database(object):
         return list(set(self.metadata.tables.keys() +
                         self._tables.keys()))
 
-    def create_table(self, table_name, primary_id=None, is_integer=False):
+    def create_table(self, table_name, primary_id='id', primary_type=Integer):
         """
         Creates a new table. The new table will automatically have an `id` column 
         unless specified via optional parameter primary_id, which will be used 
         as the primary key of the table. Automatic id is set to be an 
         auto-incrementing integer, while the type of custom primary_id can be a 
-        string (i.e. VARCHAR(255)) by default or an integer via integer flag. 
-        The caller will be responsible for the uniqueness of manually specified primary_id.
+        String (i.e. VARCHAR(255)) or an Integer as specified with primary_type flag. 
+        The caller will be responsible for the uniqueness of manual primary_id.
 
         This custom id feature is only available via direct create_table call. 
 
@@ -112,18 +112,22 @@ class Database(object):
         ::
 
             table = db.create_table('population')
+            table2 = db.create_table('population2', primary_id='age', primary_type=Integer)
+            table3 = db.create_table('population3', primary_id='race', primary_type=String)
         """
         self._acquire()
         try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
-            if not primary_id:
-                col = Column('id', Integer, primary_key=True)
+            if primary_type is Integer:
+                auto_flag = False
+                if primary_id is 'id':
+                    auto_flag = True
+                col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
+            elif primary_type is String:
+                col = Column(primary_id, String(255), primary_key=True)
             else:
-                if is_integer:
-                    col = Column(primary_id, Integer, primary_key=True, autoincrement=False)
-                else:
-                    col = Column(primary_id, String(255), primary_key=True)
+                raise DatasetException("The primary_type has to be either int or str.")
 
             table.append_column(col)
             table.create(self.engine)

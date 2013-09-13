@@ -2,7 +2,7 @@ import os
 import unittest
 from datetime import datetime
 
-from dataset import connect
+from dataset import connect, Integer, String
 from dataset.util import DatasetException
 from sample_data import TEST_DATA
 from sqlalchemy.exc import IntegrityError
@@ -35,7 +35,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_create_table_custom_id1(self):
         pid = "string_id"
-        table = self.db.create_table("foo2", primary_id = pid)
+        table = self.db.create_table("foo2", primary_id = pid, primary_type=String)
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
@@ -46,7 +46,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_create_table_custom_id2(self):
         pid = "int_id"
-        table = self.db.create_table("foo3", primary_id = pid, is_integer=True)
+        table = self.db.create_table("foo3", primary_id = pid, primary_type=Integer)
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
