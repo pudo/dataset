@@ -7,9 +7,9 @@ warnings.filterwarnings(
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
 from dataset.freeze.app import freeze
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, Text
 
-__all__ = ['Database', 'Table', 'freeze', 'connect', 'Integer', 'String']
+__all__ = ['Database', 'Table', 'freeze', 'connect']
 
 
 def connect(url=None, schema=None, reflectMetadata=True):

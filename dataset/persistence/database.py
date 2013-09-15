@@ -7,7 +7,7 @@ from migrate.versioning.util import construct_engine
 from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import MetaData, Column, Index
 from sqlalchemy.schema import Table as SQLATable
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, Text
 
 from dataset.persistence.table import Table
 from dataset.persistence.util import ResultIter
@@ -97,13 +97,13 @@ class Database(object):
         return list(set(self.metadata.tables.keys() +
                         self._tables.keys()))
 
-    def create_table(self, table_name, primary_id='id', primary_type=Integer):
+    def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
         Creates a new table. The new table will automatically have an `id` column 
         unless specified via optional parameter primary_id, which will be used 
         as the primary key of the table. Automatic id is set to be an 
         auto-incrementing integer, while the type of custom primary_id can be a 
-        String (i.e. VARCHAR(255)) or an Integer as specified with primary_type flag. 
+        Text or an Integer as specified with primary_type flag. 
         The caller will be responsible for the uniqueness of manual primary_id.
 
         This custom id feature is only available via direct create_table call. 
@@ -112,22 +112,25 @@ class Database(object):
         ::
 
             table = db.create_table('population')
-            table2 = db.create_table('population2', primary_id='age', primary_type=Integer)
-            table3 = db.create_table('population3', primary_id='race', primary_type=String)
+
+            # custom id and type
+            table2 = db.create_table('population2', 'age')
+            table3 = db.create_table('population3', primary_id='race', primary_type='Text')
         """
         self._acquire()
         try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
-            if primary_type is Integer:
+            if primary_type is 'Integer':
                 auto_flag = False
                 if primary_id is 'id':
                     auto_flag = True
                 col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
-            elif primary_type is String:
-                col = Column(primary_id, String(255), primary_key=True)
+            elif primary_type is 'Text':
+                col = Column(primary_id, Text, primary_key=True)
             else:
-                raise DatasetException("The primary_type has to be either int or str.")
+                raise DatasetException(
+                    "The primary_type has to be either 'Integer' or 'Text'.")
 
             table.append_column(col)
             table.create(self.engine)
@@ -157,10 +160,12 @@ class Database(object):
         finally:
             self._release()
 
-    def get_table(self, table_name):
+    def get_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
         Smart wrapper around *load_table* and *create_table*. Either loads a table
         or creates it if it doesn't exist yet.
+        For short-hand to create a table with custom id and type using [], where
+        table_name, primary_id, and primary_type are specified as a tuple
 
         Returns a :py:class:`Table <dataset.Table>` instance.
         ::
@@ -168,6 +173,10 @@ class Database(object):
             table = db.get_table('population')
             # you can also use the short-hand syntax:
             table = db['population']
+
+            # custom id and type
+            table2 = db['population2', 'age'] # default type is 'Integer'
+            table3 = db['population3', 'race', 'Text']
         """
         if table_name in self._tables:
             return Table(self, self._tables[table_name])
@@ -176,12 +185,15 @@ class Database(object):
             if self.engine.has_table(table_name, schema=self.schema):
                 return self.load_table(table_name)
             else:
-                return self.create_table(table_name)
+                return self.create_table(table_name, primary_id, primary_type)
         finally:
             self._release()
 
     def __getitem__(self, table_name):
-        return self.get_table(table_name)
+        if type(table_name) is tuple:
+            return self.get_table(*table_name[:3])
+        else:
+            return self.get_table(table_name)
 
     def query(self, query, **kw):
         """
