@@ -5,13 +5,14 @@ from datetime import datetime
 from dataset import connect
 from dataset.util import DatasetException
 from sample_data import TEST_DATA
+from sqlalchemy.exc import IntegrityError
 
 
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
         os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
-        self.db = connect()
+        self.db = connect('sqlite:///:memory:')
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
@@ -31,6 +32,56 @@ class DatabaseTestCase(unittest.TestCase):
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert 'id' in table.table.c, table.table.c
+
+    def test_create_table_custom_id1(self):
+        pid = "string_id"
+        table = self.db.create_table("foo2", pid, 'Text')
+        assert table.table.exists()
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({
+            'string_id': 'foobar'})
+        assert table.find_one(string_id = 'foobar')[0] == 'foobar'
+
+    def test_create_table_custom_id2(self):
+        pid = "int_id"
+        table = self.db.create_table("foo3", primary_id = pid)
+        assert table.table.exists()
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({'int_id': 123})
+        table.insert({'int_id': 124})
+        assert table.find_one(int_id = 123)[0] == 123
+        assert table.find_one(int_id = 124)[0] == 124
+        with self.assertRaises(IntegrityError):
+            table.insert({'int_id': 123})
+
+    def test_create_table_shorthand1(self):
+        pid = "int_id"
+        table = self.db['foo4', pid]
+        assert table.table.exists
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({'int_id': 123})
+        table.insert({'int_id': 124})
+        assert table.find_one(int_id = 123)[0] == 123
+        assert table.find_one(int_id = 124)[0] == 124
+        with self.assertRaises(IntegrityError):
+            table.insert({'int_id': 123})
+
+    def test_create_table_shorthand2(self):
+        pid = "string_id"
+        table = self.db['foo5', pid, 'Text']
+        assert table.table.exists
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({
+            'string_id': 'foobar'})
+        assert table.find_one(string_id = 'foobar')[0] == 'foobar'
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
