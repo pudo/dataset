@@ -8,7 +8,7 @@ The easiest way is to install ``dataset`` from the `Python Package Index <https:
 
 .. code-block:: bash
 
-   $ easy_install dataset
+   $ pip install dataset
 
 To install it manually simply download the repository from Github:
 
@@ -18,3 +18,4 @@ To install it manually simply download the repository from Github:
    $ cd dataset/
    $ python setup.py install
 
+Depending on the type of database backend, you may also need to install a database specific driver package. For MySQL, this is ``MySQLdb``, for Postgres its ``psycopg2``. SQLite support is integrated into Python.
