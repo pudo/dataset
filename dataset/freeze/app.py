@@ -96,6 +96,9 @@ def freeze_export(export, result=None):
 
 
 def main():
+    # Set up default logger.
+    logging.basicConfig(level=logging.INFO)
+
     try:
         args = parser.parse_args()
         config = Configuration(args.config)
