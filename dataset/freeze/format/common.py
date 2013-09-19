@@ -68,7 +68,12 @@ class Serializer(object):
 
     def serialize(self):
         self.init()
+        transforms = self.export.get('transform', {})
         for row in self.query:
+
+            for field, operation in transforms.items():
+                row[field] = OPERATIONS.get(operation)(row.get(field))
+            
             self.write(self.file_name(row), row)
         self.close()
 
