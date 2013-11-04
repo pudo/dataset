@@ -261,7 +261,9 @@ class Table(object):
         args = self._args_to_clause(_filter)
         query = self.table.select(whereclause=args, limit=1)
         rp = self.database.executable.execute(query)
-        return rp.fetchone()
+        data = rp.fetchone()
+        if data is not None:
+            return dict(zip(rp.keys(), data))
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':
