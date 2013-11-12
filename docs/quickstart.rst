@@ -142,12 +142,12 @@ such using the :py:meth:`freeze() <dataset.freeze>` function::
 
    # export all users into a single JSON
    result = db['users'].all()
-   dataset.freeze(result, 'users.json', format='json')
+   dataset.freeze(result, format='json', filename='users.json')
 
 You can create one file per row by setting ``mode`` to "item"::
 
    # export one JSON file per user
-   dataset.freeze(result, 'users/{{ id }}.json', format='json', mode='item')
+   dataset.freeze(result, format='json', filename='users/{{ id }}.json', mode='item')
 
 Since this is a common operation we made it available via command line
 utility ``datafreeze``. Read more about the :doc:`freezefile markup <freezefile>`.
