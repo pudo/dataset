@@ -121,12 +121,12 @@ class Database(object):
         try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
             table = SQLATable(table_name, self.metadata)
-            if primary_type is 'Integer':
+            if primary_type == 'Integer':
                 auto_flag = False
-                if primary_id is 'id':
+                if primary_id == 'id':
                     auto_flag = True
                 col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
-            elif primary_type is 'Text':
+            elif primary_type == 'Text':
                 col = Column(primary_id, Text, primary_key=True)
             else:
                 raise DatasetException(
