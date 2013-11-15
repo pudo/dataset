@@ -6,11 +6,10 @@ from sqlalchemy.schema import Column, Index
 
 from dataset.persistence.util import guess_type
 from dataset.persistence.util import ResultIter
+from dataset.persistence.util import RowType
 from dataset.util import DatasetException
 
-
 log = logging.getLogger(__name__)
-
 
 class Table(object):
 
@@ -120,7 +119,7 @@ class Table(object):
         # check whether keys arg is a string and format as a list
         if isinstance(keys, basestring):
             keys = [keys]
-            
+
         self._check_dropped()
         if not len(keys) or len(keys)==len(row):
             return False
@@ -154,7 +153,7 @@ class Table(object):
         # check whether keys arg is a string and format as a list
         if isinstance(keys, basestring):
             keys = [keys]
-            
+
         self._check_dropped()
         if ensure:
             self.create_index(keys)
@@ -261,7 +260,10 @@ class Table(object):
         args = self._args_to_clause(_filter)
         query = self.table.select(whereclause=args, limit=1)
         rp = self.database.executable.execute(query)
-        return rp.fetchone()
+        data = rp.fetchone()
+        if data is not None:
+            return RowType.row_type(zip(rp.keys(), data))
+
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':

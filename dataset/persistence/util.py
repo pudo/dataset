@@ -3,6 +3,11 @@ from inspect import isgenerator
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 
+class RowType(object):
+    """ Holder for global setting as to what type of rows query methods should
+    return. By default, dict, but can be changed to other types (e.g. to
+    ``stuf`` for attribute-accessible objects). """
+    row_type = dict
 
 def guess_type(sample):
     if isinstance(sample, bool):
@@ -46,7 +51,7 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return dict(zip(self.keys, row))
+        return RowType.row_type(zip(self.keys, row))
 
     def __iter__(self):
         return self

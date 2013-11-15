@@ -6,12 +6,13 @@ warnings.filterwarnings(
 
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
+from dataset.persistence.util import RowType
 from dataset.freeze.app import freeze
 
 __all__ = ['Database', 'Table', 'freeze', 'connect']
 
 
-def connect(url=None, schema=None, reflectMetadata=True):
+def connect(url=None, schema=None, reflectMetadata=True, row_type=dict):
     """
     Opens a new connection to a database. *url* can be any valid `SQLAlchemy engine URL`_.
     If *url* is not defined it will try to use *DATABASE_URL* from environment variable.
@@ -26,4 +27,5 @@ def connect(url=None, schema=None, reflectMetadata=True):
     """
     if url is None:
         url = os.environ.get('DATABASE_URL', url)
+    RowType.row_type = row_type
     return Database(url, schema=schema, reflectMetadata=reflectMetadata)
