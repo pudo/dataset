@@ -3,7 +3,8 @@ import logging
 import re
 import locale
 
-from dataset.util import FreezeException, slug
+from dataset.util import FreezeException
+from slugify import slugify
 
 
 TMPL_KEY = re.compile("{{([^}]*)}}")
@@ -11,7 +12,7 @@ TMPL_KEY = re.compile("{{([^}]*)}}")
 OPERATIONS = {
         'identity': lambda x: x,
         'lower': lambda x: unicode(x).lower(),
-        'slug': slug
+        'slug': slugify
         }
 
 
