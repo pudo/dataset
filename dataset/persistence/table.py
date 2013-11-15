@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 class Table(object):
 
     def __init__(self, database, table):
-        self.indexes = dict([(i.name, i) for i in table.indexes])
+        self.indexes = dict((i.name, i) for i in table.indexes)
         self.database = database
         self.table = table
         self._is_dropped = False
@@ -89,17 +89,17 @@ class Table(object):
                     self._ensure_columns(row, types=types)
             self.table.insert().execute(chunk)
         self._check_dropped()
+        
         chunk = []
-        i = 0
-        for row in rows:
+        for i, row in enumerate(rows, start=1):
             chunk.append(row)
-            i += 1
-            if i == chunk_size:
+            if i % chunk_size == 0:
                 _process_chunk(chunk)
                 chunk = []
-                i = 0
-        if i > 0:
+
+        if chunk:
             _process_chunk(chunk)
+        
 
     def update(self, row, keys, ensure=True, types={}):
         """
@@ -122,7 +122,7 @@ class Table(object):
             keys = [keys]
             
         self._check_dropped()
-        if not len(keys) or len(keys)==len(row):
+        if not keys or len(keys)==len(row):
             return False
         clause = [(u, row.get(u)) for u in keys]
         """
@@ -180,7 +180,7 @@ class Table(object):
         If no arguments are given, all records are deleted.
         """
         self._check_dropped()
-        if len(_filter) > 0:
+        if _filter:
             q = self._args_to_clause(_filter)
             stmt = self.table.delete(q)
         else:
@@ -201,7 +201,7 @@ class Table(object):
         self._ensure_columns(args)
         clauses = []
         for k, v in args.items():
-            if isinstance(v, list) or isinstance(v, tuple):
+            if isinstance(v, (list, tuple)):
                 clauses.append(self.table.c[k].in_(v))
             else:
                 clauses.append(self.table.c[k] == v)
@@ -315,7 +315,7 @@ class Table(object):
         if _step is None or _step is False or _step == 0:
             _step = total_row_count
 
-        if total_row_count > _step and len(order_by) == 0:
+        if total_row_count > _step and not order_by:
             _step = total_row_count
             log.warn("query cannot be broken into smaller sections because it is unordered")
 
