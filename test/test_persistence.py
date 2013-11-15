@@ -24,6 +24,10 @@ class DatabaseTestCase(unittest.TestCase):
     def test_valid_database_url(self):
         assert self.db.url, os.environ['DATABASE_URL']
 
+    def test_database_url_query_string(self):
+        db = connect('sqlite:///:memory:/?cached_statements=1')
+        assert 'cached_statements' in db.url, db.url
+
     def test_tables(self):
         assert self.db.tables == ['weather'], self.db.tables
 
@@ -42,7 +46,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')[0] == 'foobar'
+        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
 
     def test_create_table_custom_id2(self):
         pid = "int_id"
@@ -53,8 +57,8 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({'int_id': 123})
         table.insert({'int_id': 124})
-        assert table.find_one(int_id = 123)[0] == 123
-        assert table.find_one(int_id = 124)[0] == 124
+        assert table.find_one(int_id = 123)['int_id'] == 123
+        assert table.find_one(int_id = 124)['int_id'] == 124
         with self.assertRaises(IntegrityError):
             table.insert({'int_id': 123})
 
@@ -67,8 +71,8 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({'int_id': 123})
         table.insert({'int_id': 124})
-        assert table.find_one(int_id = 123)[0] == 123
-        assert table.find_one(int_id = 124)[0] == 124
+        assert table.find_one(int_id = 123)['int_id'] == 123
+        assert table.find_one(int_id = 124)['int_id'] == 124
         with self.assertRaises(IntegrityError):
             table.insert({'int_id': 123})
 
@@ -81,7 +85,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')[0] == 'foobar'
+        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')

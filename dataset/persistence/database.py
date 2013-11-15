@@ -1,6 +1,7 @@
 import logging
 import threading
 from urlparse import parse_qs
+from urllib import urlencode
 
 from sqlalchemy import create_engine
 from migrate.versioning.util import construct_engine
@@ -32,6 +33,8 @@ class Database(object):
                 schema_qs = query.pop('schema', query.pop('searchpath', []))
                 if len(schema_qs):
                     schema = schema_qs.pop()
+            if len(query):
+                url = url + '?' + urlencode(query, doseq=True)
         self.schema = schema
         engine = create_engine(url, **kw)
         self.url = url
