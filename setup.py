@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dataset',
-    version='0.3.11',
+    version='0.3.15',
     description="Toolkit for Python-based data processing.",
     long_description="",
     classifiers=[
@@ -25,6 +25,7 @@ setup(
         'sqlalchemy >= 0.8.1',
         'sqlalchemy-migrate >= 0.7',
         "argparse >= 1.2.1",
+        'python-slugify >= 0.0.6',
         "PyYAML >= 3.10"
     ],
     tests_require=[],

@@ -5,13 +5,14 @@ from datetime import datetime
 from dataset import connect
 from dataset.util import DatasetException
 from sample_data import TEST_DATA
+from sqlalchemy.exc import IntegrityError
 
 
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
         os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
-        self.db = connect()
+        self.db = connect('sqlite:///:memory:')
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
@@ -23,6 +24,10 @@ class DatabaseTestCase(unittest.TestCase):
     def test_valid_database_url(self):
         assert self.db.url, os.environ['DATABASE_URL']
 
+    def test_database_url_query_string(self):
+        db = connect('sqlite:///:memory:/?cached_statements=1')
+        assert 'cached_statements' in db.url, db.url
+
     def test_tables(self):
         assert self.db.tables == ['weather'], self.db.tables
 
@@ -31,6 +36,56 @@ class DatabaseTestCase(unittest.TestCase):
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert 'id' in table.table.c, table.table.c
+
+    def test_create_table_custom_id1(self):
+        pid = "string_id"
+        table = self.db.create_table("foo2", pid, 'Text')
+        assert table.table.exists()
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({
+            'string_id': 'foobar'})
+        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+
+    def test_create_table_custom_id2(self):
+        pid = "int_id"
+        table = self.db.create_table("foo3", primary_id = pid)
+        assert table.table.exists()
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({'int_id': 123})
+        table.insert({'int_id': 124})
+        assert table.find_one(int_id = 123)['int_id'] == 123
+        assert table.find_one(int_id = 124)['int_id'] == 124
+        with self.assertRaises(IntegrityError):
+            table.insert({'int_id': 123})
+
+    def test_create_table_shorthand1(self):
+        pid = "int_id"
+        table = self.db['foo4', pid]
+        assert table.table.exists
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({'int_id': 123})
+        table.insert({'int_id': 124})
+        assert table.find_one(int_id = 123)['int_id'] == 123
+        assert table.find_one(int_id = 124)['int_id'] == 124
+        with self.assertRaises(IntegrityError):
+            table.insert({'int_id': 123})
+
+    def test_create_table_shorthand2(self):
+        pid = "string_id"
+        table = self.db['foo5', pid, 'Text']
+        assert table.table.exists
+        assert len(table.table.columns) == 1, table.table.columns
+        assert pid in table.table.c, table.table.c
+
+        table.insert({
+            'string_id': 'foobar'})
+        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
@@ -206,8 +261,12 @@ class ConstructorTestCase(unittest.TestCase):
     def test_distinct(self):
         x = list(self.tbl.distinct('place'))
         assert len(x) == 2, x
+        for item in x:
+            assert isinstance(item, Constructor), item
         x = list(self.tbl.distinct('place', 'date'))
         assert len(x) == 6, x
+        for item in x:
+            assert isinstance(item, Constructor), item
 
     def test_iter(self):
         c = 0

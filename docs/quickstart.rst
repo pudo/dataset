@@ -33,6 +33,18 @@ the database bindings to support that database. SQLite is included in
 the Python core, but PostgreSQL requires ``psycopg2`` to be installed. 
 MySQL can be enabled by installing the ``mysql-db`` drivers. 
 
+Finally, you can use the ``row_type`` parameter to choose the kind of
+container in which results will be returned::
+
+    import dataset
+    from stuf import stuf
+
+    db = dataset.connect('sqlite:///mydatabase.db', row_type=stuf)
+
+Now contents will be returned in ``stuf`` objects (basically, ``dict``
+objects whose elements can be acessed as attributes (``item.name``) as well as 
+by index (``item['name']``).
+
 
 Storing data
 ------------
@@ -142,12 +154,12 @@ such using the :py:meth:`freeze() <dataset.freeze>` function::
 
    # export all users into a single JSON
    result = db['users'].all()
-   dataset.freeze(result, 'users.json', format='json')
+   dataset.freeze(result, format='json', filename='users.json')
 
 You can create one file per row by setting ``mode`` to "item"::
 
    # export one JSON file per user
-   dataset.freeze(result, 'users/{{ id }}.json', format='json', mode='item')
+   dataset.freeze(result, format='json', filename='users/{{ id }}.json', mode='item')
 
 Since this is a common operation we made it available via command line
 utility ``datafreeze``. Read more about the :doc:`freezefile markup <freezefile>`.

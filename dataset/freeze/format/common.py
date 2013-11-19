@@ -3,7 +3,8 @@ import logging
 import re
 import locale
 
-from dataset.util import FreezeException, slug
+from dataset.util import FreezeException
+from slugify import slugify
 
 
 TMPL_KEY = re.compile("{{([^}]*)}}")
@@ -11,7 +12,7 @@ TMPL_KEY = re.compile("{{([^}]*)}}")
 OPERATIONS = {
         'identity': lambda x: x,
         'lower': lambda x: unicode(x).lower(),
-        'slug': slug
+        'slug': slugify
         }
 
 
@@ -68,7 +69,12 @@ class Serializer(object):
 
     def serialize(self):
         self.init()
+        transforms = self.export.get('transform', {})
         for row in self.query:
+
+            for field, operation in transforms.items():
+                row[field] = OPERATIONS.get(operation)(row.get(field))
+            
             self.write(self.file_name(row), row)
         self.close()
 

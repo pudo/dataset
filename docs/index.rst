@@ -64,6 +64,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   install
    quickstart
    freezefile
    api

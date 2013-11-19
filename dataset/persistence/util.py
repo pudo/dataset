@@ -3,12 +3,6 @@ from inspect import isgenerator
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 
-class RowType(object):
-    """ Holder for global setting as to what type of rows query methods should
-    return. By default, dict, but can be changed to other types (e.g. to
-    ``stuf`` for attribute-accessible objects). """
-    row_type = dict
-
 def guess_type(sample):
     if isinstance(sample, bool):
         return Boolean
@@ -25,11 +19,11 @@ class ResultIter(object):
     """ SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them. """
 
-    def __init__(self, result_proxies):
+    def __init__(self, result_proxies, row_type=dict):
         if not isgenerator(result_proxies):
             result_proxies = iter((result_proxies, ))
         self.result_proxies = result_proxies
-
+        self.row_type = row_type
         self.count = 0
         if not self._next_rp():
             raise StopIteration
@@ -51,7 +45,7 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return RowType.row_type(zip(self.keys, row))
+        return self.row_type(zip(self.keys, row))
 
     def __iter__(self):
         return self
