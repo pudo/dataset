@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from inspect import isgenerator
 
-from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
+from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
 
 def guess_type(sample):
@@ -50,3 +50,20 @@ class ResultIter(object):
 
     def __iter__(self):
         return self
+
+
+def sqlite_datetime_fix():
+    class SQLiteDateTimeType(types.TypeDecorator):
+        impl = types.Integer
+        epoch = datetime(1970, 1, 1, 0, 0, 0)
+
+        def process_bind_param(self, value, dialect):
+            return (value / 1000 - self.epoch).total_seconds()
+
+        def process_result_value(self, value, dialect):
+            return self.epoch + timedelta(seconds=value / 1000)
+
+    @event.listens_for(Table, "column_reflect")
+    def setup_epoch(inspector, table, column_info):
+        if isinstance(column_info['type'], types.DateTime):
+            column_info['type'] = SQLiteDateTimeType()
