@@ -96,9 +96,39 @@ class Database(object):
 
         >>> print db.tables
         set([u'user', u'action'])
+
+        print table in the following format,
+
+           +--------------------+
+           | Tables_in_database |
+           +--------------------+
+           | table1             |
+           | table2             |
+           | table3             |
+           | table4             |
+           | table5             |
+           +--------------------+
+
         """
-        return list(set(self.metadata.tables.keys() +
-                        self._tables.keys()))
+
+        tables = list(set(self.metadata.tables.keys() +
+                         self._tables.keys()))
+        if not tables:
+            return 'Empty database'
+
+        max_len = max(len(table) for table in tables)
+        title = 'Tables_in_database'
+        max_len = max(len(title), max_len)
+
+        output = '+-'+'-'*max_len+'-+'+'\n'
+        output += '| '+title+'|'.rjust(2+max_len-len(title))+'\n'
+        output += '+-'+'-'*max_len+'-+'+'\n'
+        for table in sorted(tables):
+            output += '| '+table+'|'.rjust(2+max_len-len(table))+'\n'
+        output += '+-'+'-'*max_len+'-+'+'\n'
+
+        return output
+
 
     def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
