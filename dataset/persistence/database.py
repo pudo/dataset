@@ -97,8 +97,20 @@ class Database(object):
         >>> print db.tables
         set([u'user', u'action'])
         """
-        return list(set(self.metadata.tables.keys() +
-                        self._tables.keys()))
+        #return list(set(self.metadata.tables.keys() +
+        #                self._tables.keys()))
+        tables = list(set(self.metadata.tables.keys() +
+                         self._tables.keys()))
+        max_len = max(len(table) for table in tables)
+        title = 'Tables_in_database'
+        max_len = max(len(title), max_len)
+
+        print('+-'+'-'*max_len+'-+')
+        print('| '+title+(max_len-len(title))*' '+' |')
+        print('+-'+'-'*max_len+'-+')
+        for table in tables:
+            print('| '+table)
+
 
     def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
