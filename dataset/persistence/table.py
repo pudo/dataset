@@ -1,4 +1,5 @@
 import logging
+import copy
 from itertools import count
 
 from sqlalchemy.sql import and_, expression
@@ -130,10 +131,10 @@ class Table(object):
             self._ensure_columns(row, types=types)
 
         # Don't update the key itself, so remove any keys from the row dict
-        clean_row = {}
-        for key, value in row.items():
-            if key not in keys:
-                clean_row[key] = value
+        clean_row = copy.copy(row)
+        for key in keys:
+            if key in clean_row.keys():
+                del clean_row[key]
 
         try:
             filters = self._args_to_clause(dict(clause))
