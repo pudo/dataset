@@ -125,18 +125,19 @@ class Table(object):
         if not keys or len(keys)==len(row):
             return False
         clause = [(u, row.get(u)) for u in keys]
-        """
-        Don't update the key itself, so remove any keys from the row dict
-        """
-        for key in keys:
-            if key in row.keys():
-                del row[key]
 
         if ensure:
             self._ensure_columns(row, types=types)
+
+        # Don't update the key itself, so remove any keys from the row dict
+        clean_row = {}
+        for key, value in row.items():
+            if key not in keys:
+                clean_row[key] = value
+
         try:
             filters = self._args_to_clause(dict(clause))
-            stmt = self.table.update(filters, row)
+            stmt = self.table.update(filters, clean_row)
             rp = self.database.executable.execute(stmt)
             return rp.rowcount > 0
         except KeyError:
