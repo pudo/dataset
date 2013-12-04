@@ -227,6 +227,22 @@ class Table(object):
         finally:
             self.database._release()
 
+    def drop_column(self, name):
+        """
+        Drop the column ``name``
+        ::
+
+            table.drop_column('created_at')
+        """
+        self._check_dropped()
+        self.database._acquire()
+        try:
+            if name in self.table.columns.keys():
+                col = self.table.columns[name]
+                col.drop()
+        finally:
+            self.database._release()
+
     def create_index(self, columns, name=None):
         """
         Create an index to speed up queries on a table. If no ``name`` is given a random name is created.
