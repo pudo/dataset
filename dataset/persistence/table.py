@@ -1,5 +1,4 @@
 import logging
-import copy
 from itertools import count
 
 from sqlalchemy.sql import and_, expression
@@ -131,7 +130,7 @@ class Table(object):
             self._ensure_columns(row, types=types)
 
         # Don't update the key itself, so remove any keys from the row dict
-        clean_row = copy.copy(row)
+        clean_row = row.copy()
         for key in keys:
             if key in clean_row.keys():
                 del clean_row[key]
