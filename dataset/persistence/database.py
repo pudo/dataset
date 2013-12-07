@@ -1,5 +1,6 @@
 import logging
 import threading
+import re
 from urlparse import parse_qs
 from urllib import urlencode
 
@@ -8,7 +9,7 @@ from migrate.versioning.util import construct_engine
 from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import MetaData, Column, Index
 from sqlalchemy.schema import Table as SQLATable
-from sqlalchemy import Integer, Text
+from sqlalchemy import Integer, Text, String
 
 from dataset.persistence.table import Table
 from dataset.persistence.util import ResultIter
@@ -106,7 +107,8 @@ class Database(object):
         unless specified via optional parameter primary_id, which will be used 
         as the primary key of the table. Automatic id is set to be an 
         auto-incrementing integer, while the type of custom primary_id can be a 
-        Text or an Integer as specified with primary_type flag. 
+        String or an Integer as specified with primary_type flag. The default 
+        length of String is 256. The caller can specify the length. 
         The caller will be responsible for the uniqueness of manual primary_id.
 
         This custom id feature is only available via direct create_table call. 
@@ -118,23 +120,31 @@ class Database(object):
 
             # custom id and type
             table2 = db.create_table('population2', 'age')
-            table3 = db.create_table('population3', primary_id='race', primary_type='Text')
+            table3 = db.create_table('population3', primary_id='race', primary_type='String')
+            # custom length of String
+            table4 = db.create_table('population4', primary_id='race', primary_type='String(50)')
         """
         self._acquire()
         try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
-            table = SQLATable(table_name, self.metadata)
-            if primary_type == 'Integer':
-                auto_flag = False
-                if primary_id == 'id':
-                    auto_flag = True
-                col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
-            elif primary_type == 'Text':
-                col = Column(primary_id, Text, primary_key=True)
+            match = re.match(r'^(Integer)$|^(String)(\(\d+\))?$', primary_type)
+            if match:
+                if match.group(1) == 'Integer':
+                    auto_flag = False
+                    if primary_id == 'id':
+                        auto_flag = True
+                    col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
+                elif not match.group(3):
+                    col = Column(primary_id, String(256), primary_key=True)
+                else:
+                    len_string = int(match.group(3)[1:-1])
+                    len_string = min(len_string, 256)
+                    col = Column(primary_id, String(len_string), primary_key=True)
             else:
                 raise DatasetException(
-                    "The primary_type has to be either 'Integer' or 'Text'.")
+                    "The primary_type has to be either 'Integer' or 'String'.")
 
+            table = SQLATable(table_name, self.metadata)
             table.append_column(col)
             table.create(self.engine)
             self._tables[table_name] = table
