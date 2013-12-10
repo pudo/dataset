@@ -63,7 +63,13 @@ def sqlite_datetime_fix():
         def process_result_value(self, value, dialect):
             return self.epoch + timedelta(seconds=value / 1000)
 
+    def is_sqlite(inspector):
+        return inspector.engine.dialect.name == "sqlite"
+
+    def is_datetime(column_info):
+        return isinstance(column_info['type'], types.DateTime)
+
     @event.listens_for(Table, "column_reflect")
     def setup_epoch(inspector, table, column_info):
-        if isinstance(column_info['type'], types.DateTime):
+        if is_sqlite(inspector) and is_datetime(column_info):
             column_info['type'] = SQLiteDateTimeType()
