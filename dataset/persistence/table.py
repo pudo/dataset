@@ -48,7 +48,7 @@ class Table(object):
         if self._is_dropped:
             raise DatasetException('the table has been dropped. this object should not be used again.')
 
-    def insert(self, row, ensure=True, types={}):
+    def insert(self, row, types={}, ensure=True):
         """
         Add a row (type: dict) by inserting it into the table.
         If ``ensure`` is set, any of the keys of the row are not
@@ -70,7 +70,7 @@ class Table(object):
         res = self.database.executable.execute(self.table.insert(row))
         return res.inserted_primary_key[0]
 
-    def insert_many(self, rows, chunk_size=1000, ensure=True, types={}):
+    def insert_many(self, rows, chunk_size=1000, types={}, ensure=True):
         """
         Add many rows at a time, which is significantly faster than adding
         them one by one. Per default the rows are processed in chunks of
@@ -101,7 +101,7 @@ class Table(object):
             _process_chunk(chunk)
         
 
-    def update(self, row, keys, ensure=True, types={}):
+    def update(self, row, keys, types={}, ensure=True):
         """
         Update a row in the table. The update is managed via
         the set of column names stated in ``keys``: they will be
@@ -143,7 +143,7 @@ class Table(object):
         except KeyError:
             return False
 
-    def upsert(self, row, keys, ensure=True, types={}):
+    def upsert(self, row, keys, types={}, ensure=True):
         """
         An UPSERT is a smart combination of insert and update. If rows with matching ``keys`` exist
         they will be updated, otherwise a new row is inserted in the table.
@@ -165,9 +165,9 @@ class Table(object):
             filters[key] = row.get(key)
 
         if self.find_one(**filters) is not None:
-            self.update(row, keys, ensure=ensure, types=types)
+            self.update(row, keys, types=types, ensure=ensure)
         else:
-            self.insert(row, ensure=ensure, types=types)
+            self.insert(row, types=types, ensure=ensure)
 
     def delete(self, **_filter):
         """ Delete rows from the table. Keyword arguments can be used
