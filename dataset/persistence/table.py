@@ -118,9 +118,8 @@ class Table(object):
         ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
         # check whether keys arg is a string and format as a list
-        if isinstance(keys, basestring):
+        if not isinstance(keys, (list, tuple)):
             keys = [keys]
-            
         self._check_dropped()
         if not keys or len(keys)==len(row):
             return False
@@ -153,9 +152,8 @@ class Table(object):
             table.upsert(data, ['id'])
         """
         # check whether keys arg is a string and format as a list
-        if isinstance(keys, basestring):
+        if not isinstance(keys, (list, tuple)):
             keys = [keys]
-            
         self._check_dropped()
         if ensure:
             self.create_index(keys)
@@ -317,7 +315,7 @@ class Table(object):
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>`
         instead."""
         self._check_dropped()
-        if isinstance(order_by, (str, unicode)):
+        if not isinstance(order_by, (list, tuple)):
             order_by = [order_by]
         order_by = filter(lambda o: o in self.table.columns, order_by)
         order_by = [self._args_to_order_by(o) for o in order_by]
