@@ -354,7 +354,7 @@ class Table(object):
         Returns the number of rows in the table.
         """
         d = self.database.query(self.table.count()).next()
-        return d.values().pop()
+        return list(d.values()).pop()
 
     def distinct(self, *columns, **_filter):
         """

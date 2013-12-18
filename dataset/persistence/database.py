@@ -103,8 +103,9 @@ class Database(object):
         >>> print db.tables
         set([u'user', u'action'])
         """
-        return list(set(self.metadata.tables.keys() +
-                        self._tables.keys()))
+        return list(
+            set(self.metadata.tables.keys()) | set(self._tables.keys())
+        )
 
     def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
