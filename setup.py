@@ -25,7 +25,7 @@ setup(
     author_email='info@okfn.org',
     url='http://github.com/pudo/dataset',
     license='MIT',
-    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+    packages=find_packages(exclude=['ez_setup', 'examples', 'test']),
     namespace_packages=[],
     include_package_data=False,
     zip_safe=False,
