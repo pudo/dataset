@@ -129,7 +129,7 @@ class TableTestCase(unittest.TestCase):
     def test_insert(self):
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
         last_id = self.tbl.insert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'}
         )
@@ -138,14 +138,14 @@ class TableTestCase(unittest.TestCase):
 
     def test_upsert(self):
         self.tbl.upsert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'},
             ['place']
         )
         assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
         self.tbl.upsert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'},
             ['place']
@@ -155,7 +155,7 @@ class TableTestCase(unittest.TestCase):
     def test_upsert_all_key(self):
         for i in range(0,2):
             self.tbl.upsert({
-                'date': datetime(2011, 01, 02),
+                'date': datetime(2011, 1, 2),
                 'temperature': -10,
                 'place': 'Berlin'},
                 ['date', 'temperature', 'place']
@@ -163,7 +163,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_delete(self):
         self.tbl.insert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'}
         )
@@ -175,7 +175,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_find_one(self):
         self.tbl.insert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'}
         )
@@ -225,7 +225,7 @@ class TableTestCase(unittest.TestCase):
         assert c == len(self.tbl)
 
     def test_update(self):
-        date = datetime(2011, 01, 02)
+        date = datetime(2011, 1, 2)
         res = self.tbl.update({
             'date': date,
             'temperature': -10,
