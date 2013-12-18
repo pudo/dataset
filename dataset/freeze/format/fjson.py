@@ -46,4 +46,3 @@ class JSONSerializer(Serializer):
                                          data)
             fh.write(data)
             fh.close()
-

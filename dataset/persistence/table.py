@@ -322,7 +322,7 @@ class Table(object):
         self._check_dropped()
         if not isinstance(order_by, (list, tuple)):
             order_by = [order_by]
-        order_by = filter(lambda o: o in self.table.columns, order_by)
+        order_by = [o for o in order_by if o in self.table.columns]
         order_by = [self._args_to_order_by(o) for o in order_by]
 
         args = self._args_to_clause(_filter)
@@ -358,7 +358,7 @@ class Table(object):
         """
         Returns the number of rows in the table.
         """
-        d = self.database.query(self.table.count()).next()
+        d = next(self.database.query(self.table.count()))
         return list(d.values()).pop()
 
     def distinct(self, *columns, **_filter):

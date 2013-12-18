@@ -33,7 +33,7 @@ class ResultIter(object):
         try:
             self.rp = next(self.result_proxies)
             self.count += self.rp.rowcount
-            self.keys = self.rp.keys()
+            self.keys = list(self.rp.keys())
             return True
         except StopIteration:
             return False
@@ -42,7 +42,7 @@ class ResultIter(object):
         row = self.rp.fetchone()
         if row is None:
             if self._next_rp():
-                return self.next()
+                return next(self)
             else:
                 # stop here
                 raise StopIteration
