@@ -7,7 +7,7 @@ from dataset.freeze.format.common import Serializer
 def value_to_str(value):
     if isinstance(value, datetime):
         return value.isoformat()
-    if isinstance(value, unicode):
+    if hasattr(value, 'encode'):
         return value.encode('utf-8')
     if value is None:
         return ''

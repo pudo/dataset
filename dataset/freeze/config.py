@@ -1,6 +1,11 @@
 import json
 import yaml
 
+try:
+    str = unicode
+except NameError:
+    pass
+
 from dataset.util import FreezeException
 
 
@@ -35,7 +40,7 @@ class Configuration(object):
                 raise FreezeException("Invalid freeze file: %s" % ve)
             fh.close()
         except IOError as ioe:
-            raise FreezeException(unicode(ioe))
+            raise FreezeException(str(ioe))
 
     @property
     def exports(self):
@@ -59,7 +64,7 @@ class Export(object):
     def get_normalized(self, name, default=None):
         value = self.get(name, default=default)
         if not value in [None, default]:
-            value = unicode(value).lower().strip()
+            value = str(value).lower().strip()
         return value
 
     def get_bool(self, name, default=False):

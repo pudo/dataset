@@ -3,6 +3,11 @@ import logging
 import re
 import locale
 
+try:
+    str = unicode
+except NameError:
+    pass
+
 from dataset.util import FreezeException
 from slugify import slugify
 
@@ -11,7 +16,7 @@ TMPL_KEY = re.compile("{{([^}]*)}}")
 
 OPERATIONS = {
         'identity': lambda x: x,
-        'lower': lambda x: unicode(x).lower(),
+        'lower': lambda x: str(x).lower(),
         'slug': slugify
         }
 
@@ -39,7 +44,7 @@ class Serializer(object):
             op, key = 'identity', m.group(1)
             if ':' in key:
                 op, key = key.split(':', 1)
-            return unicode(OPERATIONS.get(op)(data.get(key, '')))
+            return str(OPERATIONS.get(op)(data.get(key, '')))
         path = TMPL_KEY.sub(repl, self._basepath)
         enc = locale.getpreferredencoding()
         return os.path.realpath(path.encode(enc, 'replace'))
@@ -74,8 +79,6 @@ class Serializer(object):
 
             for field, operation in transforms.items():
                 row[field] = OPERATIONS.get(operation)(row.get(field))
-            
+
             self.write(self.file_name(row), row)
         self.close()
-
-
