@@ -2,10 +2,12 @@ import os
 import unittest
 from datetime import datetime
 
+from sqlalchemy.exc import IntegrityError
+
 from dataset import connect
 from dataset.util import DatasetException
-from sample_data import TEST_DATA, TEST_CITY_1
-from sqlalchemy.exc import IntegrityError
+
+from .sample_data import TEST_DATA, TEST_CITY_1
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -241,6 +243,3 @@ class TableTestCase(unittest.TestCase):
         assert 'foo' in tbl.table.c, tbl.table.c
         assert FLOAT == type(tbl.table.c['foo'].type), tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
-
-if __name__ == '__main__':
-    unittest.main()

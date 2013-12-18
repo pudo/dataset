@@ -36,6 +36,7 @@ setup(
         "PyYAML >= 3.10"
     ] + py26_dependency,
     tests_require=[],
+    test_suite='test',
     entry_points={
         'console_scripts': [
             'datafreeze = dataset.freeze.app:main',
