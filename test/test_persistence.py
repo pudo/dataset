@@ -201,8 +201,8 @@ class TableTestCase(unittest.TestCase):
         assert len(x) == 6, x
 
     def test_insert_many(self):
-        data = TEST_DATA * 5000
-        self.tbl.insert_many(data)
+        data = TEST_DATA * 100
+        self.tbl.insert_many(data, chunk_size=13)
         assert len(self.tbl) == len(data) + 6
 
     def test_drop_warning(self):
