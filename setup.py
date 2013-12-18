@@ -1,4 +1,10 @@
+import sys
 from setuptools import setup, find_packages
+
+
+py26_dependency = []
+if sys.version_info.major == 2 and sys.version_info.minor < 7:
+    py26_dependency = ["argparse >= 1.2.1"]
 
 setup(
     name='dataset',
@@ -26,10 +32,9 @@ setup(
     install_requires=[
         'sqlalchemy >= 0.8.1',
         'alembic >= 0.6.1',
-        "argparse >= 1.2.1",
         'python-slugify >= 0.0.6',
         "PyYAML >= 3.10"
-    ],
+    ] + py26_dependency,
     tests_require=[],
     entry_points={
         'console_scripts': [
