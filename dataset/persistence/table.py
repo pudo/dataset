@@ -218,9 +218,11 @@ class Table(object):
         self.database._acquire()
         try:
             if name not in self.table.columns.keys():
-                col = Column(name, type)
-                col.create(self.table,
-                           connection=self.database.executable)
+                self.database.op.add_column(
+                    self.table.name,
+                    Column(name, type)
+                )
+                self.table = self.database.update_table(self.table.name)
         finally:
             self.database._release()
 
@@ -235,8 +237,11 @@ class Table(object):
         self.database._acquire()
         try:
             if name in self.table.columns.keys():
-                col = self.table.columns[name]
-                col.drop()
+                self.database.op.drop_column(
+                    self.table.name,
+                    name
+                )
+                self.table = self.database.update_table(self.table.name)
         finally:
             self.database._release()
 
