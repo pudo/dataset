@@ -70,8 +70,7 @@ class DatabaseTestCase(unittest.TestCase):
         table.insert({'int_id': 124})
         assert table.find_one(int_id = 123)['int_id'] == 123
         assert table.find_one(int_id = 124)['int_id'] == 124
-        with self.assertRaises(IntegrityError):
-            table.insert({'int_id': 123})
+        self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand1(self):
         pid = "int_id"
@@ -84,8 +83,7 @@ class DatabaseTestCase(unittest.TestCase):
         table.insert({'int_id': 124})
         assert table.find_one(int_id = 123)['int_id'] == 123
         assert table.find_one(int_id = 124)['int_id'] == 124
-        with self.assertRaises(IntegrityError):
-            table.insert({'int_id': 123})
+        self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand2(self):
         pid = "string_id"
