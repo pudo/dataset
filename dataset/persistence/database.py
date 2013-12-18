@@ -1,8 +1,13 @@
 import logging
 import threading
 import re
-from urlparse import parse_qs
-from urllib import urlencode
+
+try:
+    from urllib.parse import urlencode
+    from urllib.parse import parse_qs
+except ImportError:
+    from urllib import urlencode
+    from urlparse import parse_qs
 
 from sqlalchemy import create_engine
 from migrate.versioning.util import construct_engine
