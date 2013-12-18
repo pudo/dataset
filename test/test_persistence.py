@@ -4,7 +4,7 @@ from datetime import datetime
 
 from dataset import connect
 from dataset.util import DatasetException
-from sample_data import TEST_DATA
+from sample_data import TEST_DATA, TEST_CITY_1
 from sqlalchemy.exc import IntegrityError
 
 
@@ -185,9 +185,9 @@ class TableTestCase(unittest.TestCase):
         assert d is None, d
 
     def test_find(self):
-        ds = list(self.tbl.find(place='Berkeley'))
+        ds = list(self.tbl.find(place=TEST_CITY_1))
         assert len(ds) == 3, ds
-        ds = list(self.tbl.find(place='Berkeley', _limit=2))
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2))
         assert len(ds) == 2, ds
 
     def test_distinct(self):
@@ -229,11 +229,11 @@ class TableTestCase(unittest.TestCase):
         res = self.tbl.update({
             'date': date,
             'temperature': -10,
-            'place': 'Berkeley'},
+            'place': TEST_CITY_1},
             ['place', 'date']
         )
         assert res, 'update should return True'
-        m = self.tbl.find_one(place='Berkeley', date=date)
+        m = self.tbl.find_one(place=TEST_CITY_1, date=date)
         assert m['temperature'] == -10, 'new temp. should be -10 but is %d' % m['temperature']
 
     def test_create_column(self):
