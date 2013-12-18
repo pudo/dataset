@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 
 py26_dependency = []
-if sys.version_info.major == 2 and sys.version_info.minor < 7:
+if sys.version_info <= (2, 6):
     py26_dependency = ["argparse >= 1.2.1"]
 
 setup(
