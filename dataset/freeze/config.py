@@ -31,10 +31,10 @@ class Configuration(object):
             fh = open(file_name, 'rb')
             try:
                 self.data = loader.load(fh)
-            except ValueError, ve:
+            except ValueError as ve:
                 raise FreezeException("Invalid freeze file: %s" % ve)
             fh.close()
-        except IOError, ioe:
+        except IOError as ioe:
             raise FreezeException(unicode(ioe))
 
     @property
