@@ -1,5 +1,9 @@
 import logging
 from itertools import count
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
@@ -280,7 +284,7 @@ class Table(object):
         rp = self.database.executable.execute(query)
         data = rp.fetchone()
         if data is not None:
-            return dict(zip(rp.keys(), data))
+            return OrderedDict(zip(rp.keys(), data))
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':

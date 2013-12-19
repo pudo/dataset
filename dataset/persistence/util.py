@@ -1,5 +1,9 @@
 from datetime import datetime
 from inspect import isgenerator
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 
@@ -46,7 +50,7 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return dict(zip(self.keys, row))
+        return OrderedDict(zip(self.keys, row))
 
     def __iter__(self):
         return self
