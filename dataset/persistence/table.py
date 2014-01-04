@@ -68,7 +68,8 @@ class Table(object):
         if ensure:
             self._ensure_columns(row, types=types)
         res = self.database.executable.execute(self.table.insert(row))
-        return res.inserted_primary_key[0]
+        if len(res.inserted_primary_key) > 0:
+            return res.inserted_primary_key[0]
 
     def insert_many(self, rows, chunk_size=1000, ensure=True, types={}):
         """
