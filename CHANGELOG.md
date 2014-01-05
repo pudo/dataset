@@ -3,6 +3,8 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
+* 0.3.15: Fixes to update and insertion of data, thanks to @cli248
+  and @abhinav-upadhyay.
 * 0.3.14: dataset went viral somehow. Thanks to @gtsafas for
   refactorings, @alasdairnicol for fixing the Freezfile example in 
   the documentation. @diegoguimaraes fixed the behaviour of insert to
