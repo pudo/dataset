@@ -244,5 +244,11 @@ class TableTestCase(unittest.TestCase):
         assert FLOAT == type(tbl.table.c['foo'].type), tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
 
+    def test_key_order(self):
+        res = self.db.query('SELECT temperature, place FROM weather LIMIT 1')
+        keys = res.next().keys()
+        assert keys[0] == 'temperature'
+        assert keys[1] == 'place'
+
 if __name__ == '__main__':
     unittest.main()
