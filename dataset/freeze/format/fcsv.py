@@ -7,7 +7,7 @@ from dataset.freeze.format.common import Serializer
 def value_to_str(value):
     if isinstance(value, datetime):
         return value.isoformat()
-    if isinstance(value, unicode):
+    if hasattr(value, 'encode'):
         return value.encode('utf-8')
     if value is None:
         return ''
@@ -20,7 +20,7 @@ class CSVSerializer(Serializer):
         self.handles = {}
 
     def write(self, path, result):
-        keys = result.keys()
+        keys = list(result.keys())
         if not path in self.handles:
             fh = open(path, 'wb')
             writer = csv.writer(fh)
@@ -31,7 +31,5 @@ class CSVSerializer(Serializer):
         writer.writerow(values)
 
     def close(self):
-        for (writer, fh) in self.handles.values():
+        for writer, fh in self.handles.values():
             fh.close()
-
-
