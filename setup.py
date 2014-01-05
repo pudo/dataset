@@ -1,4 +1,10 @@
+import sys
 from setuptools import setup, find_packages
+
+
+py26_dependency = []
+if sys.version_info <= (2, 6):
+    py26_dependency = ["argparse >= 1.2.1"]
 
 setup(
     name='dataset',
@@ -10,8 +16,10 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        ],
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3'
+    ],
     keywords='sql sqlalchemy etl loading utility',
     author='Friedrich Lindenberg, Gregor Aisch',
     author_email='info@okfn.org',
@@ -23,11 +31,10 @@ setup(
     zip_safe=False,
     install_requires=[
         'sqlalchemy >= 0.8.1',
-        'sqlalchemy-migrate >= 0.7',
-        "argparse >= 1.2.1",
+        'alembic >= 0.6.1',
         'python-slugify >= 0.0.6',
         "PyYAML >= 3.10"
-    ],
+    ] + py26_dependency,
     tests_require=[],
     entry_points={
         'console_scripts': [

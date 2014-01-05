@@ -91,7 +91,7 @@ def freeze_export(export, result=None):
         serializer_cls = get_serializer(export)
         serializer = serializer_cls(export, query)
         serializer.serialize()
-    except ProgrammingError, pe:
+    except ProgrammingError as pe:
         raise FreezeException("Invalid query: %s" % pe)
 
 
@@ -110,7 +110,7 @@ def main():
                 continue
             log.info("Running: %s", export.name)
             freeze_export(export)
-    except FreezeException, fe:
+    except FreezeException as fe:
         log.error(fe)
 
 if __name__ == '__main__':

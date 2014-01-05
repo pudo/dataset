@@ -4,7 +4,7 @@ from datetime import datetime
 
 from dataset import connect
 from dataset.util import DatasetException
-from sample_data import TEST_DATA
+from sample_data import TEST_DATA, TEST_CITY_1
 from sqlalchemy.exc import IntegrityError
 
 
@@ -70,8 +70,7 @@ class DatabaseTestCase(unittest.TestCase):
         table.insert({'int_id': 124})
         assert table.find_one(int_id = 123)['int_id'] == 123
         assert table.find_one(int_id = 124)['int_id'] == 124
-        with self.assertRaises(IntegrityError):
-            table.insert({'int_id': 123})
+        self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand1(self):
         pid = "int_id"
@@ -84,8 +83,7 @@ class DatabaseTestCase(unittest.TestCase):
         table.insert({'int_id': 124})
         assert table.find_one(int_id = 123)['int_id'] == 123
         assert table.find_one(int_id = 124)['int_id'] == 124
-        with self.assertRaises(IntegrityError):
-            table.insert({'int_id': 123})
+        self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand2(self):
         pid = "string_id"
@@ -129,7 +127,7 @@ class TableTestCase(unittest.TestCase):
     def test_insert(self):
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
         last_id = self.tbl.insert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'}
         )
@@ -138,14 +136,14 @@ class TableTestCase(unittest.TestCase):
 
     def test_upsert(self):
         self.tbl.upsert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'},
             ['place']
         )
         assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
         self.tbl.upsert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'},
             ['place']
@@ -155,7 +153,7 @@ class TableTestCase(unittest.TestCase):
     def test_upsert_all_key(self):
         for i in range(0,2):
             self.tbl.upsert({
-                'date': datetime(2011, 01, 02),
+                'date': datetime(2011, 1, 2),
                 'temperature': -10,
                 'place': 'Berlin'},
                 ['date', 'temperature', 'place']
@@ -163,7 +161,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_delete(self):
         self.tbl.insert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'}
         )
@@ -175,7 +173,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_find_one(self):
         self.tbl.insert({
-            'date': datetime(2011, 01, 02),
+            'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'}
         )
@@ -185,9 +183,9 @@ class TableTestCase(unittest.TestCase):
         assert d is None, d
 
     def test_find(self):
-        ds = list(self.tbl.find(place='Berkeley'))
+        ds = list(self.tbl.find(place=TEST_CITY_1))
         assert len(ds) == 3, ds
-        ds = list(self.tbl.find(place='Berkeley', _limit=2))
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2))
         assert len(ds) == 2, ds
 
     def test_distinct(self):
@@ -225,15 +223,15 @@ class TableTestCase(unittest.TestCase):
         assert c == len(self.tbl)
 
     def test_update(self):
-        date = datetime(2011, 01, 02)
+        date = datetime(2011, 1, 2)
         res = self.tbl.update({
             'date': date,
             'temperature': -10,
-            'place': 'Berkeley'},
+            'place': TEST_CITY_1},
             ['place', 'date']
         )
         assert res, 'update should return True'
-        m = self.tbl.find_one(place='Berkeley', date=date)
+        m = self.tbl.find_one(place=TEST_CITY_1, date=date)
         assert m['temperature'] == -10, 'new temp. should be -10 but is %d' % m['temperature']
 
     def test_create_column(self):

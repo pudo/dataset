@@ -35,22 +35,24 @@ class ResultIter(object):
 
     def _next_rp(self):
         try:
-            self.rp = self.result_proxies.next()
+            self.rp = next(self.result_proxies)
             self.count += self.rp.rowcount
-            self.keys = self.rp.keys()
+            self.keys = list(self.rp.keys())
             return True
         except StopIteration:
             return False
 
-    def next(self):
+    def __next__(self):
         row = self.rp.fetchone()
         if row is None:
             if self._next_rp():
-                return self.next()
+                return next(self)
             else:
                 # stop here
                 raise StopIteration
         return OrderedDict(zip(self.keys, row))
+
+    next = __next__
 
     def __iter__(self):
         return self

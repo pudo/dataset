@@ -123,9 +123,8 @@ class Table(object):
         ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
         # check whether keys arg is a string and format as a list
-        if isinstance(keys, basestring):
+        if not isinstance(keys, (list, tuple)):
             keys = [keys]
-            
         self._check_dropped()
         if not keys or len(keys)==len(row):
             return False
@@ -158,9 +157,8 @@ class Table(object):
             table.upsert(data, ['id'])
         """
         # check whether keys arg is a string and format as a list
-        if isinstance(keys, basestring):
+        if not isinstance(keys, (list, tuple)):
             keys = [keys]
-            
         self._check_dropped()
         if ensure:
             self.create_index(keys)
@@ -225,9 +223,11 @@ class Table(object):
         self.database._acquire()
         try:
             if name not in self.table.columns.keys():
-                col = Column(name, type)
-                col.create(self.table,
-                           connection=self.database.executable)
+                self.database.op.add_column(
+                    self.table.name,
+                    Column(name, type)
+                )
+                self.table = self.database.update_table(self.table.name)
         finally:
             self.database._release()
 
@@ -242,8 +242,11 @@ class Table(object):
         self.database._acquire()
         try:
             if name in self.table.columns.keys():
-                col = self.table.columns[name]
-                col.drop()
+                self.database.op.drop_column(
+                    self.table.name,
+                    name
+                )
+                self.table = self.database.update_table(self.table.name)
         finally:
             self.database._release()
 
@@ -322,9 +325,9 @@ class Table(object):
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>`
         instead."""
         self._check_dropped()
-        if isinstance(order_by, (str, unicode)):
+        if not isinstance(order_by, (list, tuple)):
             order_by = [order_by]
-        order_by = filter(lambda o: o in self.table.columns, order_by)
+        order_by = [o for o in order_by if o in self.table.columns]
         order_by = [self._args_to_order_by(o) for o in order_by]
 
         args = self._args_to_clause(_filter)
@@ -360,8 +363,8 @@ class Table(object):
         """
         Returns the number of rows in the table.
         """
-        d = self.database.query(self.table.count()).next()
-        return d.values().pop()
+        d = next(self.database.query(self.table.count()))
+        return list(d.values()).pop()
 
     def distinct(self, *columns, **_filter):
         """
