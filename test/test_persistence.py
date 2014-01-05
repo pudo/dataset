@@ -4,7 +4,7 @@ from datetime import datetime
 
 from dataset import connect
 from dataset.util import DatasetException
-from sample_data import TEST_DATA, TEST_CITY_1
+from .sample_data import TEST_DATA, TEST_CITY_1
 from sqlalchemy.exc import IntegrityError
 
 
@@ -244,7 +244,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_key_order(self):
         res = self.db.query('SELECT temperature, place FROM weather LIMIT 1')
-        keys = res.next().keys()
+        keys = list(res.next().keys())
         assert keys[0] == 'temperature'
         assert keys[1] == 'place'
 
