@@ -7,7 +7,7 @@ except ImportError:
 
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
-
+from sqlalchemy import alias
 from dataset.persistence.util import guess_type
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
@@ -333,7 +333,7 @@ class Table(object):
         args = self._args_to_clause(_filter)
 
         # query total number of rows first
-        count_query = self.table.count(whereclause=args, limit=_limit, offset=_offset)
+        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset), name='count_query_alias').count()
         rp = self.database.executable.execute(count_query)
         total_row_count = rp.fetchone()[0]
 
@@ -352,8 +352,6 @@ class Table(object):
             if _limit is not None:
                 qlimit = min(_limit - (_step * i), _step)
             if qlimit <= 0:
-                break
-            if qoffset > total_row_count:
                 break
             queries.append(self.table.select(whereclause=args, limit=qlimit,
                                              offset=qoffset, order_by=order_by))
