@@ -337,6 +337,9 @@ class Table(object):
         rp = self.database.executable.execute(count_query)
         total_row_count = rp.fetchone()[0]
 
+        if _limit is None:
+            _limit = total_row_count
+
         if _step is None or _step is False or _step == 0:
             _step = total_row_count
 
