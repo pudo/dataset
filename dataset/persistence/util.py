@@ -64,6 +64,8 @@ def sqlite_datetime_fix():
         epoch = datetime(1970, 1, 1, 0, 0, 0)
 
         def process_bind_param(self, value, dialect):
+            if isinstance(value, datetime):
+                return value
             return (value / 1000 - self.epoch).total_seconds()
 
         def process_result_value(self, value, dialect):
