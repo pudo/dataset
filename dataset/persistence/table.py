@@ -1,9 +1,13 @@
 import logging
 from itertools import count
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
-
+from sqlalchemy import alias
 from dataset.persistence.util import guess_type
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
@@ -68,7 +72,8 @@ class Table(object):
         if ensure:
             self._ensure_columns(row, types=types)
         res = self.database.executable.execute(self.table.insert(row))
-        return res.inserted_primary_key[0]
+        if len(res.inserted_primary_key) > 0:
+            return res.inserted_primary_key[0]
 
     def insert_many(self, rows, chunk_size=1000, ensure=True, types={}):
         """
@@ -283,7 +288,7 @@ class Table(object):
         rp = self.database.executable.execute(query)
         data = rp.fetchone()
         if data is not None:
-            return dict(zip(rp.keys(), data))
+            return OrderedDict(zip(rp.keys(), data))
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':
@@ -328,7 +333,7 @@ class Table(object):
         args = self._args_to_clause(_filter)
 
         # query total number of rows first
-        count_query = self.table.count(whereclause=args, limit=_limit, offset=_offset)
+        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset), name='count_query_alias').count()
         rp = self.database.executable.execute(count_query)
         total_row_count = rp.fetchone()[0]
 
@@ -347,8 +352,6 @@ class Table(object):
             if _limit is not None:
                 qlimit = min(_limit - (_step * i), _step)
             if qlimit <= 0:
-                break
-            if qoffset > total_row_count:
                 break
             queries.append(self.table.select(whereclause=args, limit=qlimit,
                                              offset=qoffset, order_by=order_by))

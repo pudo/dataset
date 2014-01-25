@@ -8,6 +8,7 @@ from dataset import connect
 from dataset.util import DatasetException
 
 from .sample_data import TEST_DATA, TEST_CITY_1
+from sqlalchemy.exc import IntegrityError
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -247,3 +248,9 @@ class TableTestCase(unittest.TestCase):
         assert 'foo' in tbl.table.c, tbl.table.c
         assert FLOAT == type(tbl.table.c['foo'].type), tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
+
+    def test_key_order(self):
+        res = self.db.query('SELECT temperature, place FROM weather LIMIT 1')
+        keys = list(res.next().keys())
+        assert keys[0] == 'temperature'
+        assert keys[1] == 'place'

@@ -4,6 +4,7 @@ import warnings
 warnings.filterwarnings(
     'ignore', 'Unicode type received non-unicode bind param value.')
 
+from dataset.persistence.util import sqlite_datetime_fix
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
 from dataset.freeze.app import freeze
@@ -27,4 +28,8 @@ def connect(url=None, schema=None, reflectMetadata=True):
     """
     if url is None:
         url = os.environ.get('DATABASE_URL', url)
+
+    if url.startswith("sqlite://"):
+        sqlite_datetime_fix()
+
     return Database(url, schema=schema, reflectMetadata=reflectMetadata)

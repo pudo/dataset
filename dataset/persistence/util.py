@@ -1,7 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from inspect import isgenerator
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
-from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
+from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
 
 def guess_type(sample):
@@ -46,9 +50,32 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return dict(zip(self.keys, row))
+        return OrderedDict(zip(self.keys, row))
 
     next = __next__
 
     def __iter__(self):
         return self
+
+
+def sqlite_datetime_fix():
+    class SQLiteDateTimeType(types.TypeDecorator):
+        impl = types.Integer
+        epoch = datetime(1970, 1, 1, 0, 0, 0)
+
+        def process_bind_param(self, value, dialect):
+            return (value / 1000 - self.epoch).total_seconds()
+
+        def process_result_value(self, value, dialect):
+            return self.epoch + timedelta(seconds=value / 1000)
+
+    def is_sqlite(inspector):
+        return inspector.engine.dialect.name == "sqlite"
+
+    def is_datetime(column_info):
+        return isinstance(column_info['type'], types.DateTime)
+
+    @event.listens_for(Table, "column_reflect")
+    def setup_epoch(inspector, table, column_info):
+        if is_sqlite(inspector) and is_datetime(column_info):
+            column_info['type'] = SQLiteDateTimeType()
