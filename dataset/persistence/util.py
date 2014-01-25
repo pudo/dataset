@@ -1,9 +1,5 @@
 from datetime import datetime, timedelta
 from inspect import isgenerator
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
@@ -50,7 +46,7 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return OrderedDict(zip(self.keys, row))
+        return row
 
     next = __next__
 
