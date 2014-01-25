@@ -249,7 +249,7 @@ class TableTestCase(unittest.TestCase):
         tbl = self.tbl
         tbl.create_column('foo', FLOAT)
         assert 'foo' in tbl.table.c, tbl.table.c
-        assert FLOAT == type(tbl.table.c['foo'].type), tbl.table.c['foo'].type
+        assert isinstance(tbl.table.c['foo'].type, FLOAT), tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
 
     def test_key_order(self):
