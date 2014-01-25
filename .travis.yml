@@ -4,6 +4,8 @@ python:
 - '3.3'
 - '2.7'
 - '2.6'
+install:
+- pip install flake8
 script:
-- python setup.py test
 - flake8 --ignore=E501,E123,E124,E126,E127,E128 dataset test
+- python setup.py test

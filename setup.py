@@ -35,7 +35,7 @@ setup(
         'python-slugify >= 0.0.6',
         "PyYAML >= 3.10"
     ] + py26_dependency,
-    tests_require=['flake8'],
+    tests_require=[],
     test_suite='test',
     entry_points={
         'console_scripts': [
