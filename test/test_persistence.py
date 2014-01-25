@@ -194,6 +194,10 @@ class TableTestCase(unittest.TestCase):
         assert len(ds) == 3, ds
         ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2))
         assert len(ds) == 2, ds
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2, _step=1))
+        assert len(ds) == 2, ds
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=1, _step=2))
+        assert len(ds) == 1, ds
 
     def test_distinct(self):
         x = list(self.tbl.distinct('place'))

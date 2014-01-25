@@ -337,6 +337,9 @@ class Table(object):
         rp = self.database.executable.execute(count_query)
         total_row_count = rp.fetchone()[0]
 
+        if _limit is None:
+            _limit = total_row_count
+
         if _step is None or _step is False or _step == 0:
             _step = total_row_count
 
@@ -348,9 +351,7 @@ class Table(object):
 
         for i in count():
             qoffset = _offset + (_step * i)
-            qlimit = _step
-            if _limit is not None:
-                qlimit = min(_limit - (_step * i), _step)
+            qlimit = min(_limit - (_step * i), _step)
             if qlimit <= 0:
                 break
             queries.append(self.table.select(whereclause=args, limit=qlimit,
