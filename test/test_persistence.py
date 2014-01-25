@@ -2,15 +2,18 @@ import os
 import unittest
 from datetime import datetime
 
+from sqlalchemy.exc import IntegrityError
+
 from dataset import connect
 from dataset.util import DatasetException
+
 from .sample_data import TEST_DATA, TEST_CITY_1
-from sqlalchemy.exc import IntegrityError
 
 
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.old_db_url = os.environ.get('DATABASE_URL')
         os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
         self.db = connect('sqlite:///:memory:')
         self.tbl = self.db['weather']
@@ -19,7 +22,10 @@ class DatabaseTestCase(unittest.TestCase):
 
     def tearDown(self):
         # ensure env variable was unset
-        del os.environ['DATABASE_URL']
+        if self.old_db_url is None:
+            del os.environ['DATABASE_URL']
+        else:
+            os.environ['DATABASE_URL'] = self.old_db_url
 
     def test_valid_database_url(self):
         assert self.db.url, os.environ['DATABASE_URL']
@@ -46,7 +52,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_create_table_custom_id2(self):
         pid = "string_id"
@@ -57,19 +63,19 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_create_table_custom_id3(self):
         pid = "int_id"
-        table = self.db.create_table("foo4", primary_id = pid)
+        table = self.db.create_table("foo4", primary_id=pid)
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
         table.insert({'int_id': 123})
         table.insert({'int_id': 124})
-        assert table.find_one(int_id = 123)['int_id'] == 123
-        assert table.find_one(int_id = 124)['int_id'] == 124
+        assert table.find_one(int_id=123)['int_id'] == 123
+        assert table.find_one(int_id=124)['int_id'] == 124
         self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand1(self):
@@ -81,8 +87,8 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({'int_id': 123})
         table.insert({'int_id': 124})
-        assert table.find_one(int_id = 123)['int_id'] == 123
-        assert table.find_one(int_id = 124)['int_id'] == 124
+        assert table.find_one(int_id=123)['int_id'] == 123
+        assert table.find_one(int_id=124)['int_id'] == 124
         self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand2(self):
@@ -94,7 +100,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_create_table_shorthand3(self):
         pid = "string_id"
@@ -105,7 +111,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
@@ -131,7 +137,7 @@ class TableTestCase(unittest.TestCase):
             'temperature': -10,
             'place': 'Berlin'}
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         assert self.tbl.find_one(id=last_id)['place'] == 'Berlin'
 
     def test_upsert(self):
@@ -141,17 +147,17 @@ class TableTestCase(unittest.TestCase):
             'place': 'Berlin'},
             ['place']
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         self.tbl.upsert({
             'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'},
             ['place']
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
     def test_upsert_all_key(self):
-        for i in range(0,2):
+        for i in range(0, 2):
             self.tbl.upsert({
                 'date': datetime(2011, 1, 2),
                 'temperature': -10,
@@ -165,7 +171,7 @@ class TableTestCase(unittest.TestCase):
             'temperature': -10,
             'place': 'Berlin'}
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         self.tbl.delete(place='Berlin')
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
         self.tbl.delete()
@@ -187,6 +193,10 @@ class TableTestCase(unittest.TestCase):
         assert len(ds) == 3, ds
         ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2))
         assert len(ds) == 2, ds
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2, _step=1))
+        assert len(ds) == 2, ds
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=1, _step=2))
+        assert len(ds) == 1, ds
 
     def test_distinct(self):
         x = list(self.tbl.distinct('place'))
@@ -195,8 +205,8 @@ class TableTestCase(unittest.TestCase):
         assert len(x) == 6, x
 
     def test_insert_many(self):
-        data = TEST_DATA * 5000
-        self.tbl.insert_many(data)
+        data = TEST_DATA * 100
+        self.tbl.insert_many(data, chunk_size=13)
         assert len(self.tbl) == len(data) + 6
 
     def test_drop_warning(self):
@@ -239,7 +249,7 @@ class TableTestCase(unittest.TestCase):
         tbl = self.tbl
         tbl.create_column('foo', FLOAT)
         assert 'foo' in tbl.table.c, tbl.table.c
-        assert FLOAT == type(tbl.table.c['foo'].type), tbl.table.c['foo'].type
+        assert isinstance(tbl.table.c['foo'].type, FLOAT), tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
 
     def test_key_order(self):
@@ -247,6 +257,3 @@ class TableTestCase(unittest.TestCase):
         keys = list(res.next().keys())
         assert keys[0] == 'temperature'
         assert keys[1] == 'place'
-
-if __name__ == '__main__':
-    unittest.main()

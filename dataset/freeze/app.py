@@ -33,7 +33,7 @@ def freeze(result, format='csv', filename='freeze.csv',
 
         result = db['person'].all()
         dataset.freeze(result, format='json', filename='all-persons.json')
-        
+
     If ``result`` is a table (rather than a result set), all records in
     the table are exported (as if ``result.all()`` had been called).
 
@@ -59,7 +59,7 @@ def freeze(result, format='csv', filename='freeze.csv',
 
         *json*
             A JSON file containing a list of dictionaries for each row
-            in the table. If a ``callback`` is given, JSON with padding 
+            in the table. If a ``callback`` is given, JSON with padding
             (JSONP) will be generated.
 
         *tabson*

@@ -11,9 +11,9 @@ except ImportError:
 
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
-from sqlalchemy.schema import MetaData, Column, Index
+from sqlalchemy.schema import MetaData, Column
 from sqlalchemy.schema import Table as SQLATable
-from sqlalchemy import Integer, Text, String
+from sqlalchemy import Integer, String
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -107,10 +107,8 @@ class Database(object):
 
     @property
     def tables(self):
-        """ Get a listing of all tables that exist in the database.
-
-        >>> print db.tables
-        set([u'user', u'action'])
+        """
+        Get a listing of all tables that exist in the database.
         """
         return list(
             set(self.metadata.tables.keys()) | set(self._tables.keys())

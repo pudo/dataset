@@ -1,9 +1,5 @@
 import logging
 from itertools import count
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
@@ -28,9 +24,6 @@ class Table(object):
     def columns(self):
         """
         Get a listing of all columns that exist in the table.
-
-        >>> print 'age' in table.columns
-        True
         """
         return set(self.table.columns.keys())
 
@@ -94,7 +87,7 @@ class Table(object):
                     self._ensure_columns(row, types=types)
             self.table.insert().execute(chunk)
         self._check_dropped()
-        
+
         chunk = []
         for i, row in enumerate(rows, start=1):
             chunk.append(row)
@@ -104,7 +97,6 @@ class Table(object):
 
         if chunk:
             _process_chunk(chunk)
-        
 
     def update(self, row, keys, ensure=True, types={}):
         """
@@ -126,7 +118,7 @@ class Table(object):
         if not isinstance(keys, (list, tuple)):
             keys = [keys]
         self._check_dropped()
-        if not keys or len(keys)==len(row):
+        if not keys or len(keys) == len(row):
             return False
         clause = [(u, row.get(u)) for u in keys]
 
@@ -288,7 +280,7 @@ class Table(object):
         rp = self.database.executable.execute(query)
         data = rp.fetchone()
         if data is not None:
-            return OrderedDict(zip(rp.keys(), data))
+            return data
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':
@@ -337,6 +329,9 @@ class Table(object):
         rp = self.database.executable.execute(count_query)
         total_row_count = rp.fetchone()[0]
 
+        if _limit is None:
+            _limit = total_row_count
+
         if _step is None or _step is False or _step == 0:
             _step = total_row_count
 
@@ -348,9 +343,7 @@ class Table(object):
 
         for i in count():
             qoffset = _offset + (_step * i)
-            qlimit = _step
-            if _limit is not None:
-                qlimit = min(_limit - (_step * i), _step)
+            qlimit = min(_limit - (_step * i), _step)
             if qlimit <= 0:
                 break
             queries.append(self.table.select(whereclause=args, limit=qlimit,
