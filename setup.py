@@ -30,8 +30,8 @@ setup(
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        'sqlalchemy >= 0.8.1',
-        'alembic >= 0.6.1',
+        'sqlalchemy >= 0.9.1',
+        'alembic >= 0.6.2',
         'python-slugify >= 0.0.6',
         "PyYAML >= 3.10"
     ] + py26_dependency,
