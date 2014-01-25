@@ -21,4 +21,3 @@ class TabsonSerializer(JSONSerializer):
         if meta is not None:
             result['meta'] = meta
         return result
-

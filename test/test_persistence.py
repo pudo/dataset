@@ -8,7 +8,6 @@ from dataset import connect
 from dataset.util import DatasetException
 
 from .sample_data import TEST_DATA, TEST_CITY_1
-from sqlalchemy.exc import IntegrityError
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -53,7 +52,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_create_table_custom_id2(self):
         pid = "string_id"
@@ -64,19 +63,19 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_create_table_custom_id3(self):
         pid = "int_id"
-        table = self.db.create_table("foo4", primary_id = pid)
+        table = self.db.create_table("foo4", primary_id=pid)
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
         table.insert({'int_id': 123})
         table.insert({'int_id': 124})
-        assert table.find_one(int_id = 123)['int_id'] == 123
-        assert table.find_one(int_id = 124)['int_id'] == 124
+        assert table.find_one(int_id=123)['int_id'] == 123
+        assert table.find_one(int_id=124)['int_id'] == 124
         self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand1(self):
@@ -88,8 +87,8 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({'int_id': 123})
         table.insert({'int_id': 124})
-        assert table.find_one(int_id = 123)['int_id'] == 123
-        assert table.find_one(int_id = 124)['int_id'] == 124
+        assert table.find_one(int_id=123)['int_id'] == 123
+        assert table.find_one(int_id=124)['int_id'] == 124
         self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand2(self):
@@ -101,7 +100,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_create_table_shorthand3(self):
         pid = "string_id"
@@ -112,7 +111,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         table.insert({
             'string_id': 'foobar'})
-        assert table.find_one(string_id = 'foobar')['string_id'] == 'foobar'
+        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
@@ -138,7 +137,7 @@ class TableTestCase(unittest.TestCase):
             'temperature': -10,
             'place': 'Berlin'}
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         assert self.tbl.find_one(id=last_id)['place'] == 'Berlin'
 
     def test_upsert(self):
@@ -148,17 +147,17 @@ class TableTestCase(unittest.TestCase):
             'place': 'Berlin'},
             ['place']
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         self.tbl.upsert({
             'date': datetime(2011, 1, 2),
             'temperature': -10,
             'place': 'Berlin'},
             ['place']
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
     def test_upsert_all_key(self):
-        for i in range(0,2):
+        for i in range(0, 2):
             self.tbl.upsert({
                 'date': datetime(2011, 1, 2),
                 'temperature': -10,
@@ -172,7 +171,7 @@ class TableTestCase(unittest.TestCase):
             'temperature': -10,
             'place': 'Berlin'}
         )
-        assert len(self.tbl) == len(TEST_DATA)+1, len(self.tbl)
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         self.tbl.delete(place='Berlin')
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
         self.tbl.delete()

@@ -24,9 +24,6 @@ class Table(object):
     def columns(self):
         """
         Get a listing of all columns that exist in the table.
-
-        >>> print 'age' in table.columns
-        True
         """
         return set(self.table.columns.keys())
 
@@ -90,7 +87,7 @@ class Table(object):
                     self._ensure_columns(row, types=types)
             self.table.insert().execute(chunk)
         self._check_dropped()
-        
+
         chunk = []
         for i, row in enumerate(rows, start=1):
             chunk.append(row)
@@ -100,7 +97,6 @@ class Table(object):
 
         if chunk:
             _process_chunk(chunk)
-        
 
     def update(self, row, keys, ensure=True, types={}):
         """
@@ -122,7 +118,7 @@ class Table(object):
         if not isinstance(keys, (list, tuple)):
             keys = [keys]
         self._check_dropped()
-        if not keys or len(keys)==len(row):
+        if not keys or len(keys) == len(row):
             return False
         clause = [(u, row.get(u)) for u in keys]
 

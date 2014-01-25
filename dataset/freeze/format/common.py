@@ -1,5 +1,4 @@
 import os
-import logging
 import re
 import locale
 
@@ -69,8 +68,7 @@ class Serializer(object):
 
     @property
     def wrap(self):
-        return self.export.get_bool('wrap',
-                default=self.mode=='list')
+        return self.export.get_bool('wrap', default=self.mode == 'list')
 
     def serialize(self):
         self.init()
