@@ -190,7 +190,8 @@ class Database(object):
         self.metadata = MetaData(schema=self.schema)
         self.metadata.bind = self.engine
         self.metadata.reflect(self.engine)
-        return SQLATable(table_name, self.metadata)
+        self._tables[table_name] = SQLATable(table_name, self.metadata)
+        return self._tables[table_name]
 
     def get_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
