@@ -1,9 +1,5 @@
 from datetime import datetime, timedelta
 from inspect import isgenerator
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
@@ -50,7 +46,7 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return OrderedDict(zip(self.keys, row))
+        return row
 
     next = __next__
 
@@ -64,6 +60,8 @@ def sqlite_datetime_fix():
         epoch = datetime(1970, 1, 1, 0, 0, 0)
 
         def process_bind_param(self, value, dialect):
+            if isinstance(value, datetime):
+                return value
             return (value / 1000 - self.epoch).total_seconds()
 
         def process_result_value(self, value, dialect):

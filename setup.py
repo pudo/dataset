@@ -25,17 +25,18 @@ setup(
     author_email='info@okfn.org',
     url='http://github.com/pudo/dataset',
     license='MIT',
-    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+    packages=find_packages(exclude=['ez_setup', 'examples', 'test']),
     namespace_packages=[],
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        'sqlalchemy >= 0.8.1',
-        'alembic >= 0.6.1',
+        'sqlalchemy >= 0.9.1',
+        'alembic >= 0.6.2',
         'python-slugify >= 0.0.6',
         "PyYAML >= 3.10"
     ] + py26_dependency,
     tests_require=[],
+    test_suite='test',
     entry_points={
         'console_scripts': [
             'datafreeze = dataset.freeze.app:main',

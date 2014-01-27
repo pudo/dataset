@@ -8,7 +8,6 @@ from dataset.persistence.util import sqlite_datetime_fix
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
 from dataset.freeze.app import freeze
-from sqlalchemy import Integer, Text
 
 __all__ = ['Database', 'Table', 'freeze', 'connect']
 

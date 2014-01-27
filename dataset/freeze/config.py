@@ -82,8 +82,7 @@ class Export(object):
     @property
     def skip(self):
         return self.get_bool('skip')
-    
+
     @property
     def name(self):
         return self.get('name', self.get('query'))
-
