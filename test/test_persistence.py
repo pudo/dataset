@@ -19,6 +19,10 @@ class DatabaseTestCase(unittest.TestCase):
         for row in TEST_DATA:
             self.tbl.insert(row)
 
+    def tearDown(self):
+        for table in self.db.tables:
+            self.db[table].drop()
+
     def test_valid_database_url(self):
         assert self.db.url, os.environ['DATABASE_URL']
 
