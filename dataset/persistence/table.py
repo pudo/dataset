@@ -407,3 +407,6 @@ class Table(object):
                 print(row)
         """
         return self.all()
+
+    def __repr__(self):
+        return '<Table(%s)>' % self.table.name
