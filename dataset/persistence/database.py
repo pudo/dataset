@@ -211,9 +211,6 @@ class Database(object):
             # you can also use the short-hand syntax:
             table = db['population']
 
-            # custom id and type
-            table2 = db['population2', 'age'] # default type is 'Integer'
-            table3 = db['population3', 'race', 'Text']
         """
         if table_name in self._tables:
             return Table(self, self._tables[table_name])
