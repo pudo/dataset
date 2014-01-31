@@ -238,7 +238,7 @@ class Database(object):
 
             res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
             for row in res:
-                print row['user'], row['c']
+                print(row['user'], row['c'])
         """
         return ResultIter(self.executable.execute(query, **kw))
 

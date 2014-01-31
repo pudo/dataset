@@ -403,6 +403,6 @@ class Table(object):
         ::
 
             for row in table:
-                print row
+                print(row)
         """
         return self.all()

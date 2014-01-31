@@ -71,7 +71,7 @@ When dealing with unknown databases we might want to check their structure
 first. To start exploring, let's find out what tables are stored in the
 database:
 
-   >>> print db.tables
+   >>> print(db.tables)
    set([u'user', u'action'])
 
 Now, let's list all columns available in the table ``user``:
@@ -81,7 +81,7 @@ Now, let's list all columns available in the table ``user``:
 
 Using ``len()`` we can get the total number of rows in a table:
 
-   >>> print len(db['user'])
+   >>> print(len(db['user']))
    187
 
 Reading data from tables
