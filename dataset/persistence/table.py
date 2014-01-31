@@ -182,7 +182,7 @@ class Table(object):
         else:
             stmt = self.table.delete()
         rows = self.database.executable.execute(stmt)
-        return rows > 0
+        return rows.rowcount > 0
 
     def _ensure_columns(self, row, types={}):
         # Keep order of inserted columns
