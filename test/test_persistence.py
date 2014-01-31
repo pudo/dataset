@@ -121,8 +121,7 @@ class DatabaseTestCase(unittest.TestCase):
         tbl1 = self.db.get_table('people')
         tbl1.insert(dict(first_name='John', last_name='Smith'))
         tbl2 = self.db.get_table('people')
-
-        assert list(tbl2.all()) == [(1, 'John', 'Smith')]
+        assert set([tuple(r.values()) for r in tbl2.all()]) == set([(1, 'John', 'Smith')])
 
 
 class TableTestCase(unittest.TestCase):
