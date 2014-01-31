@@ -27,10 +27,14 @@ log = logging.getLogger(__name__)
 
 class Database(object):
 
-    def __init__(self, url, schema=None, reflectMetadata=True):
-        kw = {}
+    def __init__(self, url, schema=None, reflectMetadata=True,
+                 engine_kwargs=None):
+        if engine_kwargs is None:
+            engine_kwargs = {}
+
         if url.startswith('postgres'):
-            kw['poolclass'] = NullPool
+            engine_kwargs.setdefault('poolclass', NullPool)
+
         self.lock = threading.RLock()
         self.local = threading.local()
         if '?' in url:
@@ -44,7 +48,7 @@ class Database(object):
             if len(query):
                 url = url + '?' + urlencode(query, doseq=True)
         self.schema = schema
-        self.engine = create_engine(url, **kw)
+        self.engine = create_engine(url, **engine_kwargs)
         self.url = url
         self.metadata = MetaData(schema=schema)
         self.metadata.bind = self.engine
