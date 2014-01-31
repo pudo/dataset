@@ -121,7 +121,7 @@ class Database(object):
         as the primary key of the table. Automatic id is set to be an
         auto-incrementing integer, while the type of custom primary_id can be a
         String or an Integer as specified with primary_type flag. The default
-        length of String is 256. The caller can specify the length.
+        length of String is 255. The caller can specify the length.
         The caller will be responsible for the uniqueness of manual primary_id.
 
         This custom id feature is only available via direct create_table call.
@@ -148,10 +148,10 @@ class Database(object):
                         auto_flag = True
                     col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
                 elif not match.group(3):
-                    col = Column(primary_id, String(256), primary_key=True)
+                    col = Column(primary_id, String(255), primary_key=True)
                 else:
                     len_string = int(match.group(3)[1:-1])
-                    len_string = min(len_string, 256)
+                    len_string = min(len_string, 255)
                     col = Column(primary_id, String(len_string), primary_key=True)
             else:
                 raise DatasetException(
