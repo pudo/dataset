@@ -94,7 +94,7 @@ Now let's get some real data out of the table::
 If we simply want to iterate over all rows in a table, we can omit :py:meth:`all() <dataset.Table.all>`::
 
    for user in db['user']:
-      print user['email']
+      print(user['email'])
 
 We can search for specific entries using :py:meth:`find() <dataset.Table.find>` and
 :py:meth:`find_one() <dataset.Table.find_one>`::
@@ -120,7 +120,7 @@ use the full power of SQL queries. Here's how you run them with ``dataset``::
 
    result = db.query('SELECT country, COUNT(*) c FROM user GROUP BY country')
    for row in result:
-      print row['country'], row['c']
+      print(row['country'], row['c'])
 
 The :py:meth:`query() <dataset.Table.query>` method can also be used to 
 access the underlying `SQLAlchemy core API <http://docs.sqlalchemy.org/ru/latest/orm/query.html#the-query-object>`_, which allows for the
