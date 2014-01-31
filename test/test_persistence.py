@@ -13,19 +13,11 @@ from .sample_data import TEST_DATA, TEST_CITY_1
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.old_db_url = os.environ.get('DATABASE_URL')
-        os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
-        self.db = connect('sqlite:///:memory:')
+        os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
+        self.db = connect(os.environ['DATABASE_URL'])
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
-
-    def tearDown(self):
-        # ensure env variable was unset
-        if self.old_db_url is None:
-            del os.environ['DATABASE_URL']
-        else:
-            os.environ['DATABASE_URL'] = self.old_db_url
 
     def test_valid_database_url(self):
         assert self.db.url, os.environ['DATABASE_URL']
