@@ -223,10 +223,7 @@ class Database(object):
             self._release()
 
     def __getitem__(self, table_name):
-        if type(table_name) is tuple:
-            return self.get_table(*table_name[:3])
-        else:
-            return self.get_table(table_name)
+        return self.get_table(table_name)
 
     def query(self, query, **kw):
         """
