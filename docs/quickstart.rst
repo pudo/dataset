@@ -76,8 +76,8 @@ database:
 
 Now, let's list all columns available in the table ``user``:
 
-   >>> print db['user'].columns
-   set([u'id', u'name', u'email', u'pwd', u'country'])
+   >>> print(db['user'].columns)
+   [u'id', u'name', u'email', u'pwd', u'country']
 
 Using ``len()`` we can get the total number of rows in a table:
 

@@ -25,7 +25,7 @@ class Table(object):
         """
         Get a listing of all columns that exist in the table.
         """
-        return set(self.table.columns.keys())
+        return list(self.table.columns.keys())
 
     def drop(self):
         """
@@ -184,7 +184,10 @@ class Table(object):
         self.database.executable.execute(stmt)
 
     def _ensure_columns(self, row, types={}):
-        for column in set(row.keys()) - set(self.table.columns.keys()):
+        # Keep order of inserted columns
+        for column in row.keys():
+            if column in self.table.columns.keys():
+                continue
             if column in types:
                 _type = types[column]
             else:

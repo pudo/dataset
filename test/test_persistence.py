@@ -229,8 +229,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_columns(self):
         cols = self.tbl.columns
-        assert isinstance(cols, set), 'columns should be a set'
-        assert len(cols) == 4, 'column count mismatch'
+        assert len(list(cols)) == 4, 'column count mismatch'
         assert 'date' in cols and 'temperature' in cols and 'place' in cols
 
     def test_iter(self):
