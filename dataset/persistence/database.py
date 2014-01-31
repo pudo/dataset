@@ -209,7 +209,7 @@ class Database(object):
 
             # custom id and type
             table2 = db['population2', 'age'] # default type is 'Integer'
-            table3 = db['population3', 'race', 'Text']
+            table3 = db['population3', 'race', 'String']
         """
         if table_name in self._tables:
             return Table(self, self._tables[table_name])
