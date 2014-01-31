@@ -2,6 +2,11 @@ import os
 import unittest
 from datetime import datetime
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict  # Python < 2.7 drop-in
+
 from sqlalchemy.exc import IntegrityError
 
 from dataset import connect
@@ -119,9 +124,9 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_table_cache_updates(self):
         tbl1 = self.db.get_table('people')
-        tbl1.insert(dict(first_name='John', last_name='Smith'))
+        tbl1.insert(OrderedDict([('first_name', 'John'), ('last_name', 'Smith')]))
         tbl2 = self.db.get_table('people')
-        assert set([tuple(r.values()) for r in tbl2.all()]) == set([(1, 'John', 'Smith')])
+        assert list(tbl2.all()) == [(1, 'John', 'Smith')]
 
 
 class TableTestCase(unittest.TestCase):
