@@ -12,7 +12,7 @@ from dataset.freeze.app import freeze
 __all__ = ['Database', 'Table', 'freeze', 'connect']
 
 
-def connect(url=None, schema=None, reflectMetadata=True):
+def connect(url=None, schema=None, reflectMetadata=True, engine_kwargs=None):
     """
     Opens a new connection to a database. *url* can be any valid `SQLAlchemy engine URL`_.
     If *url* is not defined it will try to use *DATABASE_URL* from environment variable.
@@ -31,4 +31,5 @@ def connect(url=None, schema=None, reflectMetadata=True):
     if url.startswith("sqlite://"):
         sqlite_datetime_fix()
 
-    return Database(url, schema=schema, reflectMetadata=reflectMetadata)
+    return Database(url, schema=schema, reflectMetadata=reflectMetadata,
+                    engine_kwargs=engine_kwargs)
