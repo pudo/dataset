@@ -181,7 +181,8 @@ class Table(object):
             stmt = self.table.delete(q)
         else:
             stmt = self.table.delete()
-        self.database.executable.execute(stmt)
+        rows = self.database.executable.execute(stmt)
+        return rows.rowcount > 0
 
     def _ensure_columns(self, row, types={}):
         # Keep order of inserted columns
@@ -406,3 +407,6 @@ class Table(object):
                 print(row)
         """
         return self.all()
+
+    def __repr__(self):
+        return '<Table(%s)>' % self.table.name

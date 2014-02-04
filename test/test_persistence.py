@@ -179,10 +179,16 @@ class TableTestCase(unittest.TestCase):
             'place': 'Berlin'}
         )
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
-        self.tbl.delete(place='Berlin')
+        assert self.tbl.delete(place='Berlin') is True, 'should return 1'
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
-        self.tbl.delete()
+        assert self.tbl.delete() is True, 'should return non zero'
         assert len(self.tbl) == 0, len(self.tbl)
+
+    def test_repr(self):
+        assert repr(self.tbl) == '<Table(weather)>', 'the representation should be <Table(weather)>'
+
+    def test_delete_nonexist_entry(self):
+        assert self.tbl.delete(place='Berlin') is False, 'entry not exist, should fail to delete'
 
     def test_find_one(self):
         self.tbl.insert({
