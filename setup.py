@@ -4,11 +4,11 @@ from setuptools import setup, find_packages
 
 py26_dependency = []
 if sys.version_info[:2] <= (2, 6):
-    py26_dependency = ["argparse >= 1.2.1", "ordereddict >= 1.1"]
+    py26_dependency = ["argparse >= 1.1", "ordereddict >= 1.1"]
 
 setup(
     name='dataset',
-    version='0.4.0',
+    version='0.5.0',
     description="Toolkit for Python-based data processing.",
     long_description="",
     classifiers=[

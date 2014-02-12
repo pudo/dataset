@@ -3,6 +3,10 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
+* 0.5: Improve overall code quality and testing, including Travis CI.
+  An advanced __getitem__ syntax which allowed for the specification 
+  of primary keys when getting a table was dropped. 
+  DDL is no longer run against a transaction, but the base connection. 
 * 0.4: Python 3 support and switch to alembic for migrations.
 * 0.3.15: Fixes to update and insertion of data, thanks to @cli248
   and @abhinav-upadhyay.
