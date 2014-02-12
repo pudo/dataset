@@ -66,10 +66,7 @@ class Database(object):
 
     @property
     def op(self):
-        if hasattr(self.local, 'connection'):
-            ctx = MigrationContext.configure(self.local.connection)
-        else:
-            ctx = MigrationContext.configure(self.engine)
+        ctx = MigrationContext.configure(self.engine)
         return Operations(ctx)
 
     def _acquire(self):
@@ -89,7 +86,10 @@ class Database(object):
 
     def begin(self):
         """ Enter a transaction explicitly. No data will be written
-        until the transaction has been committed. """
+        until the transaction has been committed.
+
+        **NOTICE:** Schema modification operations, such as the creation
+        of tables or columns will not be part of the transactional context."""
         if not hasattr(self.local, 'connection'):
             self.local.connection = self.engine.connect()
         if not hasattr(self.local, 'tx'):
