@@ -21,7 +21,7 @@ setup(
         'Programming Language :: Python :: 3.3'
     ],
     keywords='sql sqlalchemy etl loading utility',
-    author='Friedrich Lindenberg, Gregor Aisch',
+    author='Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer',
     author_email='info@okfn.org',
     url='http://github.com/pudo/dataset',
     license='MIT',
