@@ -275,3 +275,8 @@ class TableTestCase(unittest.TestCase):
         keys = list(res.next().keys())
         assert keys[0] == 'temperature'
         assert keys[1] == 'place'
+
+    def test_empty_query(self):
+        m = self.tbl.find(place='not in data')
+        l = list(m)  # exhaust iterator
+        assert len(l) == 0

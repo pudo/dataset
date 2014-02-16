@@ -24,10 +24,8 @@ class ResultIter(object):
         if not isgenerator(result_proxies):
             result_proxies = iter((result_proxies, ))
         self.result_proxies = result_proxies
-
         self.count = 0
-        if not self._next_rp():
-            raise StopIteration
+        self.rp = None
 
     def _next_rp(self):
         try:
@@ -39,6 +37,9 @@ class ResultIter(object):
             return False
 
     def __next__(self):
+        if self.rp is None:
+            if not self._next_rp():
+                raise StopIteration
         row = self.rp.fetchone()
         if row is None:
             if self._next_rp():
