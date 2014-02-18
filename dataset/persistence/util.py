@@ -6,15 +6,6 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    basestring = (str,bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    basestring = basestring
-
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
 
@@ -86,9 +77,9 @@ def sqlite_datetime_fix():
             return (value / 1000 - self.epoch).total_seconds()
 
         def process_result_value(self, value, dialect):
-            if isinstance(value, basestring):
-                return value
-            return self.epoch + timedelta(seconds=value / 1000)
+            if isinstance(value, int):
+                return self.epoch + timedelta(seconds=value / 1000)
+            return value
 
     def is_sqlite(inspector):
         return inspector.engine.dialect.name == "sqlite"
