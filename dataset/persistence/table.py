@@ -5,7 +5,7 @@ from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
 from sqlalchemy import alias
 from dataset.persistence.util import guess_type
-from dataset.persistence.util import ResultIter
+from dataset.persistence.util import ResultIter, convert_row
 from dataset.util import DatasetException
 
 
@@ -282,9 +282,7 @@ class Table(object):
         args = self._args_to_clause(_filter)
         query = self.table.select(whereclause=args, limit=1)
         rp = self.database.executable.execute(query)
-        data = rp.fetchone()
-        if data is not None:
-            return data
+        return convert_row(rp.fetchone())
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':

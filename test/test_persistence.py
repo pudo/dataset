@@ -124,9 +124,11 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_table_cache_updates(self):
         tbl1 = self.db.get_table('people')
-        tbl1.insert(OrderedDict([('first_name', 'John'), ('last_name', 'Smith')]))
+        data = OrderedDict([('first_name', 'John'), ('last_name', 'Smith')])
+        tbl1.insert(data)
+        data['id'] = 1
         tbl2 = self.db.get_table('people')
-        assert list(tbl2.all()) == [(1, 'John', 'Smith')]
+        assert dict(tbl2.all().next()) == dict(data), (tbl2.all().next(), data)
 
 
 class TableTestCase(unittest.TestCase):

@@ -1,6 +1,11 @@
 from datetime import datetime, timedelta
 from inspect import isgenerator
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
 
@@ -14,6 +19,12 @@ def guess_type(sample):
     elif isinstance(sample, datetime):
         return DateTime
     return UnicodeText
+
+
+def convert_row(row):
+    if row is None:
+        return None
+    return OrderedDict(row.items())
 
 
 class ResultIter(object):
@@ -47,7 +58,7 @@ class ResultIter(object):
             else:
                 # stop here
                 raise StopIteration
-        return row
+        return convert_row(row)
 
     next = __next__
 
@@ -66,6 +77,8 @@ def sqlite_datetime_fix():
             return (value / 1000 - self.epoch).total_seconds()
 
         def process_result_value(self, value, dialect):
+            if isinstance(value, basestring):
+                return value
             return self.epoch + timedelta(seconds=value / 1000)
 
     def is_sqlite(inspector):
