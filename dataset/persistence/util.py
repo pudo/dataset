@@ -6,6 +6,15 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    basestring = basestring
+
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
 
 
