@@ -72,6 +72,6 @@ Contents
 Contributors
 ------------
 
-``dataset`` is written and maintained by `Friedrich Lindenberg <https://github.com/pudo>`_, `Gregor Aisch <https://github.com/gka>`_ and `Stefan Wehrmeyer <https://github.com/stefanw>`_. Its code is largely based on the preceding libraries `sqlaload <https://github.com/okfn/sqlaload>`_ and `datafreeze <https://github.com/spiegelonline/datafreeze>`_. And of course, we're standing on the `shoulders of giants <http://www.sqlalchemy.org/>`_.
+``dataset`` is written and maintained by `Friedrich Lindenberg <https://github.com/pudo>`_, `Gregor Aisch <https://github.com/gka>`_ and `Stefan Wehrmeyer <https://github.com/stefanw>`_. Its code is largely based on the preceding libraries `sqlaload <https://github.com/okfn/sqlaload>`_ and datafreeze. And of course, we're standing on the `shoulders of giants <http://www.sqlalchemy.org/>`_.
 
 Our cute little `naked mole rat <http://www.youtube.com/watch?feature=player_detailpage&v=A5DcOEzW1wA#t=14s>`_ was drawn by `Johannes Koch <http://chechuchape.com/>`_.
