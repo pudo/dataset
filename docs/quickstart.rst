@@ -41,18 +41,18 @@ To store some data you need to get a reference to a table. You don't need
 to worry about whether the table already exists or not, since dataset
 will create it automatically::
 
-   # get a reference to the table 'person'
-   table = db['person']
+   # get a reference to the table 'user'
+   table = db['user']
 
 Now storing data in a table is a matter of a single function call. Just
 pass a `dict`_ to *insert*. Note that you don't need to create the columns
 *name* and *age* – dataset will do this automatically::
 
    # Insert a new record.
-   table.insert(dict(name='John Doe', age=46))
+   table.insert(dict(name='John Doe', age=46, country='China'))
 
    # dataset will create "missing" columns any time you insert a dict with an unknown key
-   table.insert(dict(name='Jane Doe', age=37, gender='female'))
+   table.insert(dict(name='Jane Doe', age=37, country='France', gender='female'))
 
 .. _dict: http://docs.python.org/2/library/stdtypes.html#dict
 
@@ -72,17 +72,17 @@ first. To start exploring, let's find out what tables are stored in the
 database:
 
    >>> print(db.tables)
-   set([u'user', u'action'])
+   [u'user']
 
 Now, let's list all columns available in the table ``user``:
 
    >>> print(db['user'].columns)
-   [u'id', u'name', u'email', u'pwd', u'country']
+   [u'id', u'country', u'age', u'name', u'gender'] 
 
 Using ``len()`` we can get the total number of rows in a table:
 
    >>> print(len(db['user']))
-   187
+   2
 
 Reading data from tables
 ------------------------
@@ -94,13 +94,13 @@ Now let's get some real data out of the table::
 If we simply want to iterate over all rows in a table, we can omit :py:meth:`all() <dataset.Table.all>`::
 
    for user in db['user']:
-      print(user['email'])
+      print(user['age'])
 
 We can search for specific entries using :py:meth:`find() <dataset.Table.find>` and
 :py:meth:`find_one() <dataset.Table.find_one>`::
 
    # All users from China
-   users = table.find(country='China')
+   chinese_users = table.find(country='China')
 
    # Get a specific user
    john = table.find_one(name='John Doe')
@@ -126,8 +126,8 @@ The :py:meth:`query() <dataset.Table.query>` method can also be used to
 access the underlying `SQLAlchemy core API <http://docs.sqlalchemy.org/ru/latest/orm/query.html#the-query-object>`_, which allows for the
 programmatic construction of more complex queries::
 
-   table = db['users'].table
-   statement = table.select(table.c.name.like('%Snoopy%'))
+   table = db['user'].table
+   statement = table.select(table.c.name.like('%John%'))
    result = db.query(statement) 
 
 
