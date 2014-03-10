@@ -321,7 +321,7 @@ class Table(object):
         self._check_dropped()
         if not isinstance(order_by, (list, tuple)):
             order_by = [order_by]
-        order_by = [o for o in order_by if o in self.table.columns]
+        order_by = [o for o in order_by if (o.startswith('-') and o[1:] or o) in self.table.columns]
         order_by = [self._args_to_order_by(o) for o in order_by]
 
         args = self._args_to_clause(_filter)
