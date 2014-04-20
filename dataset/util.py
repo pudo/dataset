@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 import re
 
 SLUG_REMOVE = re.compile(r'[,\s\.\(\)/\\;:]*')

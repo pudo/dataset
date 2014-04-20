@@ -63,7 +63,7 @@ class Export(object):
 
     def get_normalized(self, name, default=None):
         value = self.get(name, default=default)
-        if not value in [None, default]:
+        if value not in [None, default]:
             value = str(value).lower().strip()
         return value
 

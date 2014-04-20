@@ -21,7 +21,7 @@ class CSVSerializer(Serializer):
 
     def write(self, path, result):
         keys = list(result.keys())
-        if not path in self.handles:
+        if path not in self.handles:
             fh = open(path, 'wb')
             writer = csv.writer(fh)
             writer.writerow([k.encode('utf-8') for k in keys])
