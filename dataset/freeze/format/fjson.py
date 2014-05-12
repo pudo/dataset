@@ -27,7 +27,7 @@ class JSONSerializer(Serializer):
             result = {
                 'count': self.query.count,
                 'results': result
-                }
+            }
             meta = self.export.get('meta', {})
             if meta is not None:
                 result['meta'] = meta
@@ -38,7 +38,7 @@ class JSONSerializer(Serializer):
             result = self.wrap(result)
 
             fh = open(path, 'wb') if self.fileobj is None else self.fileobj
-            
+
             data = json.dumps(result,
                               cls=JSONEncoder,
                               indent=self.export.get_int('indent'))
