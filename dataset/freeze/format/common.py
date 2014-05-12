@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import locale
 
 try:
@@ -28,8 +29,12 @@ class Serializer(object):
         self._paths = []
         self._get_basepath()
 
+        if export.get('filename') == '-':
+            export['fileobj'] = sys.stdout
+        self.fileobj = export.get('fileobj')
+
     def _get_basepath(self):
-        prefix = self.export.get('prefix')
+        prefix = self.export.get('prefix', '')
         prefix = os.path.abspath(prefix)
         prefix = os.path.realpath(prefix)
         self._prefix = prefix
@@ -49,6 +54,10 @@ class Serializer(object):
         return os.path.realpath(path.encode(enc, 'replace'))
 
     def file_name(self, row):
+        # signal that there is a fileobj available:
+        if self.fileobj is not None:
+            return None
+
         path = self._tmpl(row)
         if path not in self._paths:
             if not path.startswith(self._prefix):
@@ -79,4 +88,5 @@ class Serializer(object):
                 row[field] = OPERATIONS.get(operation)(row.get(field))
 
             self.write(self.file_name(row), row)
+
         self.close()

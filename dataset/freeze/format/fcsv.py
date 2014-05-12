@@ -22,7 +22,13 @@ class CSVSerializer(Serializer):
     def write(self, path, result):
         keys = list(result.keys())
         if path not in self.handles:
-            fh = open(path, 'wb')
+
+            # handle fileobj that has been passed in:
+            if path is not None:
+                fh = open(path, 'wb')
+            else:
+                fh = self.fileobj
+
             writer = csv.writer(fh)
             writer.writerow([k.encode('utf-8') for k in keys])
             self.handles[path] = (writer, fh)

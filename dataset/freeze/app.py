@@ -20,9 +20,9 @@ parser.add_argument('--db', default=None,
                     help='Override the freezefile database URI')
 
 
-def freeze(result, format='csv', filename='freeze.csv',
-           prefix='.', meta={}, indent=2, mode='list',
-           wrap=True, callback=None, **kw):
+def freeze(result, format='csv', filename='freeze.csv', fileobj=None,
+           prefix='.', meta={}, indent=2, mode='list', wrap=True,
+           callback=None, **kw):
     """
     Perform a data export of a given result set. This is a very
     flexible exporter, allowing for various output formats, metadata
@@ -33,6 +33,15 @@ def freeze(result, format='csv', filename='freeze.csv',
 
         result = db['person'].all()
         dataset.freeze(result, format='json', filename='all-persons.json')
+
+    Instead of passing in the file name, you can also pass a file object::
+
+        result = db['person'].all()
+        fh = open('/dev/null', 'wb')
+        dataset.freeze(result, format='json', fileobj=fh)
+
+    Be aware that this will disable file name templating and store all
+    results to the same file.
 
     If ``result`` is a table (rather than a result set), all records in
     the table are exported (as if ``result.all()`` had been called).
@@ -50,7 +59,8 @@ def freeze(result, format='csv', filename='freeze.csv',
     is set to *item* the function would generate one file per row. In
     that case you can  use values as placeholders in filenames::
 
-            dataset.freeze(res, mode='item', format='json', filename='item-{{id}}.json')
+            dataset.freeze(res, mode='item', format='json',
+                           filename='item-{{id}}.json')
 
     The following output ``format`` s are supported:
 
@@ -70,6 +80,7 @@ def freeze(result, format='csv', filename='freeze.csv',
     kw.update({
         'format': format,
         'filename': filename,
+        'fileobj': fileobj,
         'prefix': prefix,
         'meta': meta,
         'indent': indent,

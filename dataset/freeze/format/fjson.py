@@ -36,13 +36,15 @@ class JSONSerializer(Serializer):
     def close(self):
         for path, result in self.buckets.items():
             result = self.wrap(result)
-            fh = open(path, 'wb')
+
+            fh = open(path, 'wb') if self.fileobj is None else self.fileobj
+            
             data = json.dumps(result,
-                    cls=JSONEncoder,
-                    indent=self.export.get_int('indent'))
+                              cls=JSONEncoder,
+                              indent=self.export.get_int('indent'))
             if self.export.get('callback'):
                 data = "%s && %s(%s);" % (self.export.get('callback'),
-                                         self.export.get('callback'),
-                                         data)
+                                          self.export.get('callback'),
+                                          data)
             fh.write(data)
             fh.close()
