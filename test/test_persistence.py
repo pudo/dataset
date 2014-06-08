@@ -7,7 +7,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from dataset import connect
 from dataset.util import DatasetException
@@ -113,6 +113,16 @@ class DatabaseTestCase(unittest.TestCase):
         table.insert({
             'string_id': 'foobar'})
         assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
+
+    def test_with(self):
+        init_length = len(self.db['weather'])
+        try:
+            with self.db:
+                self.db['weather'].insert({'date': datetime(2011, 1, 1), 'temperature': 1, 'place': u'tmp_place'})
+                self.db['weather'].insert({'date': True, 'temperature': 'wrong_value', 'place': u'tmp_place'})
+        except SQLAlchemyError:
+            pass
+        assert len(self.db['weather']) == init_length
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
