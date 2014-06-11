@@ -64,6 +64,36 @@ The list of filter columns given as the second argument filter using the
 values in the first column. If you don't want to update over a
 particular value, just use the auto-generated ``id`` column.
 
+Using Transactions
+------------------
+
+You can group a set of database updates within a transaction, thus all updates are
+committed at once or, in case of exception, all of them are reverted. Transactions are
+supported by ``dataset`` context manager, and initiated by ``with`` statement::
+
+    with dataset.connect() as tx:
+        tx['user'].insert(dict(name='John Doe', age=46, country='China'))
+
+You can get same functionality with datase methods :py:meth:`all() <dataset.Table.begin>`,
+:py:meth:`all() <dataset.Table.commit>` and :py:meth:`rollback() <dataset.Table.rollback>`::
+
+    db = dataset.connect()
+    db.begin()
+    try:
+        db['user'].insert(dict(name='John Doe', age=46, country='China'))
+        db.commit()
+    except:
+        db.rollback()
+
+Nested transactions are supported too::
+    db = dataset.connect()
+    with db as tx1:
+        tx1['user'].insert(dict(name='John Doe', age=46, country='China'))
+        with db sa tx2:
+            tx2['user'].insert(dict(name='Jane Doe', age=37, country='France', gender='female'))
+
+
+
 Inspecting databases and tables
 -------------------------------
 
