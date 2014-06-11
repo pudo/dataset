@@ -117,9 +117,9 @@ class DatabaseTestCase(unittest.TestCase):
     def test_with(self):
         init_length = len(self.db['weather'])
         try:
-            with self.db:
-                self.db['weather'].insert({'date': datetime(2011, 1, 1), 'temperature': 1, 'place': u'tmp_place'})
-                self.db['weather'].insert({'date': True, 'temperature': 'wrong_value', 'place': u'tmp_place'})
+            with self.db as tx:
+                tx['weather'].insert({'date': datetime(2011, 1, 1), 'temperature': 1, 'place': u'tmp_place'})
+                tx['weather'].insert({'date': True, 'temperature': 'wrong_value', 'place': u'tmp_place'})
         except SQLAlchemyError:
             pass
         assert len(self.db['weather']) == init_length
