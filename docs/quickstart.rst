@@ -67,15 +67,17 @@ particular value, just use the auto-generated ``id`` column.
 Using Transactions
 ------------------
 
-You can group a set of database updates within a transaction, thus all updates are
-committed at once or, in case of exception, all of them are reverted. Transactions are
-supported by ``dataset`` context manager, and initiated by ``with`` statement::
+You can group a set of database updates in a transaction. In that case, all updates
+are committed at once or, in case of exception, all of them are reverted. Transactions
+are supported through a context manager, so they can be used through a ``with``
+statement::
 
     with dataset.connect() as tx:
         tx['user'].insert(dict(name='John Doe', age=46, country='China'))
 
-You can get same functionality with datase methods :py:meth:`all() <dataset.Table.begin>`,
-:py:meth:`all() <dataset.Table.commit>` and :py:meth:`rollback() <dataset.Table.rollback>`::
+You can get same functionality by invocing the methods :py:meth:`begin() <dataset.Table.begin>`,
+:py:meth:`commit() <dataset.Table.commit>` and :py:meth:`rollback() <dataset.Table.rollback>`
+explicitly::
 
     db = dataset.connect()
     db.begin()
@@ -86,6 +88,7 @@ You can get same functionality with datase methods :py:meth:`all() <dataset.Tabl
         db.rollback()
 
 Nested transactions are supported too::
+
     db = dataset.connect()
     with db as tx1:
         tx1['user'].insert(dict(name='John Doe', age=46, country='China'))
