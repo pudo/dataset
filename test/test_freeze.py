@@ -3,22 +3,14 @@ from __future__ import unicode_literals
 import os
 from csv import reader
 import unittest
-from datetime import datetime
 from tempfile import mkdtemp
 from shutil import rmtree
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # Python < 2.7 drop-in
-
 from six import PY3, text_type, binary_type
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from dataset import connect
-from dataset.util import DatasetException
 
-from .sample_data import TEST_DATA, TEST_CITY_1
+from .sample_data import TEST_DATA
 
 
 class FreezeTestCase(unittest.TestCase):
@@ -43,7 +35,7 @@ class FreezeTestCase(unittest.TestCase):
 
     def test_freeze_csv(self):
         from dataset.freeze.app import freeze
-        from dataset.freeze.format.fcsv import value_to_str 
+        from dataset.freeze.format.fcsv import value_to_str
 
         freeze(self.db['weather'].all(), format='csv', filename='weather.csv', prefix=self.d)
         path = os.path.join(self.d, 'weather.csv')
@@ -68,4 +60,3 @@ class FreezeTestCase(unittest.TestCase):
                     else:
                         v1 = '%s' % v1
                 self.assertEqual(v2, v1)
-

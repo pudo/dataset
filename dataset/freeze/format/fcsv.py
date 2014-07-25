@@ -2,8 +2,7 @@ from __future__ import unicode_literals
 import csv
 from datetime import datetime, date
 
-from six import PY3, binary_type, text_type
-from sqlalchemy import DateTime
+from six import PY3, text_type
 
 from dataset.freeze.format.common import Serializer
 
