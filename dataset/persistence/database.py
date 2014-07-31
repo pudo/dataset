@@ -80,7 +80,7 @@ class Database(object):
             self.local.must_release = True
 
     def _release_internal(self):
-        if not hasattr(self.local, 'must_release') and self.local.must_release:
+        if getattr(self.local, 'must_release', None):
             self.lock.release()
             self.local.must_release = False
 
