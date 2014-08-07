@@ -18,12 +18,14 @@ def connect(url=None, schema=None, reflectMetadata=True, engine_kwargs=None):
     If *url* is not defined it will try to use *DATABASE_URL* from environment variable.
     Returns an instance of :py:class:`Database <dataset.Database>`. Set *reflectMetadata* to False if you
     don't want the entire database schema to be pre-loaded. This significantly speeds up
-    connecting to large databases with lots of tables.
+    connecting to large databases with lots of tables. Additionally, *engine_kwargs* will be directly passed to
+    SQLAlchemy, e.g. set *engine_kwargs={'pool_recycle': 3600}* will avoid `DB connection timeout`_.
     ::
 
         db = dataset.connect('sqlite:///factbook.db')
 
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
+    .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
     """
     if url is None:
         url = os.environ.get('DATABASE_URL', url)
