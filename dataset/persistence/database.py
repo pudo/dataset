@@ -141,6 +141,9 @@ class Database(object):
             set(self.metadata.tables.keys()) | set(self._tables.keys())
         )
 
+    def __contains__(self, member):
+        return member in self.tables
+
     def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
         Creates a new table. The new table will automatically have an `id` column
