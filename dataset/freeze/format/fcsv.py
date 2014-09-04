@@ -1,13 +1,15 @@
 import csv
 from datetime import datetime
 
+from six import PY3
+
 from dataset.freeze.format.common import Serializer
 
 
 def value_to_str(value):
     if isinstance(value, datetime):
         return value.isoformat()
-    if hasattr(value, 'encode'):
+    if not PY3 and hasattr(value, 'encode'):
         return value.encode('utf-8')
     if value is None:
         return ''

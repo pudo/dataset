@@ -33,7 +33,8 @@ setup(
         'sqlalchemy >= 0.9.1',
         'alembic >= 0.6.2',
         'python-slugify >= 0.0.6',
-        "PyYAML >= 3.10"
+        "PyYAML >= 3.10",
+        "six >= 1.7.3"
     ] + py26_dependency,
     tests_require=[],
     test_suite='test',
