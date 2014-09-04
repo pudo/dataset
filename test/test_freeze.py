@@ -21,3 +21,6 @@ class FreezeTestCase(unittest.TestCase):
 
     def test_value_to_str3(self):
         assert '' == value_to_str(None)
+
+    def test_value_to_str4(self):
+        assert [] == value_to_str([])
