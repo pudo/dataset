@@ -75,7 +75,7 @@ statement::
     with dataset.connect() as tx:
         tx['user'].insert(dict(name='John Doe', age=46, country='China'))
 
-You can get same functionality by invocing the methods :py:meth:`begin() <dataset.Table.begin>`,
+You can get same functionality by invoking the methods :py:meth:`begin() <dataset.Table.begin>`,
 :py:meth:`commit() <dataset.Table.commit>` and :py:meth:`rollback() <dataset.Table.rollback>`
 explicitly::
 
