@@ -256,7 +256,7 @@ class Database(object):
         """
         Run a statement on the database directly, allowing for the
         execution of arbitrary read/write queries. A query can either be
-        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/ru/latest/core/tutorial.html#selecting>`_. The returned
+        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_. The returned
         iterator will yield each result sequentially.
 
         Any keyword arguments will be passed into the query to perform
