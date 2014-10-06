@@ -92,7 +92,7 @@ Nested transactions are supported too::
     db = dataset.connect()
     with db as tx1:
         tx1['user'].insert(dict(name='John Doe', age=46, country='China'))
-        with db sa tx2:
+        with db as tx2:
             tx2['user'].insert(dict(name='Jane Doe', age=37, country='France', gender='female'))
 
 
