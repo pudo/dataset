@@ -11,6 +11,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertRaises(FreezeException, Configuration, 'x.x')
         self.assertRaises(FreezeException, Configuration, __file__)
         cfg = Configuration(os.path.join(os.path.dirname(__file__), 'Freezefile.yaml'))
+        assert cfg
 
     def test_exports(self):
         from dataset.freeze.config import Configuration
@@ -23,7 +24,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertEqual(exports[0].get_int('nan', 'default'), 'default')
         self.assertEqual(exports[0].get_int('number'), 5)
         self.assert_(exports[0].name)
-    
+
     def test_exports_fail(self):
         from dataset.freeze.config import Configuration
 
@@ -32,4 +33,3 @@ class TestConfiguration(unittest.TestCase):
         self.assertRaises(FreezeException, list, cfg.exports)
         cfg.data = {}
         self.assertRaises(FreezeException, list, cfg.exports)
-
