@@ -38,6 +38,9 @@ class DatabaseTestCase(unittest.TestCase):
     def test_tables(self):
         assert self.db.tables == ['weather'], self.db.tables
 
+    def test_contains(self):
+        assert 'weather' in self.db, self.db.tables
+
     def test_create_table(self):
         table = self.db['foo']
         assert table.table.exists()
