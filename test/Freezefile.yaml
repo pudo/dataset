@@ -1,0 +1,32 @@
+common:
+
+  database: "postgresql://user:password@localhost/operational_database"
+  prefix: my_project/dumps/
+  format: json
+  nested:
+
+    property: "inner"
+
+exports:
+
+  - query: "SELECT id, title, date FROM events"
+    filename: "index.json"
+    number: 5
+    bool: true
+    nested:
+
+      property: "override"
+
+  - query: "SELECT id, title, date, country FROM events"
+    filename: "countries/{{country}}.csv"
+    format: csv
+
+  - query: "SELECT * FROM events"
+    filename: "events/{{id}}.json"
+    mode: item
+    wrap: true
+
+  - query: "SELECT * FROM events"
+    filename: "all.json"
+    format: tabson
+
