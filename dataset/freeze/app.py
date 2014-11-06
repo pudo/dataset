@@ -1,7 +1,7 @@
 import logging
 import argparse
 
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import ProgrammingError, OperationalError
 from dataset.util import FreezeException
 from dataset.persistence.table import Table
 from dataset.persistence.database import Database
@@ -11,13 +11,16 @@ from dataset.freeze.format import get_serializer
 
 log = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser(
-    description='Generate static JSON and CSV extracts from a SQL database.',
-    epilog='For further information, please check the documentation.')
-parser.add_argument('config', metavar='CONFIG', type=str,
-                    help='freeze file cofiguration')
-parser.add_argument('--db', default=None,
-                    help='Override the freezefile database URI')
+
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description='Generate static JSON and CSV extracts from a SQL database.',
+        epilog='For further information, please check the documentation.')
+    parser.add_argument('config', metavar='CONFIG', type=str,
+                        help='freeze file cofiguration')
+    parser.add_argument('--db', default=None,
+                        help='Override the freezefile database URI')
+    return parser
 
 
 def freeze(result, format='csv', filename='freeze.csv', fileobj=None,
@@ -102,28 +105,32 @@ def freeze_export(export, result=None):
         serializer_cls = get_serializer(export)
         serializer = serializer_cls(export, query)
         serializer.serialize()
-    except ProgrammingError as pe:
-        raise FreezeException("Invalid query: %s" % pe)
+    except (OperationalError, ProgrammingError) as e:
+        raise FreezeException("Invalid query: %s" % e)
 
 
-def main():
+def freeze_with_config(config, db=None):
+    for export in config.exports:
+        if db is not None:
+            export.data['database'] = db
+        if export.skip:
+            log.info("Skipping: %s", export.name)
+            continue
+        log.info("Running: %s", export.name)
+        freeze_export(export)
+
+
+def main():  # pragma: no cover
     # Set up default logger.
     logging.basicConfig(level=logging.INFO)
 
     try:
+        parser = create_parser()
         args = parser.parse_args()
-        config = Configuration(args.config)
-        for export in config.exports:
-            if args.db is not None:
-                export.data['database'] = args.db
-            if export.skip:
-                log.info("Skipping: %s", export.name)
-                continue
-            log.info("Running: %s", export.name)
-            freeze_export(export)
+        freeze_with_config(Configuration(args.config), args.db)
     except FreezeException as fe:
         log.error(fe)
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig(level=logging.DEBUG)
     main()

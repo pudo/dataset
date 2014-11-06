@@ -28,7 +28,7 @@ class Serializer(object):
         self._get_basepath()
 
         if export.get('filename') == '-':
-            export['fileobj'] = sys.stdout
+            export.data['fileobj'] = sys.stdout
         self.fileobj = export.get('fileobj')
 
     def _get_basepath(self):

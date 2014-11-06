@@ -3,7 +3,7 @@ from inspect import isgenerator
 
 try:
     from collections import OrderedDict
-except ImportError:
+except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
