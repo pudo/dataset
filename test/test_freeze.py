@@ -60,3 +60,18 @@ class FreezeTestCase(unittest.TestCase):
                     else:
                         v1 = '%s' % v1
                 self.assertEqual(v2, v1)
+
+
+class SerializerTestCase(unittest.TestCase):
+    def test_Serializer(self):
+        from dataset.freeze.format.common import Serializer
+        from dataset.freeze.config import Export
+        from dataset.util import FreezeException
+
+        self.assertRaises(FreezeException, Serializer, {}, {})
+        s = Serializer(Export({'filename': 'f'}, {'mode': 'nomode'}), '')
+        self.assertRaises(FreezeException, getattr, s, 'wrap')
+        s = Serializer(Export({'filename': 'f'}, {}), '')
+        s.wrap
+        s = Serializer(Export({'filename': '-'}, {}), '')
+        self.assert_(s.fileobj)

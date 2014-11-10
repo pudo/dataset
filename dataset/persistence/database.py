@@ -3,12 +3,7 @@ import threading
 import re
 from sqlalchemy.util import safe_reraise
 
-try:
-    from urllib.parse import urlencode
-    from urllib.parse import parse_qs
-except ImportError:
-    from urllib import urlencode
-    from urlparse import parse_qs
+from six.moves.urllib.parse import urlencode, parse_qs
 
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool

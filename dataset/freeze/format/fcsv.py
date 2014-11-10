@@ -34,7 +34,7 @@ class CSVSerializer(Serializer):
 
             # handle fileobj that has been passed in:
             if path is not None:
-                if PY3:
+                if PY3:  # pragma: no cover
                     fh = open(path, 'wt', encoding='utf8', newline='')
                 else:
                     fh = open(path, 'wb')
@@ -42,7 +42,7 @@ class CSVSerializer(Serializer):
                 fh = self.fileobj
 
             writer = csv.writer(fh)
-            if PY3:
+            if PY3:  # pragma: no cover
                 writer.writerow(keys)
             else:
                 writer.writerow([k.encode('utf-8') for k in keys])

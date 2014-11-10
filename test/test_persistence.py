@@ -4,7 +4,7 @@ from datetime import datetime
 
 try:
     from collections import OrderedDict
-except ImportError:
+except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
