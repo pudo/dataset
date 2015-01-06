@@ -23,7 +23,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertTrue(exports[0].get_bool('bool'))
         self.assertEqual(exports[0].get_int('nan', 'default'), 'default')
         self.assertEqual(exports[0].get_int('number'), 5)
-        self.assert_(exports[0].name)
+        self.assertTrue(exports[0].name)
 
     def test_exports_fail(self):
         from dataset.freeze.config import Configuration
