@@ -5,7 +5,7 @@ from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
 from sqlalchemy import alias
 from dataset.persistence.util import guess_type
-from dataset.persistence.util import ResultIter, convert_row
+from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
 
 
@@ -271,18 +271,19 @@ class Table(object):
         self.indexes[name] = idx
         return idx
 
-    def find_one(self, **_filter):
+    def find_one(self, **kwargs):
         """
         Works just like :py:meth:`find() <dataset.Table.find>` but returns one result, or None.
         ::
 
             row = table.find_one(country='United States')
         """
-        self._check_dropped()
-        args = self._args_to_clause(_filter)
-        query = self.table.select(whereclause=args, limit=1)
-        rp = self.database.executable.execute(query)
-        return convert_row(rp.fetchone())
+        kwargs['_limit'] = 1
+        iterator = self.find(**kwargs)
+        try:
+            return next(iterator)
+        except StopIteration:
+            return None
 
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':
