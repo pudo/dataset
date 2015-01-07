@@ -60,6 +60,8 @@ class Table(object):
 
             data = dict(title='I am a banana!')
             table.insert(data)
+
+        Returns the inserted row's primary key.
         """
         self._check_dropped()
         if ensure:
