@@ -254,8 +254,9 @@ class Database(object):
         a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_. The returned
         iterator will yield each result sequentially.
 
-        Any keyword arguments will be passed into the query to perform
-        parameter binding.
+        If a SQLAlchemy expression is passed into the function, keyword
+        arguments will be used for parameter binding. See the `SQLAlchemy
+        documentation <http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html#sqlalchemy.engine.Connection.execute>`_ for details.
         ::
 
             res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
