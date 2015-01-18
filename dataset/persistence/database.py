@@ -1,15 +1,17 @@
 import logging
 import threading
 import re
-from sqlalchemy.util import safe_reraise
 
+import six
 from six.moves.urllib.parse import urlencode, parse_qs
 
 from sqlalchemy import create_engine
+from sqlalchemy import Integer, String
+from sqlalchemy.sql import text
 from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import MetaData, Column
 from sqlalchemy.schema import Table as SQLATable
-from sqlalchemy import Integer, String
+from sqlalchemy.util import safe_reraise
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -251,18 +253,21 @@ class Database(object):
         """
         Run a statement on the database directly, allowing for the
         execution of arbitrary read/write queries. A query can either be
-        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_. The returned
-        iterator will yield each result sequentially.
+        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
+        If a plain string is passed in, it will be converted to an expression automatically.
 
-        If a SQLAlchemy expression is passed into the function, keyword
-        arguments will be used for parameter binding. See the `SQLAlchemy
+        Keyword arguments will be used for parameter binding. See the `SQLAlchemy
         documentation <http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html#sqlalchemy.engine.Connection.execute>`_ for details.
+
+        The returned iterator will yield each result sequentially.
         ::
 
             res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
             for row in res:
                 print(row['user'], row['c'])
         """
+        if isinstance(query, six.string_types):
+            query = text(query)
         return ResultIter(self.executable.execute(query, **kw))
 
     def __repr__(self):
