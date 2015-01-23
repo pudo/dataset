@@ -8,7 +8,7 @@ from dataset.freeze.format.common import Serializer
 
 
 def value_to_str(value):
-    if isinstance(value, (datetime, date)):
+    if isinstance(value, datetime):
         #
         # FIXME: this check does not work for values returned from a db query!
         # As a workaround, we make sure, the isoformat call returns the regular
@@ -16,6 +16,8 @@ def value_to_str(value):
         #
         sep = ' ' if PY3 else str(' ')
         return text_type(value.isoformat(sep=sep))
+    if isinstance(value, date):
+        return text_type(value.isoformat())
     if not PY3 and hasattr(value, 'encode'):
         return value.encode('utf-8')
     if value is None:
