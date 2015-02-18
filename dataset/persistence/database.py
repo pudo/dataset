@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 class Database(object):
     def __init__(self, url, schema=None, reflectMetadata=True,
-                 engine_kwargs=None):
+                 engine_kwargs=None, reflect_views=True):
         if engine_kwargs is None:
             engine_kwargs = {}
 
@@ -50,7 +50,7 @@ class Database(object):
         self.metadata = MetaData(schema=schema)
         self.metadata.bind = self.engine
         if reflectMetadata:
-            self.metadata.reflect(self.engine)
+            self.metadata.reflect(self.engine, views=reflect_views)
         self._tables = {}
 
     @property
