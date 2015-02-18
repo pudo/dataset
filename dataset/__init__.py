@@ -1,13 +1,13 @@
 import os
-# shut up useless SA warning:
 import warnings
-warnings.filterwarnings(
-    'ignore', 'Unicode type received non-unicode bind param value.')
-
 from dataset.persistence.util import sqlite_datetime_fix
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
 from dataset.freeze.app import freeze
+
+# shut up useless SA warning:
+warnings.filterwarnings(
+    'ignore', 'Unicode type received non-unicode bind param value.')
 
 __all__ = ['Database', 'Table', 'freeze', 'connect']
 
