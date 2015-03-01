@@ -202,11 +202,21 @@ class Table(object):
     def _args_to_clause(self, args):
         self._ensure_columns(args)
         clauses = []
+        negate_flag = False
         for k, v in args.items():
-            if isinstance(v, (list, tuple)):
-                clauses.append(self.table.c[k].in_(v))
+            if k == 'negate_flag' and v:
+                negate_flag = True
+                continue
+            if negate_flag:
+                if isinstance(v, (list, tuple)):
+                    clauses.append(self.table.c[k].notin_(v))
+                else:
+                    clauses.append(self.table.c[k] != v)
             else:
-                clauses.append(self.table.c[k] == v)
+                if isinstance(v, (list, tuple)):
+                    clauses.append(self.table.c[k].in_(v))
+                else:
+                    clauses.append(self.table.c[k] == v)
         return and_(*clauses)
 
     def create_column(self, name, type):
