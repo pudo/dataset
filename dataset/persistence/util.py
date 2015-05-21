@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from inspect import isgenerator
 
 try:
@@ -6,7 +6,7 @@ try:
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
-from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, types, Table, event
+from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 
 
 def guess_type(sample):
