@@ -137,9 +137,9 @@ class Table(object):
             filters = self._args_to_clause(dict(clause))
             stmt = self.table.update(filters, clean_row)
             rp = self.database.executable.execute(stmt)
-            return rp.rowcount > 0
+            return rp.rowcount
         except KeyError:
-            return False
+            return 0
 
     def upsert(self, row, keys, ensure=True, types={}):
         """
@@ -161,10 +161,20 @@ class Table(object):
         for key in keys:
             filters[key] = row.get(key)
 
-        if self.find_one(**filters) is not None:
-            self.update(row, keys, ensure=ensure, types=types)
+        res = self.find_one(**filters)
+        if res is not None:
+            row_count = self.update(row, keys, ensure=ensure, types=types)
+            if row_count == 0:
+                return False
+            elif row_count == 1:
+                try:
+                    return res['id']
+                except KeyError:
+                    return True
+            else:
+                return True
         else:
-            self.insert(row, ensure=ensure, types=types)
+            return self.insert(row, ensure=ensure, types=types)
 
     def delete(self, **_filter):
         """ Delete rows from the table. Keyword arguments can be used
