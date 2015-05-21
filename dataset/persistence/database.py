@@ -141,6 +141,12 @@ class Database(object):
     def __contains__(self, member):
         return member in self.tables
 
+    def _valid_table_name(self, table_name):
+        """ Check if the table name is obviously invalid. """
+        if table_name is None or not len(table_name.strip()):
+            raise ValueError("Invalid table name: %r" % table_name)
+        return table_name.strip()
+
     def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
         Creates a new table. The new table will automatically have an `id` column
@@ -164,6 +170,7 @@ class Database(object):
             # custom length of String
             table4 = db.create_table('population4', primary_id='race', primary_type='String(50)')
         """
+        table_name = self._valid_table_name(table_name)
         self._acquire()
         try:
             log.debug("Creating table: %s on %r" % (table_name, self.engine))
@@ -204,6 +211,7 @@ class Database(object):
 
             table = db.load_table('population')
         """
+        table_name = self._valid_table_name(table_name)
         self._acquire()
         try:
             log.debug("Loading table: %s on %r" % (table_name, self))
@@ -214,6 +222,7 @@ class Database(object):
             self._release()
 
     def update_table(self, table_name):
+        table_name = self._valid_table_name(table_name)
         self.metadata = MetaData(schema=self.schema)
         self.metadata.bind = self.engine
         self.metadata.reflect(self.engine)
