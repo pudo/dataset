@@ -8,11 +8,13 @@ from dataset.freeze.app import freeze
 # shut up useless SA warning:
 warnings.filterwarnings(
     'ignore', 'Unicode type received non-unicode bind param value.')
+warnings.filterwarnings(
+    'ignore', 'Skipping unsupported ALTER for creation of implicit constraint')
 
 __all__ = ['Database', 'Table', 'freeze', 'connect']
 
 
-def connect(url=None, schema=None, reflectMetadata=True, engine_kwargs=None,
+def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
             reflect_views=True):
     """
     Opens a new connection to a database.
@@ -28,7 +30,6 @@ def connect(url=None, schema=None, reflectMetadata=True, engine_kwargs=None,
     connection timeout`_.
 
     ::
-
         db = dataset.connect('sqlite:///factbook.db')
 
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
@@ -37,8 +38,5 @@ def connect(url=None, schema=None, reflectMetadata=True, engine_kwargs=None,
     if url is None:
         url = os.environ.get('DATABASE_URL', url)
 
-    if url.startswith("sqlite://"):
-        sqlite_datetime_fix()
-
-    return Database(url, schema=schema, reflectMetadata=reflectMetadata,
+    return Database(url, schema=schema, reflect_metadata=reflect_metadata,
                     engine_kwargs=engine_kwargs, reflect_views=reflect_views)
