@@ -64,34 +64,3 @@ class ResultIter(object):
 
     def __iter__(self):
         return self
-
-
-# def sqlite_datetime_fix():
-#     class SQLiteDateTimeType(types.TypeDecorator):
-#         impl = types.Integer
-#         epoch = datetime(1970, 1, 1, 0, 0, 0)
-
-#         def process_bind_param(self, value, dialect):
-#             if value is None:
-#                 return None
-#             if isinstance(value, datetime):
-#                 return value
-#             return (value / 1000 - self.epoch).total_seconds()
-
-#         def process_result_value(self, value, dialect):
-#             if value is None:
-#                 return None
-#             if isinstance(value, int):
-#                 return self.epoch + timedelta(seconds=value / 1000)
-#             return value
-
-#     def is_sqlite(inspector):
-#         return inspector.engine.dialect.name == "sqlite"
-
-#     def is_datetime(column_info):
-#         return isinstance(column_info['type'], types.DateTime)
-
-#     @event.listens_for(Table, "column_reflect")
-#     def setup_epoch(inspector, table, column_info):
-#         if is_sqlite(inspector) and is_datetime(column_info):
-#             column_info['type'] = SQLiteDateTimeType()
