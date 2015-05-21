@@ -4,9 +4,9 @@ import sys
 import locale
 
 from six import binary_type, text_type
+from normality import slugify
 
 from dataset.util import FreezeException
-from slugify import slugify
 
 
 TMPL_KEY = re.compile("{{([^}]*)}}")

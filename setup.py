@@ -33,7 +33,7 @@ setup(
         'six',
         'sqlalchemy >= 0.9.1',
         'alembic >= 0.6.2',
-        'python-slugify >= 0.0.6',
+        'normality >= 0.2.2',
         "PyYAML >= 3.10",
         "six >= 1.7.3"
     ] + py26_dependency,
