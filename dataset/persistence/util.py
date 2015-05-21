@@ -36,29 +36,27 @@ class ResultIter(object):
             result_proxies = iter((result_proxies, ))
         self.result_proxies = result_proxies
         self.count = 0
-        self.rp = None
+        self._iter = None
 
     def _next_rp(self):
         try:
-            self.rp = next(self.result_proxies)
-            self.count += self.rp.rowcount
-            self.keys = list(self.rp.keys())
+            rp = next(self.result_proxies)
+            self.count += rp.rowcount
+            self.keys = list(rp.keys())
+            self._iter = iter(rp.fetchall())
             return True
         except StopIteration:
             return False
 
     def __next__(self):
-        if self.rp is None:
+        if self._iter is None:
             if not self._next_rp():
                 raise StopIteration
-        row = self.rp.fetchone()
-        if row is None:
-            if self._next_rp():
-                return next(self)
-            else:
-                # stop here
-                raise StopIteration
-        return convert_row(row)
+        try:
+            return convert_row(next(self._iter))
+        except StopIteration:
+            self._iter = None
+            return self.__next__()
 
     next = __next__
 

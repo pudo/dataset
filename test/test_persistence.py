@@ -187,6 +187,11 @@ class TableTestCase(unittest.TestCase):
                 ['date', 'temperature', 'place']
             )
 
+    def test_update_while_iter(self):
+        for row in self.tbl:
+            row['foo'] = 'bar'
+            self.tbl.update(row, ['place', 'date'])
+
     def test_delete(self):
         self.tbl.insert({
             'date': datetime(2011, 1, 2),
