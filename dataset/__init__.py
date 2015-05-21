@@ -35,7 +35,7 @@ def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
     .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
     """
     if url is None:
-        url = os.environ.get('DATABASE_URL', url)
+        url = os.environ.get('DATABASE_URL', 'sqlite://')
 
     return Database(url, schema=schema, reflect_metadata=reflect_metadata,
                     engine_kwargs=engine_kwargs, reflect_views=reflect_views)
