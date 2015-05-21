@@ -219,6 +219,11 @@ class Table(object):
         """
         self._check_dropped()
         self.database._acquire()
+
+        # check that column name is OK:
+        if '.' in name:
+            raise ValueError("Invalid column name: %r" % name)
+
         try:
             if name not in self.table.columns.keys():
                 self.database.op.add_column(

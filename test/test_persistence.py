@@ -192,6 +192,15 @@ class TableTestCase(unittest.TestCase):
             row['foo'] = 'bar'
             self.tbl.update(row, ['place', 'date'])
 
+    def test_weird_column_names(self):
+        with self.assertRaises(ValueError):
+            self.tbl.insert({
+                'date': datetime(2011, 1, 2),
+                'temperature': -10,
+                'foo.bar': 'Berlin',
+                'qux.bar': 'Huhu'
+            })
+
     def test_delete(self):
         self.tbl.insert({
             'date': datetime(2011, 1, 2),
