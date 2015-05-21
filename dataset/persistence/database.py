@@ -191,7 +191,7 @@ class Database(object):
                 raise DatasetException(
                     "The primary_type has to be either 'Integer' or 'String'.")
 
-            table = SQLATable(table_name, self.metadata)
+            table = SQLATable(table_name, self.metadata, schema=self.schema)
             table.append_column(col)
             table.create(self.engine)
             self._tables[table_name] = table
@@ -215,7 +215,8 @@ class Database(object):
         self._acquire()
         try:
             log.debug("Loading table: %s on %r" % (table_name, self))
-            table = SQLATable(table_name, self.metadata, autoload=True)
+            table = SQLATable(table_name, self.metadata,
+                              schema=self.schema, autoload=True)
             self._tables[table_name] = table
             return Table(self, table)
         finally:
@@ -226,7 +227,8 @@ class Database(object):
         self.metadata = MetaData(schema=self.schema)
         self.metadata.bind = self.engine
         self.metadata.reflect(self.engine)
-        self._tables[table_name] = SQLATable(table_name, self.metadata)
+        self._tables[table_name] = SQLATable(table_name, self.metadata,
+                                             schema=self.schema)
         return self._tables[table_name]
 
     def get_table(self, table_name, primary_id='id', primary_type='Integer'):
