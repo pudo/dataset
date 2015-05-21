@@ -9,6 +9,8 @@ from shutil import rmtree
 from six import PY3, text_type, binary_type
 
 from dataset import connect
+from dataset.freeze.app import freeze
+from dataset.freeze.format.fcsv import value_to_str
 
 from .sample_data import TEST_DATA
 
@@ -26,18 +28,16 @@ class FreezeTestCase(unittest.TestCase):
         rmtree(self.d, ignore_errors=True)
 
     def test_freeze(self):
-        from dataset.freeze.app import freeze
-
-        freeze(self.db['weather'].all(), format='csv', filename='wäther.csv'.encode('utf8'), prefix=self.d)
+        freeze(self.tbl.all(), format='csv',
+               filename='wäther.csv'.encode('utf8'), prefix=self.d)
         self.assertTrue(os.path.exists(os.path.join(self.d, 'wäther.csv')))
-        freeze(self.db['weather'].all(), format='csv', filename='wäther.csv', prefix=self.d)
+        freeze(self.tbl.all(), format='csv',
+               filename='wäther.csv', prefix=self.d)
         self.assertTrue(os.path.exists(os.path.join(self.d, 'wäther.csv')))
 
     def test_freeze_csv(self):
-        from dataset.freeze.app import freeze
-        from dataset.freeze.format.fcsv import value_to_str
-
-        freeze(self.db['weather'].all(), format='csv', filename='weather.csv', prefix=self.d)
+        freeze(self.tbl.all(), format='csv',
+               filename='weather.csv', prefix=self.d)
         path = os.path.join(self.d, 'weather.csv')
         if PY3:
             fh = open(path, 'rt', encoding='utf8', newline='')
@@ -46,8 +46,6 @@ class FreezeTestCase(unittest.TestCase):
         try:
             rows = list(reader(fh))
             keys = rows[0]
-            if not PY3:
-                keys = [k.decode('utf8') for k in keys]
             for i, d1 in enumerate(TEST_DATA):
                 d2 = dict(zip(keys, rows[i + 1]))
                 for k in d1.keys():
@@ -66,6 +64,7 @@ class FreezeTestCase(unittest.TestCase):
 
 
 class SerializerTestCase(unittest.TestCase):
+
     def test_Serializer(self):
         from dataset.freeze.format.common import Serializer
         from dataset.freeze.config import Export
@@ -78,3 +77,20 @@ class SerializerTestCase(unittest.TestCase):
         s.wrap
         s = Serializer(Export({'filename': '-'}, {}), '')
         self.assertTrue(s.fileobj)
+
+    def test_value_to_str1(self):
+        assert '2011-01-01T00:00:00' == value_to_str(TEST_DATA[0]['date']), \
+            value_to_str(TEST_DATA[0]['date'])
+
+    def test_value_to_str2(self):
+        if PY3:
+            assert 'hóla' == value_to_str('\u0068\u00f3\u006c\u0061')
+        else:
+            assert u'hóla'.encode('utf-8') == value_to_str(u'\u0068\u00f3\u006c\u0061'), \
+                [value_to_str(u'\u0068\u00f3\u006c\u0061')]
+
+    def test_value_to_str3(self):
+        assert '' == value_to_str(None)
+
+    def test_value_to_str4(self):
+        assert [] == value_to_str([])
