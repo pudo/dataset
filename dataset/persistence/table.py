@@ -374,7 +374,7 @@ class Table(object):
         return ResultIter((self.database.executable.execute(q) for q in queries))
 
     def count(self, **_filter):
-        """ Return the count of results for the given filter set (same filter 
+        """ Return the count of results for the given filter set (same filter
         options as with ``find()``). """
         return self.find(return_count=True, **_filter)
 
