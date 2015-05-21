@@ -27,7 +27,7 @@ class JSONSerializer(Serializer):
             result = result[0]
         if self.wrap:
             result = {
-                'count': self.query.count,
+                'count': len(result),
                 'results': result
             }
             meta = self.export.get('meta', {})

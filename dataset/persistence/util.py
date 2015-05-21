@@ -35,13 +35,11 @@ class ResultIter(object):
         if not isgenerator(result_proxies):
             result_proxies = iter((result_proxies, ))
         self.result_proxies = result_proxies
-        self.count = 0
         self._iter = None
 
     def _next_rp(self):
         try:
             rp = next(self.result_proxies)
-            self.count += rp.rowcount
             self.keys = list(rp.keys())
             self._iter = iter(rp.fetchall())
             return True

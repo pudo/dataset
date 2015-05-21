@@ -294,7 +294,7 @@ class Table(object):
             return self.table.c[order_by].asc()
 
     def find(self, _limit=None, _offset=0, _step=5000,
-             order_by='id', **_filter):
+             order_by='id', return_count=False, **_filter):
         """
         Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
         ::
@@ -330,9 +330,12 @@ class Table(object):
         args = self._args_to_clause(_filter)
 
         # query total number of rows first
-        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset), name='count_query_alias').count()
+        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
+                            name='count_query_alias').count()
         rp = self.database.executable.execute(count_query)
         total_row_count = rp.fetchone()[0]
+        if return_count:
+            return total_row_count
 
         if _limit is None:
             _limit = total_row_count
@@ -355,12 +358,14 @@ class Table(object):
                                              offset=qoffset, order_by=order_by))
         return ResultIter((self.database.executable.execute(q) for q in queries))
 
+    def count(self, **_filter):
+        """ Return the count of results for the given filter set (same filter 
+        options as with ``find()``). """
+        return self.find(return_count=True, **_filter)
+
     def __len__(self):
-        """
-        Returns the number of rows in the table.
-        """
-        d = next(self.database.query(self.table.count()))
-        return list(d.values()).pop()
+        """ Returns the number of rows in the table. """
+        return self.count()
 
     def distinct(self, *columns, **_filter):
         """

@@ -221,6 +221,11 @@ class TableTestCase(unittest.TestCase):
         d = self.tbl.find_one(place='Atlantis')
         assert d is None, d
 
+    def test_count(self):
+        assert len(self.tbl) == 6, len(self.tbl)
+        l = self.tbl.count(place=TEST_CITY_1)
+        assert l == 3, l
+
     def test_find(self):
         ds = list(self.tbl.find(place=TEST_CITY_1))
         assert len(ds) == 3, ds

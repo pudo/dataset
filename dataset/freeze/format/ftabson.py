@@ -13,7 +13,7 @@ class TabsonSerializer(JSONSerializer):
                 d = [row.get(k) for k in keys]
                 data.append(d)
         result = {
-            'count': self.query.count,
+            'count': len(data),
             'fields': fields,
             'data': data
             }
