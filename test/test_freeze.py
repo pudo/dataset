@@ -65,7 +65,7 @@ class FreezeTestCase(unittest.TestCase):
 
 class SerializerTestCase(unittest.TestCase):
 
-    def test_Serializer(self):
+    def test_serializer(self):
         from dataset.freeze.format.common import Serializer
         from dataset.freeze.config import Export
         from dataset.util import FreezeException

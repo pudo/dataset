@@ -9,6 +9,8 @@ except ImportError:  # pragma: no cover
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 from six import string_types
 
+row_type = OrderedDict
+
 
 def guess_type(sample):
     if isinstance(sample, bool):
@@ -22,10 +24,10 @@ def guess_type(sample):
     return UnicodeText
 
 
-def convert_row(row):
+def convert_row(row_type, row):
     if row is None:
         return None
-    return OrderedDict(row.items())
+    return row_type(row.items())
 
 
 def normalize_column_name(name):
@@ -41,7 +43,8 @@ class ResultIter(object):
     """ SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them. """
 
-    def __init__(self, result_proxies):
+    def __init__(self, result_proxies, row_type=row_type):
+        self.row_type = row_type
         if not isgenerator(result_proxies):
             result_proxies = iter((result_proxies, ))
         self.result_proxies = result_proxies
@@ -61,7 +64,7 @@ class ResultIter(object):
             if not self._next_rp():
                 raise StopIteration
         try:
-            return convert_row(next(self._iter))
+            return convert_row(self.row_type, next(self._iter))
         except StopIteration:
             self._iter = None
             return self.__next__()

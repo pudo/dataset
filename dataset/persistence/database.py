@@ -16,7 +16,7 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
 from dataset.persistence.table import Table
-from dataset.persistence.util import ResultIter
+from dataset.persistence.util import ResultIter, row_type
 from dataset.util import DatasetException
 
 log = logging.getLogger(__name__)
@@ -24,7 +24,8 @@ log = logging.getLogger(__name__)
 
 class Database(object):
     def __init__(self, url, schema=None, reflect_metadata=True,
-                 engine_kwargs=None, reflect_views=True):
+                 engine_kwargs=None, reflect_views=True,
+                 row_type=row_type):
         if engine_kwargs is None:
             engine_kwargs = {}
 
@@ -47,6 +48,7 @@ class Database(object):
         self.metadata.bind = self.engine
         if reflect_metadata:
             self.metadata.reflect(self.engine, views=reflect_views)
+        self.row_type = row_type
         self._tables = {}
 
     @property
@@ -275,7 +277,8 @@ class Database(object):
         """
         if isinstance(query, six.string_types):
             query = text(query)
-        return ResultIter(self.executable.execute(query, **kw))
+        return ResultIter(self.executable.execute(query, **kw),
+                          row_type=self.row_type)
 
     def __repr__(self):
         return '<Database(%s)>' % self.url

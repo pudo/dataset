@@ -345,3 +345,62 @@ class TableTestCase(unittest.TestCase):
         m = self.tbl.find(place='not in data')
         l = list(m)  # exhaust iterator
         assert len(l) == 0
+
+
+class Constructor(dict):
+    """ Very simple low-functionality extension to ``dict`` to
+    provide attribute access to dictionary contents"""
+    def __getattr__(self, name):
+        return self[name]
+
+
+class RowTypeTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.db = connect('sqlite:///:memory:', row_type=Constructor)
+        self.tbl = self.db['weather']
+        for row in TEST_DATA:
+            self.tbl.insert(row)
+
+    def tearDown(self):
+        for table in self.db.tables:
+            self.db[table].drop()
+
+    def test_find_one(self):
+        self.tbl.insert({
+            'date': datetime(2011, 1, 2),
+            'temperature': -10,
+            'place': 'Berlin'}
+        )
+        d = self.tbl.find_one(place='Berlin')
+        assert d['temperature'] == -10, d
+        assert d.temperature == -10, d
+        d = self.tbl.find_one(place='Atlantis')
+        assert d is None, d
+
+    def test_find(self):
+        ds = list(self.tbl.find(place=TEST_CITY_1))
+        assert len(ds) == 3, ds
+        for item in ds:
+            assert isinstance(item, Constructor), item
+        ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2))
+        assert len(ds) == 2, ds
+        for item in ds:
+            assert isinstance(item, Constructor), item
+
+    def test_distinct(self):
+        x = list(self.tbl.distinct('place'))
+        assert len(x) == 2, x
+        for item in x:
+            assert isinstance(item, Constructor), item
+        x = list(self.tbl.distinct('place', 'date'))
+        assert len(x) == 6, x
+        for item in x:
+            assert isinstance(item, Constructor), item
+
+    def test_iter(self):
+        c = 0
+        for row in self.tbl:
+            c += 1
+            assert isinstance(row, Constructor), row
+        assert c == len(self.tbl)

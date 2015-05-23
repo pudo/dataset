@@ -144,6 +144,17 @@ with unique values in one or more columns::
    # Get one user per country
    db['user'].distinct('country')
 
+Finally, you can use the ``row_type`` parameter to choose the data type in which
+results will be returned::
+
+    import dataset
+    from stuf import stuf
+
+    db = dataset.connect('sqlite:///mydatabase.db', row_type=stuf)
+
+Now contents will be returned in ``stuf`` objects (basically, ``dict``
+objects whose elements can be acessed as attributes (``item.name``) as well as 
+by index (``item['name']``).
 
 Running custom SQL queries
 --------------------------

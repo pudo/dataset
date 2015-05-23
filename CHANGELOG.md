@@ -3,6 +3,9 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
+* 0.5.7: dataset Databases can now have customized row types. This allows,
+  for example, information to be retrieved in attribute-accessible dict
+  subclasses, such as stuf.
 * 0.5.4: Context manager for transactions, thanks to @victorkashirin.
 * 0.5.1: Fix a regression where empty queries would raise an exception.
 * 0.5: Improve overall code quality and testing, including Travis CI.
