@@ -261,6 +261,14 @@ class TableTestCase(unittest.TestCase):
         x = list(self.tbl.distinct('place', 'date'))
         assert len(x) == 6, x
 
+    def test_get_items(self):
+        x = list(self.tbl['place'])
+        y = list(self.tbl.distinct('place'))
+        assert x == y, (x, y)
+        x = list(self.tbl['place', 'date'])
+        y = list(self.tbl.distinct('place', 'date'))
+        assert x == y, (x, y)
+
     def test_insert_many(self):
         data = TEST_DATA * 100
         self.tbl.insert_many(data, chunk_size=13)

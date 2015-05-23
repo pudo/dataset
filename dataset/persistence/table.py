@@ -374,12 +374,15 @@ class Table(object):
         return ResultIter((self.database.executable.execute(q) for q in queries))
 
     def count(self, **_filter):
-        """ Return the count of results for the given filter set (same filter
-        options as with ``find()``). """
+        """
+        Return the count of results for the given filter set (same filter options as with ``find()``).
+        """
         return self.find(return_count=True, **_filter)
 
     def __len__(self):
-        """ Returns the number of rows in the table. """
+        """
+        Returns the number of rows in the table.
+        """
         return self.count()
 
     def distinct(self, *columns, **_filter):
@@ -408,6 +411,17 @@ class Table(object):
                               whereclause=and_(*qargs),
                               order_by=[c.asc() for c in columns])
         return self.database.query(q)
+
+    def __getitem__(self, item):
+        """ This is an alias for distinct which allows the table to be queried as using 
+        square bracket syntax.
+        ::
+            # Same as distinct:
+            print list(table['year'])
+        """
+        if not isinstance(item, tuple):
+            item = item,
+        return self.distinct(*item)
 
     def all(self):
         """
