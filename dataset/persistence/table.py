@@ -413,7 +413,7 @@ class Table(object):
         return self.database.query(q)
 
     def __getitem__(self, item):
-        """ This is an alias for distinct which allows the table to be queried as using 
+        """ This is an alias for distinct which allows the table to be queried as using
         square bracket syntax.
         ::
             # Same as distinct:
