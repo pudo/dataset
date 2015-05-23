@@ -7,6 +7,7 @@ except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
+from six import string_types
 
 
 def guess_type(sample):
@@ -25,6 +26,15 @@ def convert_row(row):
     if row is None:
         return None
     return OrderedDict(row.items())
+
+
+def normalize_column_name(name):
+    if not isinstance(name, string_types):
+        raise ValueError('%r is not a valid column name.' % name)
+    name = name.lower().strip()
+    if not len(name) or '.' in name or '-' in name:
+        raise ValueError('%r is not a valid column name.' % name)
+    return name
 
 
 class ResultIter(object):

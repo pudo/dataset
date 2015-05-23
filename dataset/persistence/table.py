@@ -4,7 +4,7 @@ from itertools import count
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
 from sqlalchemy import alias
-from dataset.persistence.util import guess_type
+from dataset.persistence.util import guess_type, normalize_column_name
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
 
@@ -26,6 +26,10 @@ class Table(object):
         Get a listing of all columns that exist in the table.
         """
         return list(self.table.columns.keys())
+
+    @property
+    def _normalized_columns(self):
+        return map(normalize_column_name, self.columns)
 
     def drop(self):
         """
@@ -199,7 +203,7 @@ class Table(object):
     def _ensure_columns(self, row, types={}):
         # Keep order of inserted columns
         for column in row.keys():
-            if column in self.table.columns.keys():
+            if normalize_column_name(column) in self._normalized_columns:
                 continue
             if column in types:
                 _type = types[column]
@@ -230,12 +234,8 @@ class Table(object):
         self._check_dropped()
         self.database._acquire()
 
-        # check that column name is OK:
-        if '.' in name:
-            raise ValueError("Invalid column name: %r" % name)
-
         try:
-            if name not in self.table.columns.keys():
+            if normalize_column_name(name) not in self._normalized_columns:
                 self.database.op.add_column(
                     self.table.name,
                     Column(name, type)

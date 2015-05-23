@@ -8,7 +8,6 @@ from six.moves.urllib.parse import urlencode, parse_qs
 from sqlalchemy import create_engine
 from sqlalchemy import Integer, String
 from sqlalchemy.sql import text
-from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import MetaData, Column
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.util import safe_reraise

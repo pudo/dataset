@@ -209,6 +209,17 @@ class TableTestCase(unittest.TestCase):
                 'qux.bar': 'Huhu'
             })
 
+    def test_invalid_column_names(self):
+        tbl = self.db['weather']
+        with self.assertRaises(ValueError):
+            tbl.insert({None: 'banana'})
+
+        with self.assertRaises(ValueError):
+            tbl.insert({'': 'banana'})
+
+        with self.assertRaises(ValueError):
+            tbl.insert({'-': 'banana'})
+
     def test_delete(self):
         self.tbl.insert({
             'date': datetime(2011, 1, 2),
