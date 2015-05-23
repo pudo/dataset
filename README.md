@@ -7,4 +7,8 @@ In short, **dataset** makes reading and writing data in databases as simple as r
 
 [Read the docs](https://dataset.readthedocs.org/)
 
+To install dataset, fetch it with ``pip``:
 
+.. code-block:: bash
+
+   $ pip install dataset

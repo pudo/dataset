@@ -2,8 +2,6 @@
 Installation Guide
 ==================
 
-*— work in progress —*
-
 The easiest way is to install ``dataset`` from the `Python Package Index <https://pypi.python.org/pypi/dataset/>`_ using ``pip`` or ``easy_install``:
 
 .. code-block:: bash
