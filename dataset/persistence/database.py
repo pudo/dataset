@@ -29,9 +29,6 @@ class Database(object):
         if engine_kwargs is None:
             engine_kwargs = {}
 
-        if url.startswith('postgres'):
-            engine_kwargs.setdefault('poolclass', NullPool)
-
         self.lock = threading.RLock()
         self.local = threading.local()
         if '?' in url:
