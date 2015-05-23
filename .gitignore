@@ -6,3 +6,7 @@ build/*
 .watchr
 
 *.pyo
+env3/*
+Test.yaml
+Freezefile.yaml
+:memory:
