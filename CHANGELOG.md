@@ -3,6 +3,11 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
+* 0.6.0: Remove sqlite_datetime_fix for automatic int-casting of dates,
+  make table['foo', 'bar'] an alias for table.distinct('foo', 'bar'),
+  check validity of column and table names more thoroughly, rename
+  reflectMetadata constructor argument to reflect_metadata, fix
+  ResultIter to not leave queries open (so you can update in a loop).
 * 0.5.7: dataset Databases can now have customized row types. This allows,
   for example, information to be retrieved in attribute-accessible dict
   subclasses, such as stuf.
