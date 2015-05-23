@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 
 def create_parser():
     parser = argparse.ArgumentParser(
+        prog='datafreeze',
         description='Generate static JSON and CSV extracts from a SQL database.',
         epilog='For further information, please check the documentation.')
     parser.add_argument('config', metavar='CONFIG', type=str,
