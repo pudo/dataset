@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Test CLI following the recipe at http://dustinrcollins.com/testing-python-command-line-apps
 """
@@ -39,8 +40,6 @@ class FreezeTestCase(TestCase):
         rmtree(self.d, ignore_errors=True)
 
     def test_with_config(self):
-        """
-        """
         cfg = Configuration(os.path.join(os.path.dirname(__file__), 'Freezefile.yaml'))
         cfg.data['common']['database'] = self.db
         cfg.data['common']['prefix'] = self.d
@@ -54,3 +53,11 @@ class FreezeTestCase(TestCase):
             {'skip': True}]
         freeze_with_config(cfg, db=self.db)
         self.assertRaises(FreezeException, freeze_export, Export(cfg.data['common'], {'query': 'SELECT * FROM notable'}))
+
+    def test_unicode_path(self):
+        cfg = Configuration(os.path.join(os.path.dirname(__file__), 'Freezefile.yaml'))
+        cfg.data['common']['database'] = self.db
+        cfg.data['common']['prefix'] = os.path.join(self.d, u'über')
+        cfg.data['common']['query'] = 'SELECT * FROM weather'
+        cfg.data['exports'] = [{'filename': 'weather.csv', 'format': 'csv'}]
+        freeze_with_config(cfg, db=self.db)
