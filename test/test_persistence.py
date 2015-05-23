@@ -119,13 +119,21 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_with(self):
         init_length = len(self.db['weather'])
-        try:
+        with self.assertRaises(ValueError):
             with self.db as tx:
                 tx['weather'].insert({'date': datetime(2011, 1, 1), 'temperature': 1, 'place': u'tmp_place'})
-                tx['weather'].insert({'date': True, 'temperature': 'wrong_value', 'place': u'tmp_place'})
-        except SQLAlchemyError:
-            pass
+                raise ValueError()
         assert len(self.db['weather']) == init_length
+
+    def test_invalid_values(self):
+        if 'mysql.connector' in self.db.engine.dialect.dbapi.__name__:
+            # WARNING: mysql-connector seems to be doing some weird type casting upon insert.
+            # The mysql-python driver is not affected but it isn't compatible with Python 3
+            # Conclusion: use postgresql.
+            return
+        with self.assertRaises(SQLAlchemyError):
+            tbl = self.db['weather']
+            tbl.insert({'date': True, 'temperature': 'wrong_value', 'place': u'tmp_place'})
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
