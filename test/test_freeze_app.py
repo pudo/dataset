@@ -3,7 +3,7 @@
 Test CLI following the recipe at http://dustinrcollins.com/testing-python-command-line-apps
 """
 import os
-from unittest import TestCase
+import unittest
 from tempfile import mkdtemp
 from shutil import rmtree
 from copy import copy
@@ -17,7 +17,7 @@ from dataset.freeze.app import create_parser, freeze_with_config, freeze_export
 from sample_data import TEST_DATA
 
 
-class FreezeAppTestCase(TestCase):
+class FreezeAppTestCase(unittest.TestCase):
     """
     Base TestCase class, sets up a CLI parser
     """
