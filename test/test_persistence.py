@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from dataset import connect
 from dataset.util import DatasetException
 
-from .sample_data import TEST_DATA, TEST_CITY_1
+from sample_data import TEST_DATA, TEST_CITY_1
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -404,3 +404,7 @@ class RowTypeTestCase(unittest.TestCase):
             c += 1
             assert isinstance(row, Constructor), row
         assert c == len(self.tbl)
+
+
+if __name__ == '__main__':
+    unittest.main()

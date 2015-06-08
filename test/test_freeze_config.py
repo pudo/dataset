@@ -33,3 +33,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertRaises(FreezeException, list, cfg.exports)
         cfg.data = {}
         self.assertRaises(FreezeException, list, cfg.exports)
+
+
+if __name__ == '__main__':
+    unittest.main()
