@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from dataset import connect
 from dataset.util import DatasetException
 
-from sample_data import TEST_DATA, TEST_CITY_1
+from .sample_data import TEST_DATA, TEST_CITY_1
 
 
 class DatabaseTestCase(unittest.TestCase):

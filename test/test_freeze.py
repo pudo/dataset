@@ -12,7 +12,7 @@ from dataset import connect
 from dataset.freeze.app import freeze
 from dataset.freeze.format.fcsv import value_to_str
 
-from sample_data import TEST_DATA
+from .sample_data import TEST_DATA
 
 
 class FreezeTestCase(unittest.TestCase):

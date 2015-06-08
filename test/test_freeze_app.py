@@ -14,7 +14,7 @@ from dataset import connect
 from dataset.util import FreezeException
 from dataset.freeze.config import Configuration, Export
 from dataset.freeze.app import create_parser, freeze_with_config, freeze_export
-from sample_data import TEST_DATA
+from .sample_data import TEST_DATA
 
 
 class FreezeAppTestCase(unittest.TestCase):

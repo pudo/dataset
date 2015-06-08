@@ -16,8 +16,7 @@ __all__ = ['Database', 'Table', 'freeze', 'connect']
 
 def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
             reflect_views=True, row_type=row_type):
-    """
-    Opens a new connection to a database.
+    """ Opens a new connection to a database.
 
     *url* can be any valid `SQLAlchemy engine URL`_.  If *url* is not defined
     it will try to use *DATABASE_URL* from environment variable.  Returns an
@@ -28,8 +27,8 @@ def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
     loaded.  Additionally, *engine_kwargs* will be directly passed to
     SQLAlchemy, e.g.  set *engine_kwargs={'pool_recycle': 3600}* will avoid `DB
     connection timeout`_. Set *row_type* to an alternate dict-like class to
-    change the type of container rows are stored in.
-    ::
+    change the type of container rows are stored in.::
+
         db = dataset.connect('sqlite:///factbook.db')
 
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
