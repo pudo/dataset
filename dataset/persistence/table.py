@@ -1,5 +1,6 @@
 import logging
 from itertools import count
+from hashlib import sha1
 
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
@@ -272,8 +273,18 @@ class Table(object):
         """
         self._check_dropped()
         if not name:
-            sig = abs(hash('||'.join(columns)))
-            name = 'ix_%s_%s' % (self.table.name, sig)
+            sig = '||'.join(columns)
+
+            # This is a work-around for a bug in <=0.6.1 which would create
+            # indexes based on hash() rather than a proper hash.
+            key = abs(hash(sig))
+            name = 'ix_%s_%s' % (self.table.name, key)
+            if name in self.indexes:
+                return self.indexes[name]
+
+            key = sha1(sig.encode('utf-8')).hexdigest()[:16]
+            name = 'ix_%s_%s' % (self.table.name, key)
+
         if name in self.indexes:
             return self.indexes[name]
         try:
