@@ -45,6 +45,7 @@ class Table(object):
         self._is_dropped = True
         self.database._tables.pop(self.table.name, None)
         self.table.drop(self.database.engine)
+        self.database._release()
 
     def _check_dropped(self):
         if self._is_dropped:
