@@ -240,7 +240,8 @@ class Table(object):
             if normalize_column_name(name) not in self._normalized_columns:
                 self.database.op.add_column(
                     self.table.name,
-                    Column(name, type)
+                    Column(name, type),
+                    self.table.schema
                 )
                 self.table = self.database.update_table(self.table.name)
         finally:
