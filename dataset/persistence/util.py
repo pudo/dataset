@@ -1,6 +1,5 @@
 from datetime import datetime
 from inspect import isgenerator
-from io import BytesIO
 
 try:
     from collections import OrderedDict
@@ -22,7 +21,7 @@ def guess_type(sample):
         return Float
     elif isinstance(sample, datetime):
         return DateTime
-    elif isinstance(sample, BytesIO):
+    elif isinstance(sample, buffer):
         return LargeBinary
     return UnicodeText
 
