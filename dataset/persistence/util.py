@@ -1,12 +1,13 @@
 from datetime import datetime
 from inspect import isgenerator
+from io import BytesIO
 
 try:
     from collections import OrderedDict
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
-from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
+from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, LargeBinary
 from six import string_types
 
 row_type = OrderedDict
@@ -21,6 +22,8 @@ def guess_type(sample):
         return Float
     elif isinstance(sample, datetime):
         return DateTime
+    elif isinstance(sample, BytesIO):
+        return LargeBinary
     return UnicodeText
 
 
