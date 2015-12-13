@@ -43,25 +43,26 @@ class ResultIter(object):
     """ SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them. """
 
-    def __init__(self, result_proxies, row_type=row_type):
+    def __init__(self, result_proxy, row_type=row_type, step=None):
+        self.result_proxy = result_proxy
         self.row_type = row_type
-        if not isgenerator(result_proxies):
-            result_proxies = iter((result_proxies, ))
-        self.result_proxies = result_proxies
+        self.step = step
+        self.keys = list(result_proxy.keys())
         self._iter = None
 
-    def _next_rp(self):
+    def _next_chunk(self):
         try:
-            rp = next(self.result_proxies)
-            self.keys = list(rp.keys())
-            self._iter = iter(rp.fetchall())
+            if not self.step:
+                self._iter = iter(self.result_proxy.fetchall())
+            else:
+                self._iter = iter(self.result_proxy.fetchmany(self.step))
             return True
         except StopIteration:
             return False
 
     def __next__(self):
         if self._iter is None:
-            if not self._next_rp():
+            if not self._next_chunk():
                 raise StopIteration
         try:
             return convert_row(self.row_type, next(self._iter))
