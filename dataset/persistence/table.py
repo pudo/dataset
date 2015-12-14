@@ -343,10 +343,6 @@ class Table(object):
             # return all rows sorted by multiple columns (by year in descending order)
             results = table.find(order_by=['country', '-year'])
 
-        By default :py:meth:`find() <dataset.Table.find>` will break the
-        query into chunks of ``_step`` rows to prevent huge tables
-        from being loaded into memory at once.
-
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>`
         instead."""
         self._check_dropped()
@@ -371,21 +367,10 @@ class Table(object):
         if _step is None or _step is False or _step == 0:
             _step = total_row_count
 
-        if total_row_count > _step and not order_by:
-            _step = total_row_count
-            log.warn("query cannot be broken into smaller sections because it is unordered")
-
-        queries = []
-
-        for i in count():
-            qoffset = _offset + (_step * i)
-            qlimit = min(_limit - (_step * i), _step)
-            if qlimit <= 0:
-                break
-            queries.append(self.table.select(whereclause=args, limit=qlimit,
-                                             offset=qoffset, order_by=order_by))
-        return ResultIter((self.database.executable.execute(q) for q in queries),
-                          row_type=self.database.row_type)
+        query = self.table.select(whereclause=args, limit=_limit,
+                                  offset=_offset, order_by=order_by)
+        return ResultIter(self.database.executable.execute(query),
+                          row_type=self.database.row_type, step=_step)
 
     def count(self, **_filter):
         """
