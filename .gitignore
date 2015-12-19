@@ -1,9 +1,12 @@
 *.pyc
 *.egg-info
+*.egg
 dist/*
 build/*
 .DS_Store
 .watchr
+.coverage
+htmlcov/
 
 *.pyo
 env3/*
