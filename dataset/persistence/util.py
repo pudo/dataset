@@ -1,5 +1,4 @@
 from datetime import datetime
-from inspect import isgenerator
 
 try:
     from collections import OrderedDict

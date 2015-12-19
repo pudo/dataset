@@ -1,5 +1,4 @@
 import logging
-from itertools import count
 from hashlib import sha1
 
 from sqlalchemy.sql import and_, expression
