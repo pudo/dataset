@@ -50,6 +50,8 @@ class ResultIter(object):
         self._iter = None
 
     def _next_chunk(self):
+        if self.result_proxy.closed:
+            return False
         if not self.step:
             chunk = self.result_proxy.fetchall()
         else:
