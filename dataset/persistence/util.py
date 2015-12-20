@@ -50,13 +50,14 @@ class ResultIter(object):
         self._iter = None
 
     def _next_chunk(self):
-        try:
-            if not self.step:
-                self._iter = iter(self.result_proxy.fetchall())
-            else:
-                self._iter = iter(self.result_proxy.fetchmany(self.step))
+        if not self.step:
+            chunk = self.result_proxy.fetchall()
+        else:
+            chunk = self.result_proxy.fetchmany(self.step)
+        if chunk:
+            self._iter = iter(chunk)
             return True
-        except StopIteration:
+        else:
             return False
 
     def __next__(self):
