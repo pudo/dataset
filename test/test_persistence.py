@@ -304,6 +304,11 @@ class TableTestCase(unittest.TestCase):
         else:
             assert False, 'we should not reach else block, no exception raised!'
 
+    def test_table_drop(self):
+        assert 'weather' in self.db
+        self.db['weather'].drop()
+        assert 'weather' not in self.db
+
     def test_columns(self):
         cols = self.tbl.columns
         assert len(list(cols)) == 4, 'column count mismatch'
