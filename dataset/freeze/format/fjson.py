@@ -25,7 +25,7 @@ class JSONSerializer(Serializer):
     def wrap(self, result):
         if self.mode == 'item':
             result = result[0]
-        if self.wrap:
+        if self.export.get_bool('wrap'):
             result = {
                 'count': len(result),
                 'results': result

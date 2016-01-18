@@ -62,6 +62,41 @@ class FreezeTestCase(unittest.TestCase):
         finally:
             fh.close()
 
+    def test_freeze_json_no_wrap(self):
+        freeze(self.tbl.all(), format='json',
+                filename='weather.csv', prefix=self.d, wrap=False)
+        path = os.path.join(self.d, 'weather.csv')
+        if PY3:
+            fh = open(path, 'rt', encoding='utf8', newline='')
+        else:
+            fh = open(path, 'rU')
+        try:
+            import json
+            data = json.load(fh)
+            self.assertIsInstance(data, list,
+                'Without wrapping, returned JSON should be a list')
+        finally:
+            fh.close()
+
+    def test_freeze_json_wrap(self):
+        freeze(self.tbl.all(), format='json',
+                filename='weather.csv', prefix=self.d, wrap=True)
+        path = os.path.join(self.d, 'weather.csv')
+        if PY3:
+            fh = open(path, 'rt', encoding='utf8', newline='')
+        else:
+            fh = open(path, 'rU')
+        try:
+            import json
+            data = json.load(fh)
+            self.assertIsInstance(data, dict,
+                'With wrapping, returned JSON should be a dict')
+            self.assertIn('results', data.keys())
+            self.assertIn('count', data.keys())
+            self.assertIn('meta', data.keys())
+        finally:
+            fh.close()
+
 
 class SerializerTestCase(unittest.TestCase):
 
