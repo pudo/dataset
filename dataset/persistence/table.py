@@ -253,6 +253,8 @@ class Table(object):
 
             table.drop_column('created_at')
         """
+        if self.database.engine.dialect.name == 'sqlite':
+            raise NotImplementedError("SQLite does not support dropping columns.")
         self._check_dropped()
         self.database._acquire()
         try:

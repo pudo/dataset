@@ -134,7 +134,7 @@ class Database(object):
         """
         Get a listing of all tables that exist in the database.
         """
-        return self._tables.keys()
+        return list(self._tables.keys())
 
     def __contains__(self, member):
         return member in self.tables
