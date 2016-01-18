@@ -55,4 +55,5 @@ class JSONSerializer(Serializer):
                                           self.export.get('callback'),
                                           data)
             fh.write(data)
-            fh.close()
+            if self.fileobj is None:
+                fh.close()

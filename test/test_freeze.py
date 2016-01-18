@@ -62,6 +62,15 @@ class FreezeTestCase(unittest.TestCase):
         finally:
             fh.close()
 
+    def test_memory_streams(self):
+        import io
+
+        for fmt in ('csv', 'json', 'tabson'):
+            with io.StringIO() as fd:
+                freeze(self.tbl.all(), format=fmt, fileobj=fd)
+                self.assertFalse(fd.closed, 'fileobj was closed for format %s' % fmt)
+                fd.getvalue() # should not throw
+
 
 class SerializerTestCase(unittest.TestCase):
 
