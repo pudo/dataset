@@ -25,8 +25,7 @@ def create_parser():
 
 
 def freeze(result, format='csv', filename='freeze.csv', fileobj=None,
-           prefix='.', meta={}, indent=2, mode='list', wrap=True,
-           callback=None, **kw):
+           prefix='.', mode='list', **kw):
     """
     Perform a data export of a given result set. This is a very
     flexible exporter, allowing for various output formats, metadata
@@ -80,18 +79,47 @@ def freeze(result, format='csv', filename='freeze.csv', fileobj=None,
             Tabson is a smart combination of the space-efficiency of the
             CSV and the parsability and structure of JSON.
 
+    You can pass additional named parameters specific to the used format.
+
+        As an example, you can freeze to minified JSON with the following:
+
+            dataset.freeze(res, format='json', indent=4, wrap=False,
+                           filename='output.json')
+
+        *json* and *tabson*
+            *callback*:
+                if provided, generate a JSONP string using the given callback
+                function, i.e. something like `callback && callback({...})`
+
+            *indent*:
+                if *indent* is a non-negative integer (it is ``2`` by default
+                when you call `dataset.freeze`, and ``None`` via the
+                ``datafreeze`` command), then JSON array elements and object
+                members will be pretty-printed with that indent level.
+                An indent level of 0 will only insert newlines.
+                ``None`` is the most compact representation.
+
+            *meta*:
+                if *meta* is not ``None`` (default: ``{}``), it will be included
+                in the JSON output (for *json*, only if *wrap* is ``True``).
+
+            *wrap* (only for *json*):
+                if *wrap* is ``True`` (default), the JSON output is an object
+                of the form ``{"count": 2, "results": [...]}``.
+                if ``meta`` is not ``None``, a third property ``meta`` is added
+                to the wrapping object, with this value.
     """
     kw.update({
         'format': format,
         'filename': filename,
         'fileobj': fileobj,
         'prefix': prefix,
-        'meta': meta,
-        'indent': indent,
-        'callback': callback,
-        'mode': mode,
-        'wrap': wrap
+        'mode': mode
     })
+
+    # Special cases when freezing comes from dataset.freeze
+    if format in ['json', 'tabson'] and 'indent' not in kw: kw['indent'] = 2
+
     records = result.all() if isinstance(result, Table) else result
     return freeze_export(Export({}, kw), result=records)
 
