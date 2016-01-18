@@ -25,7 +25,6 @@ class CSVSerializer(Serializer):
     def write(self, path, result):
         keys = list(result.keys())
         if path not in self.handles:
-
             # handle fileobj that has been passed in:
             if path is not None:
                 if PY3:  # pragma: no cover
@@ -39,7 +38,7 @@ class CSVSerializer(Serializer):
             if PY3:  # pragma: no cover
                 writer.writerow(keys)
             else:
-                writer.writerow([k.encode('utf-8') for k in keys])
+                writer.writerow([value_to_str(k) for k in keys])
             self.handles[path] = (writer, fh)
         writer, fh = self.handles[path]
         values = [value_to_str(result.get(k)) for k in keys]
