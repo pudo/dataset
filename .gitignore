@@ -10,6 +10,7 @@ htmlcov/
 
 *.pyo
 env3/*
+env/*
 Test.yaml
 Freezefile.yaml
 :memory:
