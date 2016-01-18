@@ -47,4 +47,5 @@ class CSVSerializer(Serializer):
 
     def close(self):
         for writer, fh in self.handles.values():
-            fh.close()
+            if fh != self.fileobj:
+                fh.close()
