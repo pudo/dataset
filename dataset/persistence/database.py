@@ -44,12 +44,14 @@ class Database(object):
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
         self.url = url
+        self.row_type = row_type
+        self._tables = {}
         self.metadata = MetaData(schema=schema)
         self.metadata.bind = self.engine
         if reflect_metadata:
             self.metadata.reflect(self.engine, views=reflect_views)
-        self.row_type = row_type
-        self._tables = {}
+            for table_name in self.metadata.tables.keys():
+                self.load_table(table_name)
 
     @property
     def executable(self):
@@ -132,9 +134,7 @@ class Database(object):
         """
         Get a listing of all tables that exist in the database.
         """
-        return list(
-            set(self.metadata.tables.keys()) | set(self._tables.keys())
-        )
+        return self._tables.keys()
 
     def __contains__(self, member):
         return member in self.tables
