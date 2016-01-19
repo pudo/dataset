@@ -25,7 +25,7 @@ class JSONSerializer(Serializer):
     def wrap(self, result):
         if self.mode == 'item':
             result = result[0]
-        if self.export.get_bool('wrap'):
+        if self.export.get_bool('wrap', True):
             result = {
                 'count': len(result),
                 'results': result
@@ -50,10 +50,11 @@ class JSONSerializer(Serializer):
             data = json.dumps(result,
                               cls=JSONEncoder,
                               indent=self.export.get_int('indent'))
-            if self.export.get('callback'):
-                data = "%s && %s(%s);" % (self.export.get('callback'),
-                                          self.export.get('callback'),
-                                          data)
+
+            callback = self.export.get('callback')
+            if callback:
+                data = "%s && %s(%s);" % (callback, callback, data)
+
             fh.write(data)
             if self.fileobj is None:
                 fh.close()
