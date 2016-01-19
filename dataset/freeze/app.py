@@ -118,7 +118,8 @@ def freeze(result, format='csv', filename='freeze.csv', fileobj=None,
     })
 
     # Special cases when freezing comes from dataset.freeze
-    if format in ['json', 'tabson'] and 'indent' not in kw: kw['indent'] = 2
+    if format in ['json', 'tabson'] and 'indent' not in kw:
+        kw['indent'] = 2
 
     records = result.all() if isinstance(result, Table) else result
     return freeze_export(Export({}, kw), result=records)
