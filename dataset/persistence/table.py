@@ -214,12 +214,16 @@ class Table(object):
                                                           _type, self.table.name))
             self.create_column(column, _type)
 
-    def _args_to_clause(self, args):
+    def _args_to_clause(self, args, like=[], ilike=[]):
         self._ensure_columns(args)
         clauses = []
         for k, v in args.items():
             if isinstance(v, (list, tuple)):
                 clauses.append(self.table.c[k].in_(v))
+            elif k in like:
+                clauses.append(self.table.c[k].like(v))
+            elif k in ilike:
+                clauses.append(self.table.c[k].ilike(v))
             else:
                 clauses.append(self.table.c[k] == v)
         return and_(*clauses)
@@ -322,7 +326,7 @@ class Table(object):
         else:
             return self.table.c[order_by].asc()
 
-    def find(self, _limit=None, _offset=0, _step=5000,
+    def find(self, _limit=None, _offset=0, _step=5000, _like=[], _ilike=[],
              order_by='id', return_count=False, **_filter):
         """
         Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
@@ -352,7 +356,13 @@ class Table(object):
         order_by = [o for o in order_by if (o.startswith('-') and o[1:] or o) in self.table.columns]
         order_by = [self._args_to_order_by(o) for o in order_by]
 
-        args = self._args_to_clause(_filter)
+        if not isinstance(_like, (list, tuple)):
+            _like = [_like]
+
+        if not isinstance(_ilike, (list, tuple)):
+            _ilike = [_ilike]
+
+        args = self._args_to_clause(_filter, like=_like, ilike=_ilike)
 
         # query total number of rows first
         count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
