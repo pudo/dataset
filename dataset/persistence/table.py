@@ -3,7 +3,7 @@ from hashlib import sha1
 
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.schema import Column, Index
-from sqlalchemy import alias
+from sqlalchemy import alias, func
 from dataset.persistence.util import guess_type, normalize_column_name
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
@@ -201,10 +201,13 @@ class Table(object):
         rows = self.database.executable.execute(stmt)
         return rows.rowcount > 0
 
+    def _has_column(self, column):
+        return normalize_column_name(column) in self._normalized_columns
+
     def _ensure_columns(self, row, types={}):
         # Keep order of inserted columns
         for column in row.keys():
-            if normalize_column_name(column) in self._normalized_columns:
+            if self._has_column(column):
                 continue
             if column in types:
                 _type = types[column]
@@ -214,11 +217,14 @@ class Table(object):
                                                           _type, self.table.name))
             self.create_column(column, _type)
 
-    def _args_to_clause(self, args):
-        self._ensure_columns(args)
+    def _args_to_clause(self, args, ensure=True):
+        if ensure:
+            self._ensure_columns(args)
         clauses = []
         for k, v in args.items():
-            if isinstance(v, (list, tuple)):
+            if not self._has_column(k):
+                clauses.append(func.sum(1) == 2)
+            elif isinstance(v, (list, tuple)):
                 clauses.append(self.table.c[k].in_(v))
             else:
                 clauses.append(self.table.c[k] == v)
@@ -352,7 +358,7 @@ class Table(object):
         order_by = [o for o in order_by if (o.startswith('-') and o[1:] or o) in self.table.columns]
         order_by = [self._args_to_order_by(o) for o in order_by]
 
-        args = self._args_to_clause(_filter)
+        args = self._args_to_clause(_filter, ensure=False)
 
         # query total number of rows first
         count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
