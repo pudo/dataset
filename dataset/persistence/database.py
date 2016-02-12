@@ -16,7 +16,7 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
 from dataset.persistence.table import Table
-from dataset.persistence.util import ResultIter, row_type
+from dataset.persistence.util import ResultIter, row_type, safe_url
 from dataset.util import DatasetException
 
 log = logging.getLogger(__name__)
@@ -281,4 +281,4 @@ class Database(object):
                           row_type=self.row_type)
 
     def __repr__(self):
-        return '<Database(%s)>' % self.url
+        return '<Database(%s)>' % safe_url(self.url)
