@@ -51,7 +51,7 @@ class Database(object):
         if reflect_metadata:
             self.metadata.reflect(self.engine, views=reflect_views)
             for table_name in self.metadata.tables.keys():
-                self.load_table(table_name)
+                self.load_table(self.metadata.tables[table_name].name)
 
     @property
     def executable(self):
