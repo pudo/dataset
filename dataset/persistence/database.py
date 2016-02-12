@@ -72,22 +72,22 @@ class Database(object):
     def _release(self):
         if not hasattr(self.local, 'tx'):
             self.lock.release()
-            self.local.must_release = False
         else:
-            self.local.must_release = True
+            self.local.lock_count[-1] += 1
 
     def _release_internal(self):
-        if getattr(self.local, 'must_release', None):
+        for index in range(self.local.lock_count[-1]):
             self.lock.release()
-            self.local.must_release = False
+        del self.local.lock_count[-1]
 
     def _dispose_transaction(self):
+        self._release_internal()
         self.local.tx.remove(self.local.tx[-1])
         if not self.local.tx:
             del self.local.tx
+            del self.local.lock_count
             self.local.connection.close()
             del self.local.connection
-            self._release_internal()
 
     def begin(self):
         """ Enter a transaction explicitly. No data will be written
@@ -99,7 +99,9 @@ class Database(object):
             self.local.connection = self.engine.connect()
         if not hasattr(self.local, 'tx'):
             self.local.tx = []
+            self.local.lock_count = []
         self.local.tx.append(self.local.connection.begin())
+        self.local.lock_count.append(0)
 
     def commit(self):
         """ Commit the current transaction, making all statements executed
