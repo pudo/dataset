@@ -1,5 +1,8 @@
 from datetime import datetime
-import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 try:
     from collections import OrderedDict
@@ -81,7 +84,7 @@ class ResultIter(object):
 
 def safe_url(url):
     """ Remove password from printed connection URLs. """
-    parsed = urlparse.urlparse(url)
+    parsed = urlparse(url)
     if parsed.password is not None:
         pwd = ':%s@' % parsed.password
         url = url.replace(pwd, ':*****@')
