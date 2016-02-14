@@ -11,6 +11,7 @@ env:
 install:
 - pip install -U pip wheel
 - pip install flake8 psycopg2 nose
+- pip install -e .
 before_script:
 - sh -c "if [ '$DATABASE_URL' = 'postgresql+psycopg2://postgres@127.0.0.1/dataset' ]; then psql -c 'DROP DATABASE IF EXISTS dataset;' -U postgres; fi"
 - sh -c "if [ '$DATABASE_URL' = 'postgresql+psycopg2://postgres@127.0.0.1/dataset' ]; then psql -c 'create database dataset;' -U postgres; fi"
