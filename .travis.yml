@@ -10,14 +10,14 @@ env:
 # - DATABASE_URL=mysql+cymysql://travis@127.0.0.1/dataset?charset=utf8
 install:
 - pip install -U pip wheel
-- pip install flake8 psycopg2
+- pip install flake8 psycopg2 nose
 before_script:
 - sh -c "if [ '$DATABASE_URL' = 'postgresql+psycopg2://postgres@127.0.0.1/dataset' ]; then psql -c 'DROP DATABASE IF EXISTS dataset;' -U postgres; fi"
 - sh -c "if [ '$DATABASE_URL' = 'postgresql+psycopg2://postgres@127.0.0.1/dataset' ]; then psql -c 'create database dataset;' -U postgres; fi"
 # - sh -c "if [ '$DATABASE_URL' = 'mysql+cymysql://travis@127.0.0.1/dataset?charset=utf8' ]; then mysql -e 'create database IF NOT EXISTS dataset DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'; fi"
 script:
 - flake8 --ignore=E501,E123,E124,E126,E127,E128 dataset test
-- python setup.py test
+- nosetests
 cache:
   directories:
     - $HOME/.cache/pip

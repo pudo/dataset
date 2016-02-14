@@ -29,11 +29,11 @@ class FreezeTestCase(unittest.TestCase):
 
     def test_freeze(self):
         freeze(self.tbl.all(), format='csv',
-               filename='wäther.csv'.encode('utf8'), prefix=self.d)
-        self.assertTrue(os.path.exists(os.path.join(self.d, 'wäther.csv')))
+               filename=u'wäther.csv'.encode('utf8'), prefix=self.d)
+        self.assertTrue(os.path.exists(os.path.join(self.d, u'wäther.csv')))
         freeze(self.tbl.all(), format='csv',
-               filename='wäther.csv', prefix=self.d)
-        self.assertTrue(os.path.exists(os.path.join(self.d, 'wäther.csv')))
+               filename=u'wäther.csv', prefix=self.d)
+        self.assertTrue(os.path.exists(os.path.join(self.d, u'wäther.csv')))
 
     def test_freeze_csv(self):
         freeze(self.tbl.all(), format='csv',
