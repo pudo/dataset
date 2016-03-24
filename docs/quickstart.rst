@@ -138,6 +138,9 @@ We can search for specific entries using :py:meth:`find() <dataset.Table.find>` 
    # Get a specific user
    john = table.find_one(name='John Doe')
 
+   # Find by comparison
+   elderly_users = table.find(table.table.columns.age >= 70)
+
 Using  :py:meth:`distinct() <dataset.Table.distinct>` we can grab a set of rows
 with unique values in one or more columns::
 
