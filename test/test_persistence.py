@@ -267,6 +267,8 @@ class TableTestCase(unittest.TestCase):
         assert ds[0]['temperature'] == -1, ds
         ds = list(self.tbl.find(order_by=['-temperature']))
         assert ds[0]['temperature'] == 8, ds
+        ds = list(self.tbl.find(self.tbl.table.columns.temperature > 4))
+        assert len(ds) == 3, ds
 
     def test_offset(self):
         ds = list(self.tbl.find(place=TEST_CITY_1, _offset=1))
@@ -279,6 +281,10 @@ class TableTestCase(unittest.TestCase):
         assert len(x) == 2, x
         x = list(self.tbl.distinct('place', 'date'))
         assert len(x) == 6, x
+        x = list(self.tbl.distinct(
+            'place', 'date',
+            self.tbl.table.columns.date >= datetime(2011, 1, 2, 0, 0)))
+        assert len(x) == 4, x
 
     def test_get_items(self):
         x = list(self.tbl['place'])
