@@ -11,6 +11,7 @@ from dataset.util import DatasetException
 
 
 log = logging.getLogger(__name__)
+ensure_session = True
 
 
 class Table(object):
@@ -52,7 +53,7 @@ class Table(object):
         if self._is_dropped:
             raise DatasetException('the table has been dropped. this object should not be used again.')
 
-    def insert(self, row, ensure=True, types={}):
+    def insert(self, row, ensure=ensure_session, types={}):
         """
         Add a row (type: dict) by inserting it into the table.
         If ``ensure`` is set, any of the keys of the row are not
@@ -77,7 +78,7 @@ class Table(object):
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
 
-    def insert_many(self, rows, chunk_size=1000, ensure=True, types={}):
+    def insert_many(self, rows, chunk_size=1000, ensure=ensure_session, types={}):
         """
         Add many rows at a time, which is significantly faster than adding
         them one by one. Per default the rows are processed in chunks of
@@ -107,7 +108,7 @@ class Table(object):
         if chunk:
             _process_chunk(chunk)
 
-    def update(self, row, keys, ensure=True, types={}):
+    def update(self, row, keys, ensure=ensure_session, types={}):
         """
         Update a row in the table. The update is managed via
         the set of column names stated in ``keys``: they will be
@@ -148,7 +149,7 @@ class Table(object):
         except KeyError:
             return 0
 
-    def upsert(self, row, keys, ensure=True, types={}):
+    def upsert(self, row, keys, ensure=ensure_session, types={}):
         """
         An UPSERT is a smart combination of insert and update. If rows with matching ``keys`` exist
         they will be updated, otherwise a new row is inserted in the table.
@@ -219,7 +220,7 @@ class Table(object):
                                                           _type, self.table.name))
             self.create_column(column, _type)
 
-    def _args_to_clause(self, args, ensure=True, clauses=()):
+    def _args_to_clause(self, args, ensure=ensure_session, clauses=()):
         if ensure:
             self._ensure_columns(args)
         clauses = list(clauses)
