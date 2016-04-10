@@ -195,6 +195,25 @@ class Table(object):
         else:
             return self.insert(row, ensure=ensure, types=types)
 
+    def upsert_many(self, rows, keys, ensure=None, types={},chunk_size=1000):
+        """
+        Sorts multiple input rows into upserts and inserts. Inserts are passed to insert_many and upserts are updated.
+
+        See :py:meth:`upsert() <dataset.Table.upsert>` and :py:meth:`insert_many() <dataset.Table.insert_many>`.
+
+        """
+
+        upserts = [self.find_one(**{key:row.get(key) for key in keys}) is not None for row in rows]
+        upserts,inserts=[row for upsert,row in zip(upserts,rows) if upsert],[row for upsert,row in zip(upserts,rows) if not upsert]
+        upsert_count=0
+        for row in upserts:
+            upsert_count+=self.update(row, keys, ensure=ensure, types=types)
+
+        self.insert_many(inserts,chunk_size=chunk_size, ensure=ensure, types=types)
+
+
+
+
     def delete(self, *_clauses, **_filter):
         """
 
