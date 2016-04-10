@@ -14,8 +14,10 @@ log = logging.getLogger(__name__)
 
 
 class Table(object):
+    """Represents a table in a database and exposes common operations."""
 
     def __init__(self, database, table):
+        """Initialise the table from database schema."""
         self.indexes = dict((i.name, i) for i in table.indexes)
         self.database = database
         self.table = table
@@ -23,9 +25,7 @@ class Table(object):
 
     @property
     def columns(self):
-        """
-        Get a listing of all columns that exist in the table.
-        """
+        """Get a listing of all columns that exist in the table."""
         return list(self.table.columns.keys())
 
     @property
@@ -34,9 +34,9 @@ class Table(object):
 
     def drop(self):
         """
-        Drop the table from the database, deleting both the schema
-        and all the contents within it.
+        Drop the table from the database.
 
+        Delete both the schema and all the contents within it.
         Note: the object will raise an Exception if you use it after
         dropping the table. If you want to re-create the table, make
         sure to get a fresh instance from the :py:class:`Database <dataset.Database>`.
@@ -55,6 +55,7 @@ class Table(object):
     def insert(self, row, ensure=None, types={}):
         """
         Add a row (type: dict) by inserting it into the table.
+
         If ``ensure`` is set, any of the keys of the row are not
         table columns, they will be created automatically.
 
@@ -80,9 +81,11 @@ class Table(object):
 
     def insert_many(self, rows, chunk_size=1000, ensure=None, types={}):
         """
-        Add many rows at a time, which is significantly faster than adding
-        them one by one. Per default the rows are processed in chunks of
-        1000 per commit, unless you specify a different ``chunk_size``.
+        Add many rows at a time.
+
+        This is significantly faster than adding them one by one. Per default
+        the rows are processed in chunks of 1000 per commit, unless you specify
+        a different ``chunk_size``.
 
         See :py:meth:`insert() <dataset.Table.insert>` for details on
         the other parameters.
@@ -112,9 +115,10 @@ class Table(object):
 
     def update(self, row, keys, ensure=None, types={}):
         """
-        Update a row in the table. The update is managed via
-        the set of column names stated in ``keys``: they will be
-        used as filters for the data to be updated, using the values
+        Update a row in the table.
+
+        The update is managed via the set of column names stated in ``keys``:
+        they will be used as filters for the data to be updated, using the values
         in ``row``.
         ::
 
@@ -154,8 +158,10 @@ class Table(object):
 
     def upsert(self, row, keys, ensure=None, types={}):
         """
-        An UPSERT is a smart combination of insert and update. If rows with matching ``keys`` exist
-        they will be updated, otherwise a new row is inserted in the table.
+        An UPSERT is a smart combination of insert and update.
+
+        If rows with matching ``keys`` exist they will be updated, otherwise a
+        new row is inserted in the table.
         ::
 
             data = dict(id=10, title='I am a banana!')
@@ -190,9 +196,12 @@ class Table(object):
             return self.insert(row, ensure=ensure, types=types)
 
     def delete(self, *_clauses, **_filter):
-        """ Delete rows from the table. Keyword arguments can be used
-        to add column-based filters. The filter criterion will always
-        be equality:
+        """
+
+        Delete rows from the table.
+
+        Keyword arguments can be used to add column-based filters. The filter
+        criterion will always be equality:
 
         .. code-block:: python
 
@@ -242,6 +251,7 @@ class Table(object):
     def create_column(self, name, type):
         """
         Explicitely create a new column ``name`` of a specified type.
+
         ``type`` must be a `SQLAlchemy column type <http://docs.sqlalchemy.org/en/rel_0_8/core/types.html>`_.
         ::
 
@@ -263,7 +273,8 @@ class Table(object):
 
     def drop_column(self, name):
         """
-        Drop the column ``name``
+        Drop the column ``name``.
+
         ::
 
             table.drop_column('created_at')
@@ -284,7 +295,9 @@ class Table(object):
 
     def create_index(self, columns, name=None):
         """
-        Create an index to speed up queries on a table. If no ``name`` is given a random name is created.
+        Create an index to speed up queries on a table.
+
+        If no ``name`` is given a random name is created.
         ::
 
             table.create_index(['name', 'country'])
@@ -319,7 +332,10 @@ class Table(object):
 
     def find_one(self, *args, **kwargs):
         """
+        Get a single result from the table.
+
         Works just like :py:meth:`find() <dataset.Table.find>` but returns one result, or None.
+
         ::
 
             row = table.find_one(country='United States')
@@ -339,7 +355,9 @@ class Table(object):
 
     def find(self, *_clauses, **kwargs):
         """
-        Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
+        Perform a simple search on the table.
+
+        Simply pass keyword arguments as ``filter``.
         ::
 
             results = table.find(country='France')
@@ -359,7 +377,8 @@ class Table(object):
             results = table.find(order_by=['country', '-year'])
 
         For more complex queries, please use :py:meth:`db.query() <dataset.Database.query>`
-        instead."""
+        instead.
+        """
         _limit = kwargs.pop('_limit', None)
         _offset = kwargs.pop('_offset', 0)
         _step = kwargs.pop('_step', 5000)
@@ -398,20 +417,17 @@ class Table(object):
                           row_type=self.database.row_type, step=_step)
 
     def count(self, *args, **kwargs):
-        """
-        Return the count of results for the given filter set (same filter options as with ``find()``).
-        """
+        """Return the count of results for the given filter set."""
         return self.find(*args, return_count=True, **kwargs)
 
     def __len__(self):
-        """
-        Returns the number of rows in the table.
-        """
+        """Return the number of rows in the table."""
         return self.count()
 
     def distinct(self, *args, **_filter):
         """
-        Returns all rows of a table, but removes rows in with duplicate values in ``columns``.
+        Return all rows of a table, but remove rows in with duplicate values in ``columns``.
+
         Interally this creates a `DISTINCT statement <http://www.w3schools.com/sql/sql_distinct.asp>`_.
         ::
 
@@ -442,7 +458,10 @@ class Table(object):
         return self.database.query(q)
 
     def __getitem__(self, item):
-        """ This is an alias for distinct which allows the table to be queried as using
+        """
+        Get distinct column values.
+
+        This is an alias for distinct which allows the table to be queried as using
         square bracket syntax.
         ::
             # Same as distinct:
@@ -454,15 +473,19 @@ class Table(object):
 
     def all(self):
         """
-        Returns all rows of the table as simple dictionaries. This is simply a shortcut
-        to *find()* called with no arguments.
+        Return all rows of the table as simple dictionaries.
+
+        This is simply a shortcut to *find()* called with no arguments.
         ::
 
-            rows = table.all()"""
+            rows = table.all()
+        """
         return self.find()
 
     def __iter__(self):
         """
+        Return all rows of the table as simple dictionaries.
+
         Allows for iterating over all rows in the table without explicetly
         calling :py:meth:`all() <dataset.Table.all>`.
         ::
@@ -473,4 +496,5 @@ class Table(object):
         return self.all()
 
     def __repr__(self):
+        """Get table representation."""
         return '<Table(%s)>' % self.table.name

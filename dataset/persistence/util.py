@@ -83,7 +83,7 @@ class ResultIter(object):
 
 
 def safe_url(url):
-    """ Remove password from printed connection URLs. """
+    """Remove password from printed connection URLs."""
     parsed = urlparse(url)
     if parsed.password is not None:
         pwd = ':%s@' % parsed.password

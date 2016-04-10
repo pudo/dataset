@@ -24,9 +24,12 @@ log = logging.getLogger(__name__)
 
 
 class Database(object):
+    """A database object represents a SQL database with multiple tables."""
+
     def __init__(self, url, schema=None, reflect_metadata=True,
                  engine_kwargs=None, reflect_views=True,
                  ensure_schema=True, row_type=row_type):
+        """Configure and connect to the database."""
         if engine_kwargs is None:
             engine_kwargs = {}
 
@@ -60,14 +63,14 @@ class Database(object):
 
     @property
     def executable(self):
-        """ The current connection or engine against which statements
-        will be executed. """
+        """Connection or engine against which statements will be executed."""
         if hasattr(self.local, 'connection'):
             return self.local.connection
         return self.engine
 
     @property
     def op(self):
+        """Get an alembic operations context."""
         ctx = MigrationContext.configure(self.engine)
         return Operations(ctx)
 
@@ -95,11 +98,13 @@ class Database(object):
             del self.local.connection
 
     def begin(self):
-        """ Enter a transaction explicitly. No data will be written
-        until the transaction has been committed.
+        """
+        Enter a transaction explicitly.
 
+        No data will be written until the transaction has been committed.
         **NOTICE:** Schema modification operations, such as the creation
-        of tables or columns will not be part of the transactional context."""
+        of tables or columns will not be part of the transactional context.
+        """
         if not hasattr(self.local, 'connection'):
             self.local.connection = self.engine.connect()
         if not hasattr(self.local, 'tx'):
@@ -109,24 +114,32 @@ class Database(object):
         self.local.lock_count.append(0)
 
     def commit(self):
-        """ Commit the current transaction, making all statements executed
-        since the transaction was begun permanent. """
+        """
+        Commit the current transaction.
+
+        Make all statements executed since the transaction was begun permanent.
+        """
         if hasattr(self.local, 'tx') and self.local.tx:
             self.local.tx[-1].commit()
             self._dispose_transaction()
 
     def rollback(self):
-        """ Roll back the current transaction, discarding all statements
-        executed since the transaction was begun. """
+        """
+        Roll back the current transaction.
+
+        Discard all statements executed since the transaction was begun.
+        """
         if hasattr(self.local, 'tx') and self.local.tx:
             self.local.tx[-1].rollback()
             self._dispose_transaction()
 
     def __enter__(self):
+        """Start a transaction."""
         self.begin()
         return self
 
     def __exit__(self, error_type, error_value, traceback):
+        """End a transaction by committing or rolling back."""
         if error_type is None:
             try:
                 self.commit()
@@ -138,26 +151,27 @@ class Database(object):
 
     @property
     def tables(self):
-        """
-        Get a listing of all tables that exist in the database.
-        """
+        """Get a listing of all tables that exist in the database."""
         return list(self._tables.keys())
 
     def __contains__(self, member):
+        """Check if the given table name exists in the database."""
         return member in self.tables
 
     def _valid_table_name(self, table_name):
-        """ Check if the table name is obviously invalid. """
+        """Check if the table name is obviously invalid."""
         if table_name is None or not len(table_name.strip()):
             raise ValueError("Invalid table name: %r" % table_name)
         return table_name.strip()
 
     def create_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
-        Creates a new table. The new table will automatically have an `id` column
-        unless specified via optional parameter primary_id, which will be used
-        as the primary key of the table. Automatic id is set to be an
-        auto-incrementing integer, while the type of custom primary_id can be a
+        Create a new table.
+
+        The new table will automatically have an `id` column unless specified via
+        optional parameter primary_id, which will be used as the primary key of the
+        table. Automatic id is set to be an auto-incrementing integer, while the
+        type of custom primary_id can be a
         String or an Integer as specified with primary_type flag. The default
         length of String is 255. The caller can specify the length.
         The caller will be responsible for the uniqueness of manual primary_id.
@@ -206,10 +220,11 @@ class Database(object):
 
     def load_table(self, table_name):
         """
-        Loads a table. This will fail if the tables does not already
-        exist in the database. If the table exists, its columns will be
-        reflected and are available on the :py:class:`Table <dataset.Table>`
-        object.
+        Load a table.
+
+        This will fail if the tables does not already exist in the database. If the
+        table exists, its columns will be reflected and are available on the
+        :py:class:`Table <dataset.Table>` object.
 
         Returns a :py:class:`Table <dataset.Table>` instance.
         ::
@@ -228,6 +243,7 @@ class Database(object):
             self._release()
 
     def update_table(self, table_name):
+        """Reload a table schema from the database."""
         table_name = self._valid_table_name(table_name)
         self.metadata = MetaData(schema=self.schema)
         self.metadata.bind = self.engine
@@ -238,8 +254,9 @@ class Database(object):
 
     def get_table(self, table_name, primary_id='id', primary_type='Integer'):
         """
-        Smart wrapper around *load_table* and *create_table*. Either loads a table
-        or creates it if it doesn't exist yet.
+        Smart wrapper around *load_table* and *create_table*.
+
+        Either loads a table or creates it if it doesn't exist yet.
         For short-hand to create a table with custom id and type using [], where
         table_name, primary_id, and primary_type are specified as a tuple
 
@@ -263,12 +280,14 @@ class Database(object):
             self._release()
 
     def __getitem__(self, table_name):
+        """Get a given table."""
         return self.get_table(table_name)
 
     def query(self, query, **kw):
         """
-        Run a statement on the database directly, allowing for the
-        execution of arbitrary read/write queries. A query can either be
+        Run a statement on the database directly.
+
+        Allows for the execution of arbitrary read/write queries. A query can either be
         a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
         If a plain string is passed in, it will be converted to an expression automatically.
 
@@ -288,4 +307,5 @@ class Database(object):
                           row_type=self.row_type)
 
     def __repr__(self):
+        """Text representation contains the URL."""
         return '<Database(%s)>' % safe_url(self.url)
