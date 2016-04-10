@@ -365,6 +365,7 @@ class Table(object):
         _step = kwargs.pop('_step', 5000)
         order_by = kwargs.pop('order_by', 'id')
         return_count = kwargs.pop('return_count', False)
+        return_query = kwargs.pop('return_query', False)
         _filter = kwargs
 
         self._check_dropped()
@@ -391,6 +392,8 @@ class Table(object):
 
         query = self.table.select(whereclause=args, limit=_limit,
                                   offset=_offset, order_by=order_by)
+        if return_query:
+            return query
         return ResultIter(self.database.executable.execute(query),
                           row_type=self.database.row_type, step=_step)
 
