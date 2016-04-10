@@ -3,13 +3,14 @@ import threading
 import re
 
 import six
-from six.moves.urllib.parse import urlencode, parse_qs
+from six.moves.urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import create_engine
 from sqlalchemy import Integer, String
 from sqlalchemy.sql import text
 from sqlalchemy.schema import MetaData, Column
 from sqlalchemy.schema import Table as SQLATable
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.util import safe_reraise
 
 from alembic.migration import MigrationContext
@@ -29,18 +30,21 @@ class Database(object):
         if engine_kwargs is None:
             engine_kwargs = {}
 
+        parsed_url = urlparse(url)
+        if parsed_url.scheme.lower() in 'sqlite':
+            # ref: https://github.com/pudo/dataset/issues/163
+            if 'poolclass' not in engine_kwargs:
+                engine_kwargs['poolclass'] = StaticPool
+
         self.lock = threading.RLock()
         self.local = threading.local()
-        if '?' in url:
-            url, query = url.split('?', 1)
-            query = parse_qs(query)
+        if len(parsed_url.query):
+            query = parse_qs(parsed_url.query)
             if schema is None:
-                # le pop
-                schema_qs = query.pop('schema', query.pop('searchpath', []))
+                schema_qs = query.get('schema', query.get('searchpath', []))
                 if len(schema_qs):
                     schema = schema_qs.pop()
-            if len(query):
-                url = url + '?' + urlencode(query, doseq=True)
+
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
         self.url = url
