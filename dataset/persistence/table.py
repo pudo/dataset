@@ -218,7 +218,7 @@ class Table(object):
             result = (True, False)[row_count > 0]
             if row_count == 1:
                 try:
-                    result =  res['id']
+                    result = res['id']
                 except KeyError:
                     pass
             return result
