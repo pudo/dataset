@@ -4,7 +4,7 @@ from hashlib import sha1
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import ClauseElement
 from sqlalchemy.schema import Column, Index
-from sqlalchemy import alias, func
+from sqlalchemy import alias, false
 from dataset.persistence.util import guess_type, normalize_column_name
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
@@ -241,7 +241,7 @@ class Table(object):
         clauses = list(clauses)
         for k, v in args.items():
             if not self._has_column(k):
-                clauses.append(func.sum(1) == 2)
+                clauses.append(false())
             elif isinstance(v, (list, tuple)):
                 clauses.append(self.table.c[k].in_(v))
             else:
