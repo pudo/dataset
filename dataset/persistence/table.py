@@ -79,6 +79,31 @@ class Table(object):
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
 
+    def insert_ignore(self, row, keys, ensure=None, types={}):
+        """
+        Add a row (type: dict) into the table if the row does not exist.
+
+        If rows with matching ``keys`` exist they will be added to the table.
+
+        Setting ``ensure`` results in automatically creating missing columns,
+        i.e., keys of the row are not table columns.
+
+        During column creation, ``types`` will be checked for a key
+        matching the name of a column to be created, and the given
+        SQLAlchemy column type will be used. Otherwise, the type is
+        guessed from the row value, defaulting to a simple unicode
+        field.
+        ::
+
+            data = dict(id=10, title='I am a banana!')
+            table.insert_ignore(data, ['id'])
+        """
+        res = self._upsert_pre_check(row, keys, ensure)
+        if res is None:
+        	return self.insert(row, ensure=ensure, types=types)
+        else:
+            return False
+
     def insert_many(self, rows, chunk_size=1000, ensure=None, types={}):
         """
         Add many rows at a time.
@@ -156,17 +181,7 @@ class Table(object):
         except KeyError:
             return 0
 
-    def upsert(self, row, keys, ensure=None, types={}):
-        """
-        An UPSERT is a smart combination of insert and update.
-
-        If rows with matching ``keys`` exist they will be updated, otherwise a
-        new row is inserted in the table.
-        ::
-
-            data = dict(id=10, title='I am a banana!')
-            table.upsert(data, ['id'])
-        """
+    def _upsert_pre_check(self, row, keys, ensure):
         # check whether keys arg is a string and format as a list
         if not isinstance(keys, (list, tuple)):
             keys = [keys]
@@ -181,19 +196,32 @@ class Table(object):
             filters[key] = row.get(key)
 
         res = self.find_one(**filters)
-        if res is not None:
-            row_count = self.update(row, keys, ensure=ensure, types=types)
-            if row_count == 0:
-                return False
-            elif row_count == 1:
-                try:
-                    return res['id']
-                except KeyError:
-                    return True
-            else:
-                return True
-        else:
+
+        return res
+
+    def upsert(self, row, keys, ensure=None, types={}):
+        """
+        An UPSERT is a smart combination of insert and update.
+
+        If rows with matching ``keys`` exist they will be updated, otherwise a
+        new row is inserted in the table.
+        ::
+
+            data = dict(id=10, title='I am a banana!')
+            table.upsert(data, ['id'])
+        """
+        res = self._upsert_pre_check(row, keys, ensure)
+        if res is None:
             return self.insert(row, ensure=ensure, types=types)
+        else:
+            row_count = self.update(row, keys, ensure=ensure, types=types)
+            result = lambda row_count : row_count > 0
+            if row_count == 1:
+                try:
+                    result =  res['id']
+                except KeyError:
+                    pass
+            return result
 
     def delete(self, *_clauses, **_filter):
         """
