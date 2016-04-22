@@ -215,12 +215,11 @@ class Table(object):
             return self.insert(row, ensure=ensure, types=types)
         else:
             row_count = self.update(row, keys, ensure=ensure, types=types)
-            result = (True, False)[row_count > 0]
-            if row_count == 1:
-                try:
-                    result = res['id']
-                except KeyError:
-                    pass
+            try:
+                result = (res['id'], row_count > 0)[row_count == 1]
+            except KeyError:
+                result = row_count > 0
+
             return result
 
     def delete(self, *_clauses, **_filter):
