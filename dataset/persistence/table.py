@@ -100,7 +100,7 @@ class Table(object):
         """
         res = self._upsert_pre_check(row, keys, ensure)
         if res is None:
-        	return self.insert(row, ensure=ensure, types=types)
+            return self.insert(row, ensure=ensure, types=types)
         else:
             return False
 
@@ -215,7 +215,7 @@ class Table(object):
             return self.insert(row, ensure=ensure, types=types)
         else:
             row_count = self.update(row, keys, ensure=ensure, types=types)
-            result = lambda row_count : row_count > 0
+            result = (True, False)[row_count > 0]
             if row_count == 1:
                 try:
                     result =  res['id']
