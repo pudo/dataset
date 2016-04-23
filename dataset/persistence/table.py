@@ -216,7 +216,7 @@ class Table(object):
         else:
             row_count = self.update(row, keys, ensure=ensure, types=types)
             try:
-                result = (res['id'], row_count > 0)[row_count == 1]
+                result = (row_count > 0, res['id'])[row_count == 1]
             except KeyError:
                 result = row_count > 0
 
