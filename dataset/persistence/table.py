@@ -183,20 +183,23 @@ class Table(object):
 
     def _upsert_pre_check(self, row, keys, ensure):
         # check whether keys arg is a string and format as a list
-        if not isinstance(keys, (list, tuple)):
-            keys = [keys]
-        self._check_dropped()
+        try:
+            if not isinstance(keys, (list, tuple)):
+                keys = [keys]
+            self._check_dropped()
 
-        ensure = self.database.ensure_schema if ensure is None else ensure
-        if ensure:
-            self.create_index(keys)
+            ensure = self.database.ensure_schema if ensure is None else ensure
+            if ensure:
+                self.create_index(keys)
 
-        filters = {}
-        for key in keys:
-            filters[key] = row.get(key)
+            filters = {}
+            for key in keys:
+                filters[key] = row.get(key)
 
-        res = self.find_one(**filters)
-
+            res = self.find_one(**filters)
+        except:
+            res = None
+            
         return res
 
     def upsert(self, row, keys, ensure=None, types={}):
