@@ -199,7 +199,7 @@ class Table(object):
             res = self.find_one(**filters)
         except:
             res = None
-            
+
         return res
 
     def upsert(self, row, keys, ensure=None, types={}):
