@@ -170,6 +170,31 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         assert self.tbl.find_one(id=last_id)['place'] == 'Berlin'
 
+    def test_insert_ignore(self):
+        self.tbl.insert_ignore({
+            'date': datetime(2011, 1, 2),
+            'temperature': -10,
+            'place': 'Berlin'},
+            ['place']
+        )
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
+        self.tbl.insert_ignore({
+            'date': datetime(2011, 1, 2),
+            'temperature': -10,
+            'place': 'Berlin'},
+            ['place']
+        )
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
+
+    def test_insert_ignore_all_key(self):
+        for i in range(0, 2):
+            self.tbl.insert_ignore({
+                'date': datetime(2011, 1, 2),
+                'temperature': -10,
+                'place': 'Berlin'},
+                ['date', 'temperature', 'place']
+            )
+
     def test_upsert(self):
         self.tbl.upsert({
             'date': datetime(2011, 1, 2),
