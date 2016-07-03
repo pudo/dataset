@@ -52,6 +52,13 @@ class Table(object):
         if self._is_dropped:
             raise DatasetException('the table has been dropped. this object should not be used again.')
 
+    def _prune_row(self, row):
+        """Remove keys from row not in column set."""
+        # normalize keys
+        row = {normalize_column_name(k): v for k, v in row.items()}
+        # filter out keys not in column set
+        return {k: row[k] for k in row if k in self._normalized_columns}
+
     def insert(self, row, ensure=None, types={}):
         """
         Add a row (type: dict) by inserting it into the table.
@@ -75,6 +82,8 @@ class Table(object):
         ensure = self.database.ensure_schema if ensure is None else ensure
         if ensure:
             self._ensure_columns(row, types=types)
+        else:
+            row = self._prune_row(row)
         res = self.database.executable.execute(self.table.insert(row))
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
@@ -98,7 +107,7 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.insert_ignore(data, ['id'])
         """
-        res = self._upsert_pre_check(row, keys, ensure)
+        row, res = self._upsert_pre_check(row, keys, ensure)
         if res is None:
             return self.insert(row, ensure=ensure, types=types)
         else:
@@ -125,6 +134,8 @@ class Table(object):
             if ensure:
                 for row in chunk:
                     self._ensure_columns(row, types=types)
+            else:
+                chunk = [self._prune_row(r) for r in chunk]
             self.table.insert().execute(chunk)
         self._check_dropped()
 
@@ -166,6 +177,8 @@ class Table(object):
         ensure = self.database.ensure_schema if ensure is None else ensure
         if ensure:
             self._ensure_columns(row, types=types)
+        else:
+            row = self._prune_row(row)
 
         # Don't update the key itself, so remove any keys from the row dict
         clean_row = row.copy()
@@ -183,24 +196,20 @@ class Table(object):
 
     def _upsert_pre_check(self, row, keys, ensure):
         # check whether keys arg is a string and format as a list
-        try:
-            if not isinstance(keys, (list, tuple)):
-                keys = [keys]
-            self._check_dropped()
+        if not isinstance(keys, (list, tuple)):
+            keys = [keys]
+        self._check_dropped()
 
-            ensure = self.database.ensure_schema if ensure is None else ensure
-            if ensure:
-                self.create_index(keys)
+        ensure = self.database.ensure_schema if ensure is None else ensure
+        if ensure:
+            self.create_index(keys)
+        else:
+            row = self._prune_row(row)
 
-            filters = {}
-            for key in keys:
-                filters[key] = row.get(key)
-
-            res = self.find_one(**filters)
-        except:
-            res = None
-
-        return res
+        filters = {}
+        for key in keys:
+            filters[key] = row.get(key)
+        return row, self.find_one(**filters)
 
     def upsert(self, row, keys, ensure=None, types={}):
         """
@@ -213,7 +222,7 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
-        res = self._upsert_pre_check(row, keys, ensure)
+        row, res = self._upsert_pre_check(row, keys, ensure)
         if res is None:
             return self.insert(row, ensure=ensure, types=types)
         else:
