@@ -326,7 +326,8 @@ class Table(object):
             if name in self.table.columns.keys():
                 self.database.op.drop_column(
                     self.table.name,
-                    name
+                    name,
+                    self.table.schema
                 )
                 self.table = self.database.update_table(self.table.name)
         finally:
