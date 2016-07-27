@@ -289,7 +289,7 @@ class Table(object):
 
     def create_column(self, name, type):
         """
-        Explicitely create a new column ``name`` of a specified type.
+        Explicitly create a new column ``name`` of a specified type.
 
         ``type`` must be a `SQLAlchemy column type <http://docs.sqlalchemy.org/en/rel_0_8/core/types.html>`_.
         ::
