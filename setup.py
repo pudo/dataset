@@ -8,7 +8,7 @@ if sys.version_info[:2] <= (2, 6):
 
 setup(
     name='dataset',
-    version='0.6.4',
+    version='0.7.0',
     description="Toolkit for Python-based data processing.",
     long_description="",
     classifiers=[
