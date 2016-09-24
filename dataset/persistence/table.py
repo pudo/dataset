@@ -333,7 +333,7 @@ class Table(object):
         finally:
             self.database._release()
 
-    def create_index(self, columns, name=None):
+    def create_index(self, columns, name=None, unique=False):
         """
         Create an index to speed up queries on a table.
 
@@ -361,7 +361,7 @@ class Table(object):
         try:
             self.database._acquire()
             columns = [self.table.c[c] for c in columns]
-            idx = Index(name, *columns)
+            idx = Index(name, *columns, unique=unique)
             idx.create(self.database.engine)
         except:
             idx = None
