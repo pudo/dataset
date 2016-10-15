@@ -288,6 +288,8 @@ class TableTestCase(unittest.TestCase):
         assert len(ds) == 2, ds
         ds = list(self.tbl.find(place=TEST_CITY_1, _limit=1, _step=2))
         assert len(ds) == 1, ds
+        ds = list(self.tbl.find(_step=2))
+        assert len(ds) == len(TEST_DATA), ds
         ds = list(self.tbl.find(order_by=['temperature']))
         assert ds[0]['temperature'] == -1, ds
         ds = list(self.tbl.find(order_by=['-temperature']))
