@@ -30,7 +30,6 @@ setup(
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        'six',
         'sqlalchemy >= 0.9.1',
         'alembic >= 0.6.2',
         'normality >= 0.2.2',
