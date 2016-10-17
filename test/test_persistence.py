@@ -126,8 +126,8 @@ class DatabaseTestCase(unittest.TestCase):
         assert len(self.db['weather']) == init_length
 
     def test_invalid_values(self):
-        if 'mysql.connector' in self.db.engine.dialect.dbapi.__name__:
-            # WARNING: mysql-connector seems to be doing some weird type casting upon insert.
+        if 'mysql' in self.db.engine.dialect.dbapi.__name__:
+            # WARNING: mysql seems to be doing some weird type casting upon insert.
             # The mysql-python driver is not affected but it isn't compatible with Python 3
             # Conclusion: use postgresql.
             return
