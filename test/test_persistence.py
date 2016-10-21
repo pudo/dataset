@@ -7,6 +7,7 @@ try:
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
+from sqlalchemy import FLOAT, INTEGER, TEXT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from dataset import connect
@@ -373,12 +374,23 @@ class TableTestCase(unittest.TestCase):
         assert m['temperature'] == -10, 'new temp. should be -10 but is %d' % m['temperature']
 
     def test_create_column(self):
-        from sqlalchemy import FLOAT
         tbl = self.tbl
         tbl.create_column('foo', FLOAT)
         assert 'foo' in tbl.table.c, tbl.table.c
         assert isinstance(tbl.table.c['foo'].type, FLOAT), tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
+
+    def test_ensure_column(self):
+        tbl = self.tbl
+        tbl.create_column_by_example('foo', 0.1)
+        assert 'foo' in tbl.table.c, tbl.table.c
+        assert isinstance(tbl.table.c['foo'].type, FLOAT), tbl.table.c['bar'].type
+        tbl.create_column_by_example('bar', 1)
+        assert 'bar' in tbl.table.c, tbl.table.c
+        assert isinstance(tbl.table.c['bar'].type, INTEGER), tbl.table.c['bar'].type
+        tbl.create_column_by_example('pippo', 'test')
+        assert 'pippo' in tbl.table.c, tbl.table.c
+        assert isinstance(tbl.table.c['pippo'].type, TEXT), tbl.table.c['pippo'].type
 
     def test_key_order(self):
         res = self.db.query('SELECT temperature, place FROM weather LIMIT 1')
