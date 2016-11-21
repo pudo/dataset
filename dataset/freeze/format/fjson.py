@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, date
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from decimal import Decimal
 
 from six import PY3
@@ -29,10 +29,10 @@ class JSONSerializer(Serializer):
         if self.mode == 'item':
             result = result[0]
         if self.export.get_bool('wrap', True):
-            result = {
-                'count': len(result),
-                'results': result
-            }
+            result = OrderedDict([
+                ('count', len(result)),
+                ('results', result),
+            ])
             meta = self.export.get('meta', {})
             if meta is not None:
                 result['meta'] = meta
