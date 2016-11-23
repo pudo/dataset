@@ -9,7 +9,7 @@ try:
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
-from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
+from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean, LargeBinary
 from six import string_types
 
 row_type = OrderedDict
@@ -24,6 +24,8 @@ def guess_type(sample):
         return Float
     elif isinstance(sample, datetime):
         return DateTime
+    elif isinstance(sample, buffer):
+        return LargeBinary
     return UnicodeText
 
 
