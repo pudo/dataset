@@ -8,7 +8,7 @@ if sys.version_info[:2] <= (2, 6):
 
 setup(
     name='dataset',
-    version='0.7.1',
+    version='0.8.0',
     description="Toolkit for Python-based data processing.",
     long_description="",
     classifiers=[
@@ -33,7 +33,7 @@ setup(
     install_requires=[
         'sqlalchemy >= 0.9.1',
         'alembic >= 0.6.2',
-        'normality >= 0.2.2',
+        'normality >= 0.3.9',
         "PyYAML >= 3.10",
         "six >= 1.7.3"
     ] + py26_dependency,
