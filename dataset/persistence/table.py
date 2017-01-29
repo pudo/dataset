@@ -298,15 +298,17 @@ class Table(object):
         """
         self._check_dropped()
         self.database._acquire()
-
         try:
-            if normalize_column_name(name) not in self._normalized_columns:
-                self.database.op.add_column(
-                    self.table.name,
-                    Column(name, type),
-                    self.table.schema
-                )
-                self.table = self.database.update_table(self.table.name)
+            if normalize_column_name(name) in self._normalized_columns:
+                log.warn("Column with similar name exists: %s" % name)
+                return
+
+            self.database.op.add_column(
+                self.table.name,
+                Column(name, type),
+                self.table.schema
+            )
+            self.table = self.database.update_table(self.table.name)
         finally:
             self.database._release()
 
