@@ -41,6 +41,7 @@ class Database(object):
 
         self.lock = threading.RLock()
         self.local = threading.local()
+
         if len(parsed_url.query):
             query = parse_qs(parsed_url.query)
             if schema is None:
@@ -56,6 +57,7 @@ class Database(object):
         self._tables = {}
         self.metadata = MetaData(schema=schema)
         self.metadata.bind = self.engine
+
         if reflect_metadata:
             self.metadata.reflect(self.engine, views=reflect_views)
             for table_name in self.metadata.tables.keys():

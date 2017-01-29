@@ -44,39 +44,30 @@ def normalize_column_name(name):
     return name
 
 
+def iter_result_proxy(rp, step=None):
+    """Iterate over the ResultProxy."""
+    while True:
+        if step is None:
+            chunk = rp.fetchall()
+        else:
+            chunk = rp.fetchmany(step)
+        if not chunk:
+            break
+        for row in chunk:
+            yield row
+
+
 class ResultIter(object):
     """ SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them. """
 
     def __init__(self, result_proxy, row_type=row_type, step=None):
-        self.result_proxy = result_proxy
         self.row_type = row_type
-        self.step = step
         self.keys = list(result_proxy.keys())
-        self._iter = None
-
-    def _next_chunk(self):
-        if self.result_proxy.closed:
-            return False
-        if not self.step:
-            chunk = self.result_proxy.fetchall()
-        else:
-            chunk = self.result_proxy.fetchmany(self.step)
-        if chunk:
-            self._iter = iter(chunk)
-            return True
-        else:
-            return False
+        self._iter = iter_result_proxy(result_proxy, step=step)
 
     def __next__(self):
-        if self._iter is None:
-            if not self._next_chunk():
-                raise StopIteration
-        try:
-            return convert_row(self.row_type, next(self._iter))
-        except StopIteration:
-            self._iter = None
-            return self.__next__()
+        return convert_row(self.row_type, next(self._iter))
 
     next = __next__
 

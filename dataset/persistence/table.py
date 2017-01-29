@@ -4,7 +4,7 @@ from hashlib import sha1
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import ClauseElement
 from sqlalchemy.schema import Column, Index
-from sqlalchemy import alias, false
+from sqlalchemy import func, select, false
 from dataset.persistence.util import guess_type, normalize_column_name
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
@@ -388,10 +388,20 @@ class Table(object):
             return None
 
     def _args_to_order_by(self, order_by):
-        if order_by[0] == '-':
-            return self.table.c[order_by[1:]].desc()
-        else:
-            return self.table.c[order_by].asc()
+        if not isinstance(order_by, (list, tuple)):
+            order_by = [order_by]
+        orderings = []
+        for ordering in order_by:
+            if ordering is None:
+                continue
+            column = ordering.lstrip('-')
+            if column not in self.table.columns:
+                continue
+            if ordering.startswith('-'):
+                orderings.append(self.table.c[column].desc())
+            else:
+                orderings.append(self.table.c[column].asc())
+        return orderings
 
     def find(self, *_clauses, **kwargs):
         """
@@ -422,43 +432,33 @@ class Table(object):
         _limit = kwargs.pop('_limit', None)
         _offset = kwargs.pop('_offset', 0)
         _step = kwargs.pop('_step', 5000)
-        order_by = kwargs.pop('order_by', 'id')
-        return_count = kwargs.pop('return_count', False)
-        return_query = kwargs.pop('return_query', False)
-        _filter = kwargs
+        order_by = kwargs.pop('order_by', None)
 
         self._check_dropped()
-        if not isinstance(order_by, (list, tuple)):
-            order_by = [order_by]
-        order_by = [o for o in order_by if (o.startswith('-') and o[1:] or o) in self.table.columns]
-        order_by = [self._args_to_order_by(o) for o in order_by]
+        order_by = self._args_to_order_by(order_by)
+        args = self._args_to_clause(kwargs, ensure=False, clauses=_clauses)
 
-        args = self._args_to_clause(_filter, ensure=False, clauses=_clauses)
-
-        # query total number of rows first
-        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
-                            name='count_query_alias').count()
-        rp = self.database.executable.execute(count_query)
-        total_row_count = rp.fetchone()[0]
-        if return_count:
-            return total_row_count
-
-        if _limit is None:
-            _limit = total_row_count
-
-        if _step is None or _step is False or _step == 0:
-            _step = total_row_count
+        if _step is False or _step == 0:
+            _step = None
 
         query = self.table.select(whereclause=args, limit=_limit,
-                                  offset=_offset, order_by=order_by)
-        if return_query:
-            return query
+                                  offset=_offset)
+        if len(order_by):
+            query = query.order_by(*order_by)
         return ResultIter(self.database.executable.execute(query),
                           row_type=self.database.row_type, step=_step)
 
-    def count(self, *args, **kwargs):
+    def count(self, *_clauses, **kwargs):
         """Return the count of results for the given filter set."""
-        return self.find(*args, return_count=True, **kwargs)
+        # NOTE: this does not have support for limit and offset since I can't
+        # see how this is useful. Still, there might be compatibility issues
+        # with people using these flags. Let's see how it goes.
+        self._check_dropped()
+        args = self._args_to_clause(kwargs, ensure=False, clauses=_clauses)
+        query = select([func.count()], whereclause=args)
+        query = query.select_from(self.table)
+        rp = self.database.executable.execute(query)
+        return rp.fetchone()[0]
 
     def __len__(self):
         """Return the number of rows in the table."""

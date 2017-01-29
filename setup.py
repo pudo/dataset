@@ -23,7 +23,7 @@ setup(
     ],
     keywords='sql sqlalchemy etl loading utility',
     author='Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer',
-    author_email='info@okfn.org',
+    author_email='friedrich@pudo.org',
     url='http://github.com/pudo/dataset',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'test']),
