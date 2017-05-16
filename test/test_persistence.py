@@ -255,7 +255,7 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
         # Test bad use of API
         with self.assertRaises(ArgumentError):
-            self.tbl.delete({'place': 'Berlin'}) is True, 'should return 1'
+            self.tbl.delete({'place': 'Berlin'})
         assert len(self.tbl) == original_count, len(self.tbl)
 
         assert self.tbl.delete(place='Berlin') is True, 'should return 1'
