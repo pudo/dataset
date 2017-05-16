@@ -249,7 +249,7 @@ class Table(object):
         If no arguments are given, all records are deleted.
         """
         self._check_dropped()
-        if _filter:
+        if _filter or _clauses:
             q = self._args_to_clause(_filter, clauses=_clauses)
             stmt = self.table.delete(q)
         else:

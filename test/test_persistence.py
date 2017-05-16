@@ -7,7 +7,7 @@ try:
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict  # Python < 2.7 drop-in
 
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect
 from dataset.util import DatasetException
@@ -251,7 +251,13 @@ class TableTestCase(unittest.TestCase):
             'temperature': -10,
             'place': 'Berlin'}
         )
+        original_count = len(self.tbl)
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
+        # Test bad use of API
+        with self.assertRaises(ArgumentError):
+            self.tbl.delete({'place': 'Berlin'}) is True, 'should return 1'
+        assert len(self.tbl) == original_count, len(self.tbl)
+
         assert self.tbl.delete(place='Berlin') is True, 'should return 1'
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
         assert self.tbl.delete() is True, 'should return non zero'
