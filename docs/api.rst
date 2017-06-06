@@ -19,6 +19,11 @@ Table
    :members: columns, find, find_one, all, count, distinct, insert, insert_ignore, insert_many, update, upsert, delete, create_column, drop_column, create_index, drop
    :special-members: __len__, __iter__
 
+Model
+-----
+
+.. autoclass:: dataset.models.Model
+   :members: __init__, save, delete, find, find_one
 
 Data Export
 -----------
