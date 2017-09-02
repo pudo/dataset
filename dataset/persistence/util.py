@@ -9,6 +9,7 @@ except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
 from six import string_types
+from hashlib import sha1
 
 row_type = OrderedDict
 
@@ -70,3 +71,10 @@ def safe_url(url):
         pwd = ':%s@' % parsed.password
         url = url.replace(pwd, ':*****@')
     return url
+
+
+def index_name(table, columns):
+    """Generate an artificial index name."""
+    sig = '||'.join(columns)
+    key = sha1(sig.encode('utf-8')).hexdigest()[:16]
+    return 'ix_%s_%s' % (table, key)
