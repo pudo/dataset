@@ -1,4 +1,3 @@
-from datetime import datetime, date
 try:
     from urlparse import urlparse
 except ImportError:
@@ -9,24 +8,9 @@ try:
 except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
-from sqlalchemy import Integer, UnicodeText, Float, Date, DateTime, Boolean
 from six import string_types
 
 row_type = OrderedDict
-
-
-def guess_type(sample):
-    if isinstance(sample, bool):
-        return Boolean
-    elif isinstance(sample, int):
-        return Integer
-    elif isinstance(sample, float):
-        return Float
-    elif isinstance(sample, datetime):
-        return DateTime
-    elif isinstance(sample, date):
-        return Date
-    return UnicodeText
 
 
 def convert_row(row_type, row):

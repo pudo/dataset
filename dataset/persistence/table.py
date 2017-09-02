@@ -5,7 +5,8 @@ from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import ClauseElement
 from sqlalchemy.schema import Column, Index
 from sqlalchemy import func, select, false
-from dataset.persistence.util import guess_type, normalize_column_name
+
+from dataset.persistence.util import normalize_column_name
 from dataset.persistence.util import ResultIter
 from dataset.util import DatasetException
 
@@ -15,6 +16,7 @@ log = logging.getLogger(__name__)
 
 class Table(object):
     """Represents a table in a database and exposes common operations."""
+    PRIMARY_DEFAULT = 'id'
 
     def __init__(self, database, table):
         """Initialise the table from database schema."""
@@ -59,7 +61,7 @@ class Table(object):
         # filter out keys not in column set
         return {k: row[k] for k in row if k in self._normalized_columns}
 
-    def insert(self, row, ensure=None, types={}):
+    def insert(self, row, ensure=None, types=None):
         """
         Add a row (type: dict) by inserting it into the table.
 
@@ -88,7 +90,7 @@ class Table(object):
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
 
-    def insert_ignore(self, row, keys, ensure=None, types={}):
+    def insert_ignore(self, row, keys, ensure=None, types=None):
         """
         Add a row (type: dict) into the table if the row does not exist.
 
@@ -113,7 +115,7 @@ class Table(object):
         else:
             return False
 
-    def insert_many(self, rows, chunk_size=1000, ensure=None, types={}):
+    def insert_many(self, rows, chunk_size=1000, ensure=None, types=None):
         """
         Add many rows at a time.
 
@@ -149,7 +151,7 @@ class Table(object):
         if chunk:
             _process_chunk(chunk)
 
-    def update(self, row, keys, ensure=None, types={}):
+    def update(self, row, keys, ensure=None, types=None):
         """
         Update a row in the table.
 
@@ -211,7 +213,7 @@ class Table(object):
             filters[key] = row.get(key)
         return row, self.find_one(**filters)
 
-    def upsert(self, row, keys, ensure=None, types={}):
+    def upsert(self, row, keys, ensure=None, types=None):
         """
         An UPSERT is a smart combination of insert and update.
 
@@ -260,17 +262,18 @@ class Table(object):
     def _has_column(self, column):
         return normalize_column_name(column) in self._normalized_columns
 
-    def _ensure_columns(self, row, types={}):
+    def _ensure_columns(self, row, types=None):
         # Keep order of inserted columns
         for column in row.keys():
             if self._has_column(column):
                 continue
-            if column in types:
+            if types is not None and column in types:
                 _type = types[column]
             else:
-                _type = guess_type(row[column])
+                _type = self.database.types.guess(row[column])
             log.debug("Creating column: %s (%s) on %r" % (column,
-                                                          _type, self.table.name))
+                                                          _type,
+                                                          self.table.name))
             self.create_column(column, _type)
 
     def _args_to_clause(self, args, ensure=None, clauses=()):
@@ -294,13 +297,13 @@ class Table(object):
         ``type`` must be a `SQLAlchemy column type <http://docs.sqlalchemy.org/en/rel_0_8/core/types.html>`_.
         ::
 
-            table.create_column('created_at', sqlalchemy.DateTime)
+            table.create_column('created_at', db.types.datetime)
         """
         self._check_dropped()
         self.database._acquire()
         try:
             if normalize_column_name(name) in self._normalized_columns:
-                log.warn("Column with similar name exists: %s" % name)
+                log.debug("Column exists: %s" % name)
                 return
 
             self.database.op.add_column(
@@ -321,7 +324,8 @@ class Table(object):
 
             table.create_column_by_example('length', 4.2)
         """
-        self._ensure_columns({name: value}, {})
+        type_ = self.database.types.guess(value)
+        self.create_column(name, type_)
 
     def drop_column(self, name):
         """

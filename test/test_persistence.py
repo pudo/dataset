@@ -50,25 +50,23 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_create_table_custom_id1(self):
         pid = "string_id"
-        table = self.db.create_table("foo2", pid, 'String')
+        table = self.db.create_table("foo2", pid, self.db.types.string)
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
-        table.insert({
-            'string_id': 'foobar'})
-        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
+        table.insert({pid: 'foobar'})
+        assert table.find_one(string_id='foobar')[pid] == 'foobar'
 
     def test_create_table_custom_id2(self):
         pid = "string_id"
-        table = self.db.create_table("foo3", pid, 'String(50)')
+        table = self.db.create_table("foo3", pid, self.db.types.string(50))
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
-        table.insert({
-            'string_id': 'foobar'})
-        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
+        table.insert({pid: 'foobar'})
+        assert table.find_one(string_id='foobar')[pid] == 'foobar'
 
     def test_create_table_custom_id3(self):
         pid = "int_id"
@@ -77,11 +75,11 @@ class DatabaseTestCase(unittest.TestCase):
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
-        table.insert({'int_id': 123})
-        table.insert({'int_id': 124})
-        assert table.find_one(int_id=123)['int_id'] == 123
-        assert table.find_one(int_id=124)['int_id'] == 124
-        self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
+        table.insert({pid: 123})
+        table.insert({pid: 124})
+        assert table.find_one(int_id=123)[pid] == 123
+        assert table.find_one(int_id=124)[pid] == 124
+        self.assertRaises(IntegrityError, lambda: table.insert({pid: 123}))
 
     def test_create_table_shorthand1(self):
         pid = "int_id"
@@ -98,7 +96,8 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_create_table_shorthand2(self):
         pid = "string_id"
-        table = self.db.get_table('foo6', primary_id=pid, primary_type='String')
+        table = self.db.get_table('foo6', primary_id=pid,
+                                  primary_type=self.db.types.string)
         assert table.table.exists
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
@@ -109,7 +108,8 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_create_table_shorthand3(self):
         pid = "string_id"
-        table = self.db.get_table('foo7', primary_id=pid, primary_type='String(20)')
+        table = self.db.get_table('foo7', primary_id=pid,
+                                  primary_type=self.db.types.string(20))
         assert table.table.exists
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c

@@ -1,12 +1,10 @@
 import logging
 import threading
-import re
 
 import six
 from six.moves.urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import create_engine
-from sqlalchemy import Integer, String
 from sqlalchemy.sql import text
 from sqlalchemy.schema import MetaData, Column
 from sqlalchemy.schema import Table as SQLATable
@@ -18,7 +16,7 @@ from alembic.operations import Operations
 
 from dataset.persistence.table import Table
 from dataset.persistence.util import ResultIter, row_type, safe_url
-from dataset.util import DatasetException
+from dataset.persistence.types import Types
 
 log = logging.getLogger(__name__)
 
@@ -49,6 +47,7 @@ class Database(object):
                 if len(schema_qs):
                     schema = schema_qs.pop()
 
+        self.types = Types()
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
         self.url = url
@@ -145,9 +144,8 @@ class Database(object):
             raise ValueError("Invalid table name: %r" % table_name)
         return table_name.strip()
 
-    def create_table(self, table_name, primary_id='id', primary_type='Integer'):
-        """
-        Create a new table.
+    def create_table(self, table_name, primary_id=None, primary_type=None):
+        """Create a new table.
 
         The new table will automatically have an `id` column unless specified via
         optional parameter primary_id, which will be used as the primary key of the
@@ -166,34 +164,31 @@ class Database(object):
 
             # custom id and type
             table2 = db.create_table('population2', 'age')
-            table3 = db.create_table('population3', primary_id='race', primary_type='String')
+            table3 = db.create_table('population3',
+                                     primary_id='city',
+                                     primary_type=db.types.string)
             # custom length of String
-            table4 = db.create_table('population4', primary_id='race', primary_type='String(50)')
+            table4 = db.create_table('population4',
+                                     primary_id='city',
+                                     primary_type=db.types.string(25))
+            # no primary key
+            table5 = db.create_table('population5',
+                                     primary_id=False)
         """
         table_name = self._valid_table_name(table_name)
         self._acquire()
         try:
-            log.debug("Creating table: %s on %r" % (table_name, self.engine))
-            match = re.match(r'^(Integer)$|^(String)(\(\d+\))?$', primary_type)
-            if match:
-                if match.group(1) == 'Integer':
-                    auto_flag = False
-                    if primary_id == 'id':
-                        auto_flag = True
-                    col = Column(primary_id, Integer, primary_key=True, autoincrement=auto_flag)
-                elif not match.group(3):
-                    col = Column(primary_id, String(255), primary_key=True)
-                else:
-                    len_string = int(match.group(3)[1:-1])
-                    len_string = min(len_string, 255)
-                    col = Column(primary_id, String(len_string), primary_key=True)
-            else:
-                raise DatasetException(
-                    "The primary_type has to be either 'Integer' or 'String'.")
-
+            log.debug("Creating table: %s" % (table_name))
             table = SQLATable(table_name, self.metadata, schema=self.schema)
-            table.append_column(col)
-            table.create(self.engine)
+            if primary_id is not False:
+                primary_id = primary_id or Table.PRIMARY_DEFAULT
+                primary_type = primary_type or self.types.integer
+                autoincrement = primary_id == Table.PRIMARY_DEFAULT
+                col = Column(primary_id, primary_type,
+                             primary_key=True,
+                             autoincrement=autoincrement)
+                table.append_column(col)
+            table.create(self.executable)
             self._tables[table_name] = table
             return Table(self, table)
         finally:
@@ -227,13 +222,13 @@ class Database(object):
         """Reload a table schema from the database."""
         table_name = self._valid_table_name(table_name)
         self.metadata = MetaData(schema=self.schema)
-        self.metadata.bind = self.engine
-        self.metadata.reflect(self.engine)
+        self.metadata.bind = self.executable
+        self.metadata.reflect(self.executable)
         self._tables[table_name] = SQLATable(table_name, self.metadata,
                                              schema=self.schema)
         return self._tables[table_name]
 
-    def get_table(self, table_name, primary_id='id', primary_type='Integer'):
+    def get_table(self, table_name, primary_id=None, primary_type=None):
         """
         Smart wrapper around *load_table* and *create_table*.
 
