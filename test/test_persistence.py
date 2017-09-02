@@ -47,15 +47,19 @@ class DatabaseTestCase(unittest.TestCase):
         assert len(table.table.columns) == 1, table.table.columns
         assert 'id' in table.table.c, table.table.c
 
+    def test_create_table_no_ids(self):
+        table = self.db.create_table("foo_no_id", primary_id=False)
+        assert table.table.exists()
+        assert len(table.table.columns) == 0, table.table.columns
+
     def test_create_table_custom_id1(self):
         pid = "string_id"
-        table = self.db.create_table("foo2", pid, self.db.types.string)
+        table = self.db.create_table("foo2", pid, self.db.types.text)
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
         table.insert({pid: 'foobar'})
         assert table.find_one(string_id='foobar')[pid] == 'foobar'
-        table.drop()
 
     def test_create_table_custom_id2(self):
         pid = "string_id"
@@ -96,7 +100,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_shorthand2(self):
         pid = "string_id"
         table = self.db.get_table('foo6', primary_id=pid,
-                                  primary_type=self.db.types.string)
+                                  primary_type=self.db.types.text)
         assert table.table.exists
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c

@@ -166,7 +166,7 @@ class Database(object):
             table2 = db.create_table('population2', 'age')
             table3 = db.create_table('population3',
                                      primary_id='city',
-                                     primary_type=db.types.string)
+                                     primary_type=db.types.text)
             # custom length of String
             table4 = db.create_table('population4',
                                      primary_id='city',
