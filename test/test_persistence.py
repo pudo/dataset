@@ -48,13 +48,17 @@ class DatabaseTestCase(unittest.TestCase):
         assert 'id' in table.table.c, table.table.c
 
     def test_create_table_no_ids(self):
+        if 'mysql' in self.db.engine.dialect.dbapi.__name__:
+            return
+        if 'sqlite' in self.db.engine.dialect.dbapi.__name__:
+            return
         table = self.db.create_table("foo_no_id", primary_id=False)
         assert table.table.exists()
         assert len(table.table.columns) == 0, table.table.columns
 
     def test_create_table_custom_id1(self):
         pid = "string_id"
-        table = self.db.create_table("foo2", pid, self.db.types.text)
+        table = self.db.create_table("foo2", pid, self.db.types.string(255))
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
@@ -100,19 +104,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_shorthand2(self):
         pid = "string_id"
         table = self.db.get_table('foo6', primary_id=pid,
-                                  primary_type=self.db.types.text)
-        assert table.table.exists
-        assert len(table.table.columns) == 1, table.table.columns
-        assert pid in table.table.c, table.table.c
-
-        table.insert({
-            'string_id': 'foobar'})
-        assert table.find_one(string_id='foobar')['string_id'] == 'foobar'
-
-    def test_create_table_shorthand3(self):
-        pid = "string_id"
-        table = self.db.get_table('foo7', primary_id=pid,
-                                  primary_type=self.db.types.string(20))
+                                  primary_type=self.db.types.string(255))
         assert table.table.exists
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
@@ -125,7 +117,9 @@ class DatabaseTestCase(unittest.TestCase):
         init_length = len(self.db['weather'])
         with self.assertRaises(ValueError):
             with self.db as tx:
-                tx['weather'].insert({'date': datetime(2011, 1, 1), 'temperature': 1, 'place': u'tmp_place'})
+                tx['weather'].insert({'date': datetime(2011, 1, 1),
+                                      'temperature': 1,
+                                      'place': u'tmp_place'})
                 raise ValueError()
         assert len(self.db['weather']) == init_length
 
