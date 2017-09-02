@@ -2,7 +2,17 @@
 API documentation
 =================
 
+Connecting
+----------
+
 .. autofunction:: dataset.connect
+
+Notes
+-----
+
+* **dataset** uses SQLAlchemy connection pooling when connecting to the
+  database. There is no way of explicitly clearing or shutting down the
+  connections, other than having the dataset instance garbage collected.
 
 Database
 --------
