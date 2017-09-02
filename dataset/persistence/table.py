@@ -312,6 +312,17 @@ class Table(object):
         finally:
             self.database._release()
 
+    def create_column_by_example(self, name, value):
+        """
+        Explicitly create a new column ``name`` with a type that is appropriate to store
+        the given example ``value``.  The type is guessed in the same way as for the
+        insert method with ``ensure=True``. If a column of the same name already exists,
+        no action is taken, even if it is not of the type we would have created.
+
+            table.create_column_by_example('length', 4.2)
+        """
+        self._ensure_columns({name: value}, {})
+
     def drop_column(self, name):
         """
         Drop the column ``name``.
