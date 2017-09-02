@@ -21,6 +21,10 @@ class DatabaseTestCase(unittest.TestCase):
     def setUp(self):
         os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
         self.db = connect(os.environ['DATABASE_URL'])
+        for table in self.db.tables:
+            self.db[table].drop()
+        self.db.commit()
+        print 'XXX', self.db.tables
         self.tbl = self.db['weather']
         self.tbl.insert_many(TEST_DATA)
 
@@ -331,9 +335,9 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == len(data) + 6
 
     def test_drop_warning(self):
-        assert self.tbl._is_dropped is False, 'table shouldn\'t be dropped yet'
+        assert self.tbl.table is not None, 'table shouldn\'t be dropped yet'
         self.tbl.drop()
-        assert self.tbl._is_dropped is True, 'table should be dropped now'
+        assert self.tbl.table is None, 'table should be dropped now'
         try:
             list(self.tbl.all())
         except DatasetException:

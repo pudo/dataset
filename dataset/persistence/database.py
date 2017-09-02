@@ -86,8 +86,6 @@ class Database(object):
         Enter a transaction explicitly.
 
         No data will be written until the transaction has been committed.
-        **NOTICE:** Schema modification operations, such as the creation
-        of tables or columns will not be part of the transactional context.
         """
         if not hasattr(self.local, 'tx'):
             self.local.tx = []
@@ -179,6 +177,9 @@ class Database(object):
         assert not isinstance(primary_type, six.string_types), \
             'Text-based primary_type support is dropped, use db.types.'
         table_name = self._valid_table_name(table_name)
+        table = self._reflect_table(table_name)
+        if table is not None:
+            return Table(self, table)
         self._acquire()
         try:
             log.debug("Creating table: %s" % (table_name))
@@ -192,7 +193,7 @@ class Database(object):
                              primary_key=True,
                              autoincrement=autoincrement)
                 table.append_column(col)
-            table.create(self.executable)
+            table.create(self.executable, checkfirst=True)
             return Table(self, table)
         finally:
             self._release()
@@ -222,7 +223,8 @@ class Database(object):
             return SQLATable(table_name,
                              self.metadata,
                              schema=self.schema,
-                             autoload=True)
+                             autoload=True,
+                             autoload_with=self.executable)
         except NoSuchTableError:
             return None
 
@@ -242,9 +244,6 @@ class Database(object):
             table = db['population']
 
         """
-        table = self._reflect_table(table_name)
-        if table is not None:
-            return Table(self, table)
         return self.create_table(table_name, primary_id, primary_type)
 
     def __getitem__(self, table_name):

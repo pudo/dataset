@@ -30,10 +30,6 @@ class Table(object):
         """Get a listing of all columns that exist in the table."""
         return list(self.table.columns.keys())
 
-    @property
-    def _normalized_columns(self):
-        return map(normalize_column_name, self.columns)
-
     def drop(self):
         """
         Drop the table from the database.
@@ -46,13 +42,13 @@ class Table(object):
         self._check_dropped()
         self.database._acquire()
         try:
-            self._is_dropped = True
-            self.table.drop(self.database.executable)
+            self.table.drop(self.database.executable, checkfirst=True)
+            self.table = None
         finally:
             self.database._release()
 
     def _check_dropped(self):
-        if self._is_dropped:
+        if self.table is None:
             raise DatasetException('the table has been dropped. this object should not be used again.')
 
     def _prune_row(self, row):
@@ -60,7 +56,7 @@ class Table(object):
         # normalize keys
         row = {normalize_column_name(k): v for k, v in row.items()}
         # filter out keys not in column set
-        return {k: row[k] for k in row if k in self._normalized_columns}
+        return {k: row[k] for k in row if k in self.columns}
 
     def insert(self, row, ensure=None, types=None):
         """
@@ -261,7 +257,7 @@ class Table(object):
         return rows.rowcount > 0
 
     def _has_column(self, column):
-        return normalize_column_name(column) in self._normalized_columns
+        return normalize_column_name(column) in self.columns
 
     def _ensure_columns(self, row, types=None):
         # Keep order of inserted columns
@@ -303,7 +299,8 @@ class Table(object):
         self._check_dropped()
         self.database._acquire()
         try:
-            if normalize_column_name(name) in self._normalized_columns:
+            name = normalize_column_name(name)
+            if name in self.columns:
                 log.debug("Column exists: %s" % name)
                 return
 
