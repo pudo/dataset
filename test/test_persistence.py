@@ -135,7 +135,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
-        assert tbl.table == self.tbl.table
+        assert tbl.table.name == self.tbl.table.name
 
     def test_query(self):
         r = self.db.query('SELECT COUNT(*) AS num FROM weather').next()

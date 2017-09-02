@@ -43,12 +43,11 @@ class Table(object):
         dropping the table. If you want to re-create the table, make
         sure to get a fresh instance from the :py:class:`Database <dataset.Database>`.
         """
+        self._check_dropped()
         self.database._acquire()
         try:
             self._is_dropped = True
-            self.database._tables.pop(self.table.name, None)
             self.table.drop(self.database.executable)
-            return True
         finally:
             self.database._release()
 
@@ -313,7 +312,7 @@ class Table(object):
                 Column(name, type),
                 self.table.schema
             )
-            self.table = self.database.update_table(self.table.name)
+            self.table = self.database._reflect_table(self.table.name)
         finally:
             self.database._release()
 

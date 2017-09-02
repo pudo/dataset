@@ -10,6 +10,8 @@ from sqlalchemy.schema import MetaData, Column
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.util import safe_reraise
+from sqlalchemy.exc import NoSuchTableError
+from sqlalchemy.engine.reflection import Inspector
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -53,14 +55,7 @@ class Database(object):
         self.url = url
         self.row_type = row_type
         self.ensure_schema = ensure_schema
-        self._tables = {}
-        self.metadata = MetaData(schema=schema)
-        self.metadata.bind = self.engine
-
-        if reflect_metadata:
-            self.metadata.reflect(self.engine, views=reflect_views)
-            for table_name in self.metadata.tables.keys():
-                self.load_table(self.metadata.tables[table_name].name)
+        self.reflect_views = reflect_views
 
     @property
     def executable(self):
@@ -74,6 +69,11 @@ class Database(object):
         """Get an alembic operations context."""
         ctx = MigrationContext.configure(self.executable)
         return Operations(ctx)
+
+    @property
+    def metadata(self):
+        """Return a SQLAlchemy schema cache object."""
+        return MetaData(schema=self.schema, bind=self.executable)
 
     def _acquire(self):
         self.lock.acquire()
@@ -132,7 +132,8 @@ class Database(object):
     @property
     def tables(self):
         """Get a listing of all tables that exist in the database."""
-        return list(self._tables.keys())
+        inspector = Inspector.from_engine(self.executable)
+        return inspector.get_table_names(schema=self.schema)
 
     def __contains__(self, member):
         """Check if the given table name exists in the database."""
@@ -185,20 +186,19 @@ class Database(object):
             if primary_id is not False:
                 primary_id = primary_id or Table.PRIMARY_DEFAULT
                 primary_type = primary_type or self.types.integer
-                autoincrement = primary_id == Table.PRIMARY_DEFAULT
+                autoincrement = primary_type in [self.types.integer,
+                                                 self.types.bigint]
                 col = Column(primary_id, primary_type,
                              primary_key=True,
                              autoincrement=autoincrement)
                 table.append_column(col)
             table.create(self.executable)
-            self._tables[table_name] = table
             return Table(self, table)
         finally:
             self._release()
 
     def load_table(self, table_name):
-        """
-        Load a table.
+        """Load a table.
 
         This will fail if the tables does not already exist in the database. If the
         table exists, its columns will be reflected and are available on the
@@ -210,25 +210,21 @@ class Database(object):
             table = db.load_table('population')
         """
         table_name = self._valid_table_name(table_name)
-        self._acquire()
-        try:
-            log.debug("Loading table: %s on %r" % (table_name, self))
-            table = SQLATable(table_name, self.metadata,
-                              schema=self.schema, autoload=True)
-            self._tables[table_name] = table
+        log.debug("Loading table: %s", table_name)
+        table = self._reflect_table(table_name)
+        if table is not None:
             return Table(self, table)
-        finally:
-            self._release()
 
-    def update_table(self, table_name):
+    def _reflect_table(self, table_name):
         """Reload a table schema from the database."""
         table_name = self._valid_table_name(table_name)
-        self.metadata = MetaData(schema=self.schema)
-        self.metadata.bind = self.executable
-        self.metadata.reflect(self.executable)
-        self._tables[table_name] = SQLATable(table_name, self.metadata,
-                                             schema=self.schema)
-        return self._tables[table_name]
+        try:
+            return SQLATable(table_name,
+                             self.metadata,
+                             schema=self.schema,
+                             autoload=True)
+        except NoSuchTableError:
+            return None
 
     def get_table(self, table_name, primary_id=None, primary_type=None):
         """
@@ -246,24 +242,17 @@ class Database(object):
             table = db['population']
 
         """
-        if table_name in self._tables:
-            return Table(self, self._tables[table_name])
-        self._acquire()
-        try:
-            if self.engine.has_table(table_name, schema=self.schema):
-                return self.load_table(table_name)
-            else:
-                return self.create_table(table_name, primary_id, primary_type)
-        finally:
-            self._release()
+        table = self._reflect_table(table_name)
+        if table is not None:
+            return Table(self, table)
+        return self.create_table(table_name, primary_id, primary_type)
 
     def __getitem__(self, table_name):
         """Get a given table."""
         return self.get_table(table_name)
 
     def query(self, query, **kw):
-        """
-        Run a statement on the database directly.
+        """Run a statement on the database directly.
 
         Allows for the execution of arbitrary read/write queries. A query can either be
         a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
