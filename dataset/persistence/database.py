@@ -55,7 +55,7 @@ class Database(object):
         self.url = url
         self.row_type = row_type
         self.ensure_schema = ensure_schema
-        self.reflect_views = reflect_views
+        self._tables = {}
 
     @property
     def executable(self):
@@ -75,15 +75,8 @@ class Database(object):
         """Return a SQLAlchemy schema cache object."""
         return MetaData(schema=self.schema, bind=self.executable)
 
-    def _acquire(self):
-        self.lock.acquire()
-
-    def _release(self):
-        self.lock.release()
-
     def begin(self):
-        """
-        Enter a transaction explicitly.
+        """Enter a transaction explicitly.
 
         No data will be written until the transaction has been committed.
         """
@@ -92,8 +85,7 @@ class Database(object):
         self.local.tx.append(self.executable.begin())
 
     def commit(self):
-        """
-        Commit the current transaction.
+        """Commit the current transaction.
 
         Make all statements executed since the transaction was begun permanent.
         """
@@ -133,9 +125,12 @@ class Database(object):
         inspector = Inspector.from_engine(self.executable)
         return inspector.get_table_names(schema=self.schema)
 
-    def __contains__(self, member):
+    def __contains__(self, table_name):
         """Check if the given table name exists in the database."""
-        return member in self.tables
+        try:
+            return self._valid_table_name(table_name) in self.tables
+        except ValueError:
+            return False
 
     def _valid_table_name(self, table_name):
         """Check if the table name is obviously invalid."""
@@ -146,15 +141,12 @@ class Database(object):
     def create_table(self, table_name, primary_id=None, primary_type=None):
         """Create a new table.
 
-        The new table will automatically have an `id` column unless specified via
-        optional parameter primary_id, which will be used as the primary key of the
-        table. Automatic id is set to be an auto-incrementing integer, while the
-        type of custom primary_id can be a
-        String or an Integer as specified with primary_type flag. The default
-        length of String is 255. The caller can specify the length.
-        The caller will be responsible for the uniqueness of manual primary_id.
-
-        This custom id feature is only available via direct create_table call.
+        Either loads a table or creates it if it doesn't exist yet. You can
+        define the name and type of the primary key field, if a new table is to
+        be created. The default is to create an auto-incrementing integer,
+        `id`. You can also set the primary key to be a string or big integer.
+        The caller will be responsible for the uniqueness of `primary_id` if
+        it is defined as a text type.
 
         Returns a :py:class:`Table <dataset.Table>` instance.
         ::
@@ -177,11 +169,9 @@ class Database(object):
         assert not isinstance(primary_type, six.string_types), \
             'Text-based primary_type support is dropped, use db.types.'
         table_name = self._valid_table_name(table_name)
-        table = self._reflect_table(table_name)
-        if table is not None:
-            return Table(self, table)
-        self._acquire()
-        try:
+        with self.lock:
+            if table_name in self:
+                return self.load_table(table_name)
             log.debug("Creating table: %s" % (table_name))
             table = SQLATable(table_name, self.metadata, schema=self.schema)
             if primary_id is not False:
@@ -194,9 +184,8 @@ class Database(object):
                              autoincrement=autoincrement)
                 table.append_column(col)
             table.create(self.executable, checkfirst=True)
-            return Table(self, table)
-        finally:
-            self._release()
+            self._tables[table_name] = Table(self, table)
+            return self._tables[table_name]
 
     def load_table(self, table_name):
         """Load a table.
@@ -211,38 +200,37 @@ class Database(object):
             table = db.load_table('population')
         """
         table_name = self._valid_table_name(table_name)
+        if table_name in self._tables:
+            return self._tables.get(table_name)
         log.debug("Loading table: %s", table_name)
-        table = self._reflect_table(table_name)
-        if table is not None:
-            return Table(self, table)
+        with self.lock:
+            table = self._reflect_table(table_name)
+            if table is not None:
+                self._tables[table_name] = Table(self, table)
+                return self._tables[table_name]
 
     def _reflect_table(self, table_name):
         """Reload a table schema from the database."""
         table_name = self._valid_table_name(table_name)
         try:
-            return SQLATable(table_name,
-                             self.metadata,
-                             schema=self.schema,
-                             autoload=True,
-                             autoload_with=self.executable)
+            table = SQLATable(table_name,
+                              self.metadata,
+                              schema=self.schema,
+                              autoload=True,
+                              autoload_with=self.executable)
+            return table
         except NoSuchTableError:
             return None
 
     def get_table(self, table_name, primary_id=None, primary_type=None):
-        """
-        Smart wrapper around *load_table* and *create_table*.
+        """Load or create a table.
 
-        Either loads a table or creates it if it doesn't exist yet.
-        For short-hand to create a table with custom id and type using [], where
-        table_name, primary_id, and primary_type are specified as a tuple
-
-        Returns a :py:class:`Table <dataset.Table>` instance.
+        This is now the same as `create_table`.
         ::
 
             table = db.get_table('population')
             # you can also use the short-hand syntax:
             table = db['population']
-
         """
         return self.create_table(table_name, primary_id, primary_type)
 
@@ -250,7 +238,7 @@ class Database(object):
         """Get a given table."""
         return self.get_table(table_name)
 
-    def query(self, query, **kw):
+    def query(self, query, **kwargs):
         """Run a statement on the database directly.
 
         Allows for the execution of arbitrary read/write queries. A query can either be
@@ -269,8 +257,9 @@ class Database(object):
         """
         if isinstance(query, six.string_types):
             query = text(query)
-        return ResultIter(self.executable.execute(query, **kw),
-                          row_type=self.row_type)
+        _step = kwargs.pop('_step', 5000)
+        return ResultIter(self.executable.execute(query, **kwargs),
+                          row_type=self.row_type, step=_step)
 
     def __repr__(self):
         """Text representation contains the URL."""

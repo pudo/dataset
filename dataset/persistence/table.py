@@ -22,13 +22,16 @@ class Table(object):
         """Initialise the table from database schema."""
         self.indexes = dict((i.name, i) for i in table.indexes)
         self.database = database
+        self.name = table.name
         self.table = table
         self._is_dropped = False
 
     @property
     def columns(self):
         """Get a listing of all columns that exist in the table."""
-        return list(self.table.columns.keys())
+        if self.table is None:
+            return []
+        return self.table.columns.keys()
 
     def drop(self):
         """
@@ -40,16 +43,15 @@ class Table(object):
         sure to get a fresh instance from the :py:class:`Database <dataset.Database>`.
         """
         self._check_dropped()
-        self.database._acquire()
-        try:
+        with self.database.lock:
             self.table.drop(self.database.executable, checkfirst=True)
+            # self.database._tables.pop(self.name, None)
             self.table = None
-        finally:
-            self.database._release()
 
     def _check_dropped(self):
+        # self.table = self.database._reflect_table(self.name)
         if self.table is None:
-            raise DatasetException('the table has been dropped. this object should not be used again.')
+            raise DatasetException('The table has been dropped.')
 
     def _prune_row(self, row):
         """Remove keys from row not in column set."""
@@ -165,10 +167,10 @@ class Table(object):
         they will be created based on the settings of ``ensure`` and
         ``types``, matching the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
+        self._check_dropped()
         # check whether keys arg is a string and format as a list
         if not isinstance(keys, (list, tuple)):
             keys = [keys]
-        self._check_dropped()
         if not keys or len(keys) == len(row):
             return False
         clause = [(u, row.get(u)) for u in keys]
@@ -297,8 +299,7 @@ class Table(object):
             table.create_column('created_at', db.types.datetime)
         """
         self._check_dropped()
-        self.database._acquire()
-        try:
+        with self.database.lock:
             name = normalize_column_name(name)
             if name in self.columns:
                 log.debug("Column exists: %s" % name)
@@ -310,8 +311,6 @@ class Table(object):
                 self.table.schema
             )
             self.table = self.database._reflect_table(self.table.name)
-        finally:
-            self.database._release()
 
     def create_column_by_example(self, name, value):
         """
@@ -336,19 +335,16 @@ class Table(object):
         if self.database.engine.dialect.name == 'sqlite':
             raise NotImplementedError("SQLite does not support dropping columns.")
         self._check_dropped()
-        if name not in self.table.columns.keys():
+        if name not in self.columns:
             log.debug("Column does not exist: %s", name)
             return
-        self.database._acquire()
-        try:
+        with self.database.lock:
             self.database.op.drop_column(
                 self.table.name,
                 name,
                 self.table.schema
             )
             self.table = self.database.update_table(self.table.name)
-        finally:
-            self.database._release()
 
     def create_index(self, columns, name=None, **kw):
         """
@@ -360,51 +356,30 @@ class Table(object):
             table.create_index(['name', 'country'])
         """
         self._check_dropped()
-        if not name:
-            sig = '||'.join(columns)
+        with self.database.lock:
+            if not name:
+                sig = '||'.join(columns)
 
-            # This is a work-around for a bug in <=0.6.1 which would create
-            # indexes based on hash() rather than a proper hash.
-            key = abs(hash(sig))
-            name = 'ix_%s_%s' % (self.table.name, key)
+                # This is a work-around for a bug in <=0.6.1 which would
+                # create indexes based on hash() rather than a proper hash.
+                key = abs(hash(sig))
+                name = 'ix_%s_%s' % (self.table.name, key)
+                if name in self.indexes:
+                    return self.indexes[name]
+
+                key = sha1(sig.encode('utf-8')).hexdigest()[:16]
+                name = 'ix_%s_%s' % (self.table.name, key)
+
             if name in self.indexes:
                 return self.indexes[name]
-
-            key = sha1(sig.encode('utf-8')).hexdigest()[:16]
-            name = 'ix_%s_%s' % (self.table.name, key)
-
-        if name in self.indexes:
-            return self.indexes[name]
-        try:
-            self.database._acquire()
-            columns = [self.table.c[c] for c in columns]
-            idx = Index(name, *columns, **kw)
-            idx.create(self.database.executable)
-        except:
-            idx = None
-        finally:
-            self.database._release()
-        self.indexes[name] = idx
-        return idx
-
-    def find_one(self, *args, **kwargs):
-        """
-        Get a single result from the table.
-
-        Works just like :py:meth:`find() <dataset.Table.find>` but returns one result, or None.
-
-        ::
-
-            row = table.find_one(country='United States')
-        """
-        kwargs['_limit'] = 1
-        kwargs['_step'] = None
-        resiter = self.find(*args, **kwargs)
-        try:
-            for row in resiter:
-                return row
-        finally:
-            resiter.close()
+            try:
+                columns = [self.table.c[c] for c in columns]
+                idx = Index(name, *columns, **kw)
+                idx.create(self.database.executable)
+            except:
+                idx = None
+            self.indexes[name] = idx
+            return idx
 
     def _args_to_order_by(self, order_by):
         if not isinstance(order_by, (list, tuple)):
@@ -466,6 +441,24 @@ class Table(object):
             query = query.order_by(*order_by)
         return ResultIter(self.database.executable.execute(query),
                           row_type=self.database.row_type, step=_step)
+
+    def find_one(self, *args, **kwargs):
+        """Get a single result from the table.
+
+        Works just like :py:meth:`find() <dataset.Table.find>` but returns one
+        result, or None.
+        ::
+
+            row = table.find_one(country='United States')
+        """
+        kwargs['_limit'] = 1
+        kwargs['_step'] = None
+        resiter = self.find(*args, **kwargs)
+        try:
+            for row in resiter:
+                return row
+        finally:
+            resiter.close()
 
     def count(self, *_clauses, **kwargs):
         """Return the count of results for the given filter set."""
