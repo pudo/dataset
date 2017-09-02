@@ -21,10 +21,6 @@ class DatabaseTestCase(unittest.TestCase):
     def setUp(self):
         os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
         self.db = connect(os.environ['DATABASE_URL'])
-        for table in self.db.tables:
-            self.db[table].drop()
-        self.db.commit()
-        print 'XXX', self.db.tables
         self.tbl = self.db['weather']
         self.tbl.insert_many(TEST_DATA)
 
