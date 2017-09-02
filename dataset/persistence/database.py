@@ -264,7 +264,7 @@ class Database(object):
         """Get a given table."""
         return self.get_table(table_name)
 
-    def query(self, query, **kw):
+    def query(self, query, _step=None, **kw):
         """
         Run a statement on the database directly.
 
@@ -285,7 +285,7 @@ class Database(object):
         if isinstance(query, six.string_types):
             query = text(query)
         return ResultIter(self.executable.execute(query, **kw),
-                          row_type=self.row_type)
+                          row_type=self.row_type, step=_step)
 
     def __repr__(self):
         """Text representation contains the URL."""
