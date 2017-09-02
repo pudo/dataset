@@ -47,6 +47,7 @@ class ResultIter(object):
 
     def __init__(self, result_proxy, row_type=row_type, step=None):
         self.row_type = row_type
+        self.result_proxy = result_proxy
         self.keys = list(result_proxy.keys())
         self._iter = iter_result_proxy(result_proxy, step=step)
 
@@ -57,6 +58,9 @@ class ResultIter(object):
 
     def __iter__(self):
         return self
+
+    def close(self):
+        self.result_proxy.close()
 
 
 def safe_url(url):

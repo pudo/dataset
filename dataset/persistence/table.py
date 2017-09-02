@@ -44,11 +44,13 @@ class Table(object):
         sure to get a fresh instance from the :py:class:`Database <dataset.Database>`.
         """
         self.database._acquire()
-        self._is_dropped = True
-        self.database._tables.pop(self.table.name, None)
-        self.table.drop(self.database.engine)
-        self.database._release()
-        return True
+        try:
+            self._is_dropped = True
+            self.database._tables.pop(self.table.name, None)
+            self.table.drop(self.database.executable)
+            return True
+        finally:
+            self.database._release()
 
     def _check_dropped(self):
         if self._is_dropped:
@@ -338,15 +340,17 @@ class Table(object):
         if self.database.engine.dialect.name == 'sqlite':
             raise NotImplementedError("SQLite does not support dropping columns.")
         self._check_dropped()
+        if name not in self.table.columns.keys():
+            log.debug("Column does not exist: %s", name)
+            return
         self.database._acquire()
         try:
-            if name in self.table.columns.keys():
-                self.database.op.drop_column(
-                    self.table.name,
-                    name,
-                    self.table.schema
-                )
-                self.table = self.database.update_table(self.table.name)
+            self.database.op.drop_column(
+                self.table.name,
+                name,
+                self.table.schema
+            )
+            self.table = self.database.update_table(self.table.name)
         finally:
             self.database._release()
 
@@ -379,7 +383,7 @@ class Table(object):
             self.database._acquire()
             columns = [self.table.c[c] for c in columns]
             idx = Index(name, *columns, **kw)
-            idx.create(self.database.engine)
+            idx.create(self.database.executable)
         except:
             idx = None
         finally:
@@ -398,11 +402,13 @@ class Table(object):
             row = table.find_one(country='United States')
         """
         kwargs['_limit'] = 1
-        iterator = self.find(*args, **kwargs)
+        kwargs['_step'] = None
+        resiter = self.find(*args, **kwargs)
         try:
-            return next(iterator)
-        except StopIteration:
-            return None
+            for row in resiter:
+                return row
+        finally:
+            resiter.close()
 
     def _args_to_order_by(self, order_by):
         if not isinstance(order_by, (list, tuple)):

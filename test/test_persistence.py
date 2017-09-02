@@ -22,8 +22,7 @@ class DatabaseTestCase(unittest.TestCase):
         os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
         self.db = connect(os.environ['DATABASE_URL'])
         self.tbl = self.db['weather']
-        for row in TEST_DATA:
-            self.tbl.insert(row)
+        self.tbl.insert_many(TEST_DATA)
 
     def tearDown(self):
         for table in self.db.tables:
@@ -54,9 +53,9 @@ class DatabaseTestCase(unittest.TestCase):
         assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
-
         table.insert({pid: 'foobar'})
         assert table.find_one(string_id='foobar')[pid] == 'foobar'
+        table.drop()
 
     def test_create_table_custom_id2(self):
         pid = "string_id"
