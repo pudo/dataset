@@ -2,6 +2,7 @@
 *.egg-info
 *.egg
 dist/*
+.tox/*
 build/*
 .DS_Store
 .watchr

@@ -161,6 +161,7 @@ def main():  # pragma: no cover
     except FreezeException as fe:
         log.error(fe)
 
+
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig(level=logging.DEBUG)
     main()
