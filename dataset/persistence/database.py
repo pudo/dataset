@@ -175,6 +175,8 @@ class Database(object):
             table5 = db.create_table('population5',
                                      primary_id=False)
         """
+        assert not isinstance(primary_type, six.string_types), \
+            'Text-based primary_type support is dropped, use db.types.'
         table_name = self._valid_table_name(table_name)
         self._acquire()
         try:
