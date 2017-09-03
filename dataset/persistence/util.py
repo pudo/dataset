@@ -22,15 +22,6 @@ def convert_row(row_type, row):
     return row_type(row.items())
 
 
-def normalize_column_name(name):
-    if not isinstance(name, string_types):
-        raise ValueError('%r is not a valid column name.' % name)
-    name = name.strip()
-    if not len(name) or '.' in name or '-' in name:
-        raise ValueError('%r is not a valid column name.' % name)
-    return name
-
-
 def iter_result_proxy(rp, step=None):
     """Iterate over the ResultProxy."""
     while True:
@@ -64,6 +55,26 @@ class ResultIter(object):
 
     def close(self):
         self.result_proxy.close()
+
+
+def normalize_column_name(name):
+    """Check if a string is a reasonable thing to use as a column name."""
+    if not isinstance(name, string_types):
+        raise ValueError('%r is not a valid column name.' % name)
+    name = name.strip()
+    if not len(name) or '.' in name or '-' in name:
+        raise ValueError('%r is not a valid column name.' % name)
+    return name
+
+
+def normalize_table_name(name):
+    """Check if the table name is obviously invalid."""
+    if not isinstance(name, string_types):
+        raise ValueError("Invalid table name: %r" % name)
+    name = name.strip()
+    if not len(name):
+        raise ValueError("Invalid table name: %r" % name)
+    return name
 
 
 def safe_url(url):

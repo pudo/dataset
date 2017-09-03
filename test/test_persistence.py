@@ -341,9 +341,11 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == len(data) + 6
 
     def test_drop_operations(self):
-        assert self.tbl.table is not None, 'table shouldn\'t be dropped yet'
+        assert self.tbl._table is not None, \
+            'table shouldn\'t be dropped yet'
         self.tbl.drop()
-        assert self.tbl.table is None, 'table should be dropped now'
+        assert self.tbl._table is None, \
+            'table should be dropped now'
         assert list(self.tbl.all()) == [], self.tbl.all()
         assert self.tbl.count() == 0, self.tbl.count()
 
@@ -367,7 +369,7 @@ class TableTestCase(unittest.TestCase):
         try:
             self.tbl.drop_column('date')
             assert 'date' not in self.tbl.columns
-        except NotImplementedError:
+        except RuntimeError:
             pass
 
     def test_iter(self):

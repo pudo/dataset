@@ -6,11 +6,9 @@ from six.moves.urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
-from sqlalchemy.schema import MetaData, Column
-from sqlalchemy.schema import Table as SQLATable
+from sqlalchemy.schema import MetaData
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.util import safe_reraise
-from sqlalchemy.exc import NoSuchTableError
 from sqlalchemy.engine.reflection import Inspector
 
 from alembic.migration import MigrationContext
@@ -18,6 +16,7 @@ from alembic.operations import Operations
 
 from dataset.persistence.table import Table
 from dataset.persistence.util import ResultIter, row_type, safe_url, QUERY_STEP
+from dataset.persistence.util import normalize_table_name
 from dataset.persistence.types import Types
 
 log = logging.getLogger(__name__)
@@ -94,8 +93,7 @@ class Database(object):
             tx.commit()
 
     def rollback(self):
-        """
-        Roll back the current transaction.
+        """Roll back the current transaction.
 
         Discard all statements executed since the transaction was begun.
         """
@@ -128,15 +126,9 @@ class Database(object):
     def __contains__(self, table_name):
         """Check if the given table name exists in the database."""
         try:
-            return self._valid_table_name(table_name) in self.tables
+            return normalize_table_name(table_name) in self.tables
         except ValueError:
             return False
-
-    def _valid_table_name(self, table_name):
-        """Check if the table name is obviously invalid."""
-        if table_name is None or not len(table_name.strip()):
-            raise ValueError("Invalid table name: %r" % table_name)
-        return table_name.strip()
 
     def create_table(self, table_name, primary_id=None, primary_type=None):
         """Create a new table.
@@ -144,8 +136,8 @@ class Database(object):
         Either loads a table or creates it if it doesn't exist yet. You can
         define the name and type of the primary key field, if a new table is to
         be created. The default is to create an auto-incrementing integer,
-        `id`. You can also set the primary key to be a string or big integer.
-        The caller will be responsible for the uniqueness of `primary_id` if
+        ``id``. You can also set the primary key to be a string or big integer.
+        The caller will be responsible for the uniqueness of ``primary_id`` if
         it is defined as a text type.
 
         Returns a :py:class:`Table <dataset.Table>` instance.
@@ -168,64 +160,37 @@ class Database(object):
         """
         assert not isinstance(primary_type, six.string_types), \
             'Text-based primary_type support is dropped, use db.types.'
-        table_name = self._valid_table_name(table_name)
+        table_name = normalize_table_name(table_name)
         with self.lock:
-            if table_name in self:
-                return self.load_table(table_name)
-            log.debug("Creating table: %s" % (table_name))
-            table = SQLATable(table_name, self.metadata, schema=self.schema)
-            if primary_id is not False:
-                primary_id = primary_id or Table.PRIMARY_DEFAULT
-                primary_type = primary_type or self.types.integer
-                autoincrement = primary_type in [self.types.integer,
-                                                 self.types.bigint]
-                col = Column(primary_id, primary_type,
-                             primary_key=True,
-                             autoincrement=autoincrement)
-                table.append_column(col)
-            table.create(self.executable, checkfirst=True)
-            self._tables[table_name] = Table(self, table)
-            return self._tables[table_name]
+            if table_name not in self._tables:
+                self._tables[table_name] = Table(self, table_name,
+                                                 primary_id=primary_id,
+                                                 primary_type=primary_type,
+                                                 auto_create=True)
+            return self._tables.get(table_name)
 
     def load_table(self, table_name):
         """Load a table.
 
-        This will fail if the tables does not already exist in the database. If the
-        table exists, its columns will be reflected and are available on the
-        :py:class:`Table <dataset.Table>` object.
+        This will fail if the tables does not already exist in the database. If
+        the table exists, its columns will be reflected and are available on
+        the :py:class:`Table <dataset.Table>` object.
 
         Returns a :py:class:`Table <dataset.Table>` instance.
         ::
 
             table = db.load_table('population')
         """
-        table_name = self._valid_table_name(table_name)
-        if table_name in self._tables:
-            return self._tables.get(table_name)
-        log.debug("Loading table: %s", table_name)
+        table_name = normalize_table_name(table_name)
         with self.lock:
-            table = self._reflect_table(table_name)
-            if table is not None:
-                self._tables[table_name] = Table(self, table)
-                return self._tables[table_name]
-
-    def _reflect_table(self, table_name):
-        """Reload a table schema from the database."""
-        table_name = self._valid_table_name(table_name)
-        try:
-            table = SQLATable(table_name,
-                              self.metadata,
-                              schema=self.schema,
-                              autoload=True,
-                              autoload_with=self.executable)
-            return table
-        except NoSuchTableError:
-            return None
+            if table_name not in self._tables:
+                self._tables[table_name] = Table(self, table_name)
+            return self._tables.get(table_name)
 
     def get_table(self, table_name, primary_id=None, primary_type=None):
         """Load or create a table.
 
-        This is now the same as `create_table`.
+        This is now the same as ``create_table``.
         ::
 
             table = db.get_table('population')
@@ -249,17 +214,16 @@ class Database(object):
 
         Further positional and keyword arguments will be used for parameter
         binding. To include a positional argument in your query, use question
-        marks in the query (i.e. `SELECT * FROM tbl WHERE a = ?`). For keyword
-        arguments, use a bind parameter (i.e. `SELECT * FROM tbl WHERE a =
-        :foo`).
-
-        The returned iterator will yield each result sequentially.
+        marks in the query (i.e. ``SELECT * FROM tbl WHERE a = ?```). For
+        keyword arguments, use a bind parameter (i.e. ``SELECT * FROM tbl
+        WHERE a = :foo``).
         ::
 
             statement = 'SELECT user, COUNT(*) c FROM photos GROUP BY user'
             for row in db.query(statement):
                 print(row['user'], row['c'])
 
+        The returned iterator will yield each result sequentially.
         """
         if isinstance(query, six.string_types):
             query = text(query)
