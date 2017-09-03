@@ -11,7 +11,6 @@ from sqlalchemy import FLOAT, INTEGER, TEXT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect
-from dataset.util import DatasetException
 
 from .sample_data import TEST_DATA, TEST_CITY_1
 
@@ -185,13 +184,14 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
     def test_insert_ignore_all_key(self):
-        for i in range(0, 2):
+        for i in range(0, 4):
             self.tbl.insert_ignore({
                 'date': datetime(2011, 1, 2),
                 'temperature': -10,
                 'place': 'Berlin'},
                 ['date', 'temperature', 'place']
             )
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
     def test_upsert(self):
         self.tbl.upsert({
@@ -209,7 +209,21 @@ class TableTestCase(unittest.TestCase):
         )
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
+    def test_upsert_single_column(self):
+        table = self.db['banana_single_col']
+        table.upsert({
+            'color': 'Yellow'},
+            ['color']
+        )
+        assert len(table) == 1, len(table)
+        table.upsert({
+            'color': 'Yellow'},
+            ['color']
+        )
+        assert len(table) == 1, len(table)
+
     def test_upsert_all_key(self):
+        assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
         for i in range(0, 2):
             self.tbl.upsert({
                 'date': datetime(2011, 1, 2),
@@ -217,11 +231,13 @@ class TableTestCase(unittest.TestCase):
                 'place': 'Berlin'},
                 ['date', 'temperature', 'place']
             )
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
     def test_update_while_iter(self):
         for row in self.tbl:
             row['foo'] = 'bar'
             self.tbl.update(row, ['place', 'date'])
+        assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
 
     def test_weird_column_names(self):
         with self.assertRaises(ValueError):
@@ -262,17 +278,19 @@ class TableTestCase(unittest.TestCase):
         assert len(self.tbl) == 0, len(self.tbl)
 
     def test_repr(self):
-        assert repr(self.tbl) == '<Table(weather)>', 'the representation should be <Table(weather)>'
+        assert repr(self.tbl) == '<Table(weather)>', \
+            'the representation should be <Table(weather)>'
 
     def test_delete_nonexist_entry(self):
-        assert self.tbl.delete(place='Berlin') is False, 'entry not exist, should fail to delete'
+        assert self.tbl.delete(place='Berlin') is False, \
+            'entry not exist, should fail to delete'
 
     def test_find_one(self):
         self.tbl.insert({
             'date': datetime(2011, 1, 2),
             'temperature': -10,
-            'place': 'Berlin'}
-        )
+            'place': 'Berlin'
+        })
         d = self.tbl.find_one(place='Berlin')
         assert d['temperature'] == -10, d
         d = self.tbl.find_one(place='Atlantis')
@@ -317,29 +335,17 @@ class TableTestCase(unittest.TestCase):
             self.tbl.table.columns.date >= datetime(2011, 1, 2, 0, 0)))
         assert len(x) == 4, x
 
-    def test_get_items(self):
-        x = list(self.tbl['place'])
-        y = list(self.tbl.distinct('place'))
-        assert x == y, (x, y)
-        x = list(self.tbl['place', 'date'])
-        y = list(self.tbl.distinct('place', 'date'))
-        assert x == y, (x, y)
-
     def test_insert_many(self):
         data = TEST_DATA * 100
         self.tbl.insert_many(data, chunk_size=13)
         assert len(self.tbl) == len(data) + 6
 
-    def test_drop_warning(self):
+    def test_drop_operations(self):
         assert self.tbl.table is not None, 'table shouldn\'t be dropped yet'
         self.tbl.drop()
         assert self.tbl.table is None, 'table should be dropped now'
-        try:
-            list(self.tbl.all())
-        except DatasetException:
-            pass
-        else:
-            assert False, 'we should not reach else block, no exception raised!'
+        assert list(self.tbl.all()) == [], self.tbl.all()
+        assert self.tbl.count() == 0, self.tbl.count()
 
     def test_table_drop(self):
         assert 'weather' in self.db
@@ -380,26 +386,31 @@ class TableTestCase(unittest.TestCase):
         )
         assert res, 'update should return True'
         m = self.tbl.find_one(place=TEST_CITY_1, date=date)
-        assert m['temperature'] == -10, 'new temp. should be -10 but is %d' % m['temperature']
+        assert m['temperature'] == -10, \
+            'new temp. should be -10 but is %d' % m['temperature']
 
     def test_create_column(self):
         tbl = self.tbl
         tbl.create_column('foo', FLOAT)
         assert 'foo' in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c['foo'].type, FLOAT), tbl.table.c['foo'].type
+        assert isinstance(tbl.table.c['foo'].type, FLOAT), \
+            tbl.table.c['foo'].type
         assert 'foo' in tbl.columns, tbl.columns
 
     def test_ensure_column(self):
         tbl = self.tbl
         tbl.create_column_by_example('foo', 0.1)
         assert 'foo' in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c['foo'].type, FLOAT), tbl.table.c['bar'].type
+        assert isinstance(tbl.table.c['foo'].type, FLOAT), \
+            tbl.table.c['bar'].type
         tbl.create_column_by_example('bar', 1)
         assert 'bar' in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c['bar'].type, INTEGER), tbl.table.c['bar'].type
+        assert isinstance(tbl.table.c['bar'].type, INTEGER), \
+            tbl.table.c['bar'].type
         tbl.create_column_by_example('pippo', 'test')
         assert 'pippo' in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c['pippo'].type, TEXT), tbl.table.c['pippo'].type
+        assert isinstance(tbl.table.c['pippo'].type, TEXT), \
+            tbl.table.c['pippo'].type
 
     def test_key_order(self):
         res = self.db.query('SELECT temperature, place FROM weather LIMIT 1')

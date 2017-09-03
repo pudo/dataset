@@ -9,8 +9,10 @@ except ImportError:  # pragma: no cover
     from ordereddict import OrderedDict
 
 from six import string_types
+from collections import Sequence
 from hashlib import sha1
 
+QUERY_STEP = 1000
 row_type = OrderedDict
 
 
@@ -78,3 +80,12 @@ def index_name(table, columns):
     sig = '||'.join(columns)
     key = sha1(sig.encode('utf-8')).hexdigest()[:16]
     return 'ix_%s_%s' % (table, key)
+
+
+def ensure_tuple(obj):
+    """Try and make the given argument into a tuple."""
+    if obj is None:
+        return tuple()
+    if isinstance(obj, Sequence) and not isinstance(obj, string_types):
+        return tuple(obj)
+    return obj,

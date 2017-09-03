@@ -31,7 +31,7 @@ setup(
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        'sqlalchemy >= 0.9.1',
+        'sqlalchemy >= 1.1.0',
         'alembic >= 0.6.2',
         'normality >= 0.3.9',
         "PyYAML >= 3.10",

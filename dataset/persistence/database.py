@@ -17,7 +17,7 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
 from dataset.persistence.table import Table
-from dataset.persistence.util import ResultIter, row_type, safe_url
+from dataset.persistence.util import ResultIter, row_type, safe_url, QUERY_STEP
 from dataset.persistence.types import Types
 
 log = logging.getLogger(__name__)
@@ -238,28 +238,34 @@ class Database(object):
         """Get a given table."""
         return self.get_table(table_name)
 
-    def query(self, query, **kwargs):
+    def query(self, query, *args, **kwargs):
         """Run a statement on the database directly.
 
-        Allows for the execution of arbitrary read/write queries. A query can either be
-        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
-        If a plain string is passed in, it will be converted to an expression automatically.
+        Allows for the execution of arbitrary read/write queries. A query can
+        either be a plain text string, or a `SQLAlchemy expression
+        <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
+        If a plain string is passed in, it will be converted to an expression
+        automatically.
 
-        Keyword arguments will be used for parameter binding. See the `SQLAlchemy
-        documentation <http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html#sqlalchemy.engine.Connection.execute>`_ for details.
+        Further positional and keyword arguments will be used for parameter
+        binding. To include a positional argument in your query, use question
+        marks in the query (i.e. `SELECT * FROM tbl WHERE a = ?`). For keyword
+        arguments, use a bind parameter (i.e. `SELECT * FROM tbl WHERE a =
+        :foo`).
 
         The returned iterator will yield each result sequentially.
         ::
 
-            res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
-            for row in res:
+            statement = 'SELECT user, COUNT(*) c FROM photos GROUP BY user'
+            for row in db.query(statement):
                 print(row['user'], row['c'])
+
         """
         if isinstance(query, six.string_types):
             query = text(query)
-        _step = kwargs.pop('_step', 5000)
-        return ResultIter(self.executable.execute(query, **kwargs),
-                          row_type=self.row_type, step=_step)
+        _step = kwargs.pop('_step', QUERY_STEP)
+        rp = self.executable.execute(query, *args, **kwargs)
+        return ResultIter(rp, row_type=self.row_type, step=_step)
 
     def __repr__(self):
         """Text representation contains the URL."""
