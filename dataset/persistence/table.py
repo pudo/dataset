@@ -227,11 +227,10 @@ class Table(object):
                     # tables cannot have no columns.
                     primary_id = self._primary_id or self.PRIMARY_DEFAULT
                     primary_type = self._primary_type or Types.integer
-                    autoincrement = primary_type in [Types.integer,
-                                                     Types.bigint]
+                    increment = primary_type in [Types.integer, Types.bigint]
                     column = Column(primary_id, primary_type,
                                     primary_key=True,
-                                    autoincrement=autoincrement)
+                                    autoincrement=increment)
                     self._table.append_column(column)
                 for column in columns:
                     self._table.append_column(column)
@@ -436,19 +435,18 @@ class Table(object):
         aggregation, use :py:meth:`db.query() <dataset.Database.query>`
         instead.
         """
+        if not self.exists:
+            return []
+
         _limit = kwargs.pop('_limit', None)
         _offset = kwargs.pop('_offset', 0)
         order_by = kwargs.pop('order_by', None)
-
-        if not self.exists:
-            return []
-        order_by = self._args_to_order_by(order_by)
-        args = self._args_to_clause(kwargs, clauses=_clauses)
-
         _step = kwargs.pop('_step', QUERY_STEP)
         if _step is False or _step == 0:
             _step = None
 
+        order_by = self._args_to_order_by(order_by)
+        args = self._args_to_clause(kwargs, clauses=_clauses)
         query = self.table.select(whereclause=args,
                                   limit=_limit,
                                   offset=_offset)
