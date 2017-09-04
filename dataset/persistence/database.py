@@ -70,6 +70,11 @@ class Database(object):
         return Operations(ctx)
 
     @property
+    def inspect(self):
+        """Get a SQLAlchemy inspector."""
+        return Inspector.from_engine(self.executable)
+
+    @property
     def metadata(self):
         """Return a SQLAlchemy schema cache object."""
         return MetaData(schema=self.schema, bind=self.executable)
@@ -120,8 +125,7 @@ class Database(object):
     @property
     def tables(self):
         """Get a listing of all tables that exist in the database."""
-        inspector = Inspector.from_engine(self.executable)
-        return inspector.get_table_names(schema=self.schema)
+        return self.inspect.get_table_names(schema=self.schema)
 
     def __contains__(self, table_name):
         """Check if the given table name exists in the database."""
