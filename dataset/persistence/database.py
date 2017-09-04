@@ -79,6 +79,11 @@ class Database(object):
         """Return a SQLAlchemy schema cache object."""
         return MetaData(schema=self.schema, bind=self.executable)
 
+    def _flush_tables(self):
+        """Clear the table metadata after transaction rollbacks."""
+        for table in self._tables.values():
+            table._table = None
+
     def begin(self):
         """Enter a transaction explicitly.
 
@@ -96,6 +101,7 @@ class Database(object):
         if hasattr(self.local, 'tx') and self.local.tx:
             tx = self.local.tx.pop()
             tx.commit()
+            self._flush_tables()
 
     def rollback(self):
         """Roll back the current transaction.
@@ -105,6 +111,7 @@ class Database(object):
         if hasattr(self.local, 'tx') and self.local.tx:
             tx = self.local.tx.pop()
             tx.rollback()
+            self._flush_tables()
 
     def __enter__(self):
         """Start a transaction."""
