@@ -82,6 +82,8 @@ class Database(object):
     @property
     def in_transaction(self):
         """Check if this database is in a transactional context."""
+        if not hasattr(self.local, 'tx'):
+            return False
         return len(self.local.tx) > 0
 
     def _flush_tables(self):
