@@ -79,6 +79,11 @@ class Database(object):
         """Return a SQLAlchemy schema cache object."""
         return MetaData(schema=self.schema, bind=self.executable)
 
+    @property
+    def in_transaction(self):
+        """Check if this database is in a transactional context."""
+        return len(self.local.tx) > 0
+
     def _flush_tables(self):
         """Clear the table metadata after transaction rollbacks."""
         for table in self._tables.values():
