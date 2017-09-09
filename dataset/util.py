@@ -15,6 +15,7 @@ from hashlib import sha1
 QUERY_STEP = 1000
 row_type = OrderedDict
 
+
 class DatasetException(Exception):
     pass
 
