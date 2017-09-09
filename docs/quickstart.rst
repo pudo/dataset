@@ -30,8 +30,8 @@ so you can initialize database connection without explicitly passing an `URL`::
 
 Depending on which database you're using, you may also have to install
 the database bindings to support that database. SQLite is included in
-the Python core, but PostgreSQL requires ``psycopg2`` to be installed. 
-MySQL can be enabled by installing the ``mysql-db`` drivers. 
+the Python core, but PostgreSQL requires ``psycopg2`` to be installed.
+MySQL can be enabled by installing the ``mysql-db`` drivers.
 
 
 Storing data
@@ -110,7 +110,7 @@ database:
 Now, let's list all columns available in the table ``user``:
 
    >>> print(db['user'].columns)
-   [u'id', u'country', u'age', u'name', u'gender'] 
+   [u'id', u'country', u'age', u'name', u'gender']
 
 Using ``len()`` we can get the total number of rows in a table:
 
@@ -156,7 +156,7 @@ results will be returned::
     db = dataset.connect('sqlite:///mydatabase.db', row_type=stuf)
 
 Now contents will be returned in ``stuf`` objects (basically, ``dict``
-objects whose elements can be acessed as attributes (``item.name``) as well as 
+objects whose elements can be acessed as attributes (``item.name``) as well as
 by index (``item['name']``).
 
 Running custom SQL queries
@@ -169,36 +169,10 @@ use the full power of SQL queries. Here's how you run them with ``dataset``::
    for row in result:
       print(row['country'], row['c'])
 
-The :py:meth:`query() <dataset.Table.query>` method can also be used to 
+The :py:meth:`query() <dataset.Table.query>` method can also be used to
 access the underlying `SQLAlchemy core API <http://docs.sqlalchemy.org/en/latest/orm/query.html#the-query-object>`_, which allows for the
 programmatic construction of more complex queries::
 
    table = db['user'].table
    statement = table.select(table.c.name.like('%John%'))
-   result = db.query(statement) 
-
-
-Exporting data
---------------
-
-While playing around with our database in Python is a nice thing, they are 
-sometimes just a processing stage until we go on to use it in another
-place, say in an interactive web application. To make this seamless,
-``dataset`` supports serializing rows of data into static JSON and CSV files
-such using the :py:meth:`freeze() <dataset.freeze>` function::
-
-   # export all users into a single JSON
-   result = db['users'].all()
-   dataset.freeze(result, format='json', filename='users.json')
-
-You can create one file per row by setting ``mode`` to "item"::
-
-   # export one JSON file per user
-   dataset.freeze(result, format='json', filename='users/{{ id }}.json', mode='item')
-
-Since this is a common operation we made it available via command line
-utility ``datafreeze``. Read more about the :doc:`freezefile markup <freezefile>`.
-
-.. code-block:: bash
-
-   $ datafreeze freezefile.yaml
+   result = db.query(statement)

@@ -3,7 +3,6 @@ import warnings
 from dataset.persistence.database import Database
 from dataset.persistence.table import Table
 from dataset.persistence.util import row_type
-from dataset.freeze.app import freeze
 
 # shut up useless SA warning:
 warnings.filterwarnings(

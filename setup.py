@@ -8,7 +8,7 @@ if sys.version_info[:2] <= (2, 6):
 
 setup(
     name='dataset',
-    version='0.8.0',
+    version='1.0.0',
     description="Toolkit for Python-based data processing.",
     long_description="",
     classifiers=[
@@ -34,14 +34,9 @@ setup(
         'sqlalchemy >= 1.1.0',
         'alembic >= 0.6.2',
         'normality >= 0.3.9',
-        "PyYAML >= 3.10",
         "six >= 1.7.3"
     ] + py26_dependency,
     tests_require=[],
     test_suite='test',
-    entry_points={
-        'console_scripts': [
-            'datafreeze = dataset.freeze.app:main',
-        ]
-    }
+    entry_points={}
 )

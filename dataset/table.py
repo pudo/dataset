@@ -9,11 +9,10 @@ from sqlalchemy import func, select, false
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.exc import NoSuchTableError
 
-from dataset.persistence.types import Types
-from dataset.persistence.util import normalize_column_name, index_name
-from dataset.persistence.util import ensure_tuple, ResultIter, QUERY_STEP
-from dataset.persistence.util import normalize_table_name
-from dataset.util import DatasetException
+from dataset.types import Types
+from dataset.util import normalize_column_name, index_name, ensure_tuple
+from dataset.util import DatasetException, ResultIter, QUERY_STEP
+from dataset.util import normalize_table_name
 
 
 log = logging.getLogger(__name__)

@@ -14,10 +14,10 @@ from sqlalchemy.engine.reflection import Inspector
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
-from dataset.persistence.table import Table
-from dataset.persistence.util import ResultIter, row_type, safe_url, QUERY_STEP
-from dataset.persistence.util import normalize_table_name
-from dataset.persistence.types import Types
+from dataset.table import Table
+from dataset.util import ResultIter, row_type, safe_url, QUERY_STEP
+from dataset.util import normalize_table_name
+from dataset.types import Types
 
 log = logging.getLogger(__name__)
 
