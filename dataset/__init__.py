@@ -1,8 +1,8 @@
 import os
 import warnings
-from dataset.persistence.database import Database
-from dataset.persistence.table import Table
-from dataset.persistence.util import row_type
+from dataset.database import Database
+from dataset.table import Table
+from dataset.util import row_type
 
 # shut up useless SA warning:
 warnings.filterwarnings(

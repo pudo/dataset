@@ -12,3 +12,7 @@ To install dataset, fetch it with ``pip``:
 ```bash
 $ pip install dataset
 ```
+
+**Note:** as of version 1.0, **dataset** is split into two packages, with the
+data export features now extracted into a stand-alone package, **datafreeze**.
+See the relevant repository [here](https://github.com/pudo/datafreeze).
