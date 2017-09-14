@@ -8,8 +8,8 @@ if sys.version_info[:2] <= (2, 6):
 
 setup(
     name='dataset',
-    version='1.0.0',
-    description="Toolkit for Python-based data processing.",
+    version='1.0.1',
+    description="Toolkit for Python-based database access.",
     long_description="",
     classifiers=[
         "Development Status :: 3 - Alpha",
