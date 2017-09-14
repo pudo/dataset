@@ -320,20 +320,11 @@ class Table(object):
 
             table.create_column('created_at', db.types.datetime)
         """
-        # TODO: create the table if it does not exist.
-        with self.db.lock:
-            name = normalize_column_name(name)
-            if self.has_column(name):
-                log.debug("Column exists: %s" % name)
-                return
-
-            self._threading_warn()
-            self.db.op.add_column(
-                self.name,
-                Column(name, type),
-                self.db.schema
-            )
-            self._reflect_table()
+        name = normalize_column_name(name)
+        if self.has_column(name):
+            log.debug("Column exists: %s" % name)
+            return
+        self._sync_table((Column(name, type),))
 
     def create_column_by_example(self, name, value):
         """
