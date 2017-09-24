@@ -8,7 +8,7 @@ if sys.version_info[:2] <= (2, 6):
 
 setup(
     name='dataset',
-    version='1.0.1',
+    version='1.0.2',
     description="Toolkit for Python-based database access.",
     long_description="",
     classifiers=[
@@ -19,7 +19,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'
     ],
     keywords='sql sqlalchemy etl loading utility',
     author='Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer',
