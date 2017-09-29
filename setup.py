@@ -1,10 +1,5 @@
-import sys
 from setuptools import setup, find_packages
 
-
-py26_dependency = []
-if sys.version_info[:2] <= (2, 6):
-    py26_dependency = ["argparse >= 1.1", "ordereddict >= 1.1"]
 
 setup(
     name='dataset',
@@ -36,8 +31,10 @@ setup(
         'alembic >= 0.6.2',
         'normality >= 0.3.9',
         "six >= 1.7.3"
-    ] + py26_dependency,
-    tests_require=[],
+    ],
+    tests_require=[
+        'nose'
+    ],
     test_suite='test',
     entry_points={}
 )

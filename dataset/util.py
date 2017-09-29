@@ -3,14 +3,11 @@ try:
 except ImportError:
     from urllib.parse import urlparse
 
-try:
-    from collections import OrderedDict
-except ImportError:  # pragma: no cover
-    from ordereddict import OrderedDict
+from collections import OrderedDict, Sequence
+from hashlib import sha1
 
 from six import string_types
-from collections import Sequence
-from hashlib import sha1
+
 
 QUERY_STEP = 1000
 row_type = OrderedDict
