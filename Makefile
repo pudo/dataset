@@ -1,8 +1,9 @@
 
 all: clean test dists
 
+.PHONY: test
 test:
-	nosetests
+	nosetests -v
 
 dists:
 	python setup.py sdist
@@ -12,6 +13,7 @@ release: dists
 	pip install -q twine
 	twine upload dist/*
 
+.PHONY: clean
 clean:
 	rm -rf dist build .eggs
 	find . -name '*.egg-info' -exec rm -fr {} +
