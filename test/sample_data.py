@@ -1,8 +1,11 @@
 # -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
+
 from datetime import datetime
 
-TEST_CITY_1 = u'B€rkeley'
-TEST_CITY_2 = u'G€lway'
+
+TEST_CITY_1 = 'B€rkeley'
+TEST_CITY_2 = 'G€lway'
 
 TEST_DATA = [
     {

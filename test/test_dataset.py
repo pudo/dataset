@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 import unittest
 from datetime import datetime
@@ -118,7 +120,7 @@ class DatabaseTestCase(unittest.TestCase):
             with self.db as tx:
                 tx['weather'].insert({'date': datetime(2011, 1, 1),
                                       'temperature': 1,
-                                      'place': u'tmp_place'})
+                                      'place': 'tmp_place'})
                 raise ValueError()
         assert len(self.db['weather']) == init_length
 
@@ -130,7 +132,7 @@ class DatabaseTestCase(unittest.TestCase):
             return
         with self.assertRaises(SQLAlchemyError):
             tbl = self.db['weather']
-            tbl.insert({'date': True, 'temperature': 'wrong_value', 'place': u'tmp_place'})
+            tbl.insert({'date': True, 'temperature': 'wrong_value', 'place': 'tmp_place'})
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
