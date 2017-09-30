@@ -241,7 +241,8 @@ class Table(object):
                                     autoincrement=increment)
                     self._table.append_column(column)
                 for column in columns:
-                    self._table.append_column(column)
+                    if not column.name == self._primary_id:
+                        self._table.append_column(column)
                 self._table.create(self.db.executable, checkfirst=True)
         elif len(columns):
             with self.db.lock:
