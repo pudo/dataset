@@ -3,7 +3,6 @@ from hashlib import sha1
 from collections import OrderedDict, Sequence
 from six.moves.urllib.parse import urlparse
 
-
 QUERY_STEP = 1000
 row_type = OrderedDict
 
