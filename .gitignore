@@ -3,6 +3,7 @@
 *.egg
 dist/*
 .tox/*
+.vscode/*
 build/*
 .DS_Store
 .watchr

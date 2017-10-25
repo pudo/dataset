@@ -384,7 +384,7 @@ class Table(object):
             return True
         for column in columns:
             if not self.has_column(column):
-                raise DatasetException("Column does not exist: %s" % column)
+                return False
         indexes = self.db.inspect.get_indexes(self.name, schema=self.db.schema)
         for index in indexes:
             if columns == set(index.get('column_names', [])):
@@ -404,6 +404,10 @@ class Table(object):
         with self.db.lock:
             if not self.exists:
                 raise DatasetException("Table has not been created yet.")
+
+            for column in columns:
+                if not self.has_column(column):
+                    return
 
             if not self.has_index(columns):
                 self._threading_warn()

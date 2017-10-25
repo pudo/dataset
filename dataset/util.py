@@ -1,12 +1,7 @@
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
-
-from collections import OrderedDict, Sequence
+import six
 from hashlib import sha1
-
-from six import string_types
+from collections import OrderedDict, Sequence
+from six.moves.urllib.parse import urlparse
 
 
 QUERY_STEP = 1000
@@ -60,9 +55,16 @@ class ResultIter(object):
 
 def normalize_column_name(name):
     """Check if a string is a reasonable thing to use as a column name."""
-    if not isinstance(name, string_types):
+    if not isinstance(name, six.string_types):
         raise ValueError('%r is not a valid column name.' % name)
-    name = name.strip()
+
+    # limit to 63 characters
+    name = name.strip()[:63]
+    # column names can be 63 *bytes* max in postgresql
+    if isinstance(name, six.text_type):
+        while len(name.encode('utf-8')) >= 64:
+            name = name[:len(name) - 1]
+
     if not len(name) or '.' in name or '-' in name:
         raise ValueError('%r is not a valid column name.' % name)
     return name
@@ -70,9 +72,9 @@ def normalize_column_name(name):
 
 def normalize_table_name(name):
     """Check if the table name is obviously invalid."""
-    if not isinstance(name, string_types):
+    if not isinstance(name, six.string_types):
         raise ValueError("Invalid table name: %r" % name)
-    name = name.strip()
+    name = name.strip()[:63]
     if not len(name):
         raise ValueError("Invalid table name: %r" % name)
     return name
@@ -98,6 +100,6 @@ def ensure_tuple(obj):
     """Try and make the given argument into a tuple."""
     if obj is None:
         return tuple()
-    if isinstance(obj, Sequence) and not isinstance(obj, string_types):
+    if isinstance(obj, Sequence) and not isinstance(obj, six.string_types):
         return tuple(obj)
     return obj,
