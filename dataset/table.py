@@ -448,6 +448,7 @@ class Table(object):
         _limit = kwargs.pop('_limit', None)
         _offset = kwargs.pop('_offset', 0)
         order_by = kwargs.pop('order_by', None)
+        _streamed = kwargs.pop('_streamed', False)
         _step = kwargs.pop('_step', QUERY_STEP)
         if _step is False or _step == 0:
             _step = None
@@ -459,7 +460,13 @@ class Table(object):
                                   offset=_offset)
         if len(order_by):
             query = query.order_by(*order_by)
-        return ResultIter(self.db.executable.execute(query),
+        
+        conn = self.db.executable
+        if _streamed:
+            conn = self.db.engine.connect()
+            conn = conn.execution_options(stream_results=True)
+
+        return ResultIter(conn.execute(query),
                           row_type=self.db.row_type,
                           step=_step)
 

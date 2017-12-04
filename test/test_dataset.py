@@ -327,6 +327,13 @@ class TableTestCase(unittest.TestCase):
         ds = list(self.tbl.find(place=TEST_CITY_1, _limit=2, _offset=2))
         assert len(ds) == 1, ds
 
+    def test_streamed(self):
+        ds = list(self.tbl.find(place=TEST_CITY_1, _streamed=True, _step=1))
+        assert len(ds) == 3, len(ds)
+        for row in self.tbl.find(place=TEST_CITY_1, _streamed=True, _step=1):
+            row['temperature'] = -1
+            self.tbl.update(row, ['id'])
+
     def test_distinct(self):
         x = list(self.tbl.distinct('place'))
         assert len(x) == 2, x
