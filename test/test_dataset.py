@@ -300,8 +300,8 @@ class TableTestCase(unittest.TestCase):
 
     def test_count(self):
         assert len(self.tbl) == 6, len(self.tbl)
-        l = self.tbl.count(place=TEST_CITY_1)
-        assert l == 3, l
+        length = self.tbl.count(place=TEST_CITY_1)
+        assert length == 3, length
 
     def test_find(self):
         ds = list(self.tbl.find(place=TEST_CITY_1))
@@ -430,9 +430,8 @@ class TableTestCase(unittest.TestCase):
         assert keys[1] == 'place'
 
     def test_empty_query(self):
-        m = self.tbl.find(place='not in data')
-        l = list(m)  # exhaust iterator
-        assert len(l) == 0
+        empty = list(self.tbl.find(place='not in data'))
+        assert len(empty) == 0, empty
 
 
 class Constructor(dict):

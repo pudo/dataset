@@ -460,7 +460,7 @@ class Table(object):
                                   offset=_offset)
         if len(order_by):
             query = query.order_by(*order_by)
-        
+
         conn = self.db.executable
         if _streamed:
             conn = self.db.engine.connect()

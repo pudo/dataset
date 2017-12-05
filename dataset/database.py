@@ -130,7 +130,7 @@ class Database(object):
         if error_type is None:
             try:
                 self.commit()
-            except:
+            except Exception:
                 with safe_reraise():
                     self.rollback()
         else:
