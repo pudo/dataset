@@ -521,7 +521,7 @@ class Table(object):
             table.distinct('year', country='China')
         """
         if not self.exists:
-            return []
+            return iter([])
 
         filters = []
         for column, value in _filter.items():
@@ -539,7 +539,7 @@ class Table(object):
                 columns.append(self.table.c[column])
 
         if not len(columns):
-            return []
+            return iter([])
 
         q = expression.select(columns,
                               distinct=True,
