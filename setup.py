@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dataset',
-    version='1.0.5',
+    version='1.0.6',
     description="Toolkit for Python-based database access.",
     long_description="",
     classifiers=[

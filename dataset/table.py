@@ -246,6 +246,7 @@ class Table(object):
                 self._table.create(self.db.executable, checkfirst=True)
         elif len(columns):
             with self.db.lock:
+                self._reflect_table()
                 self._threading_warn()
                 for column in columns:
                     if not self.has_column(column.name):
