@@ -322,6 +322,8 @@ class Table(object):
         ::
 
             table.create_column('created_at', db.types.datetime)
+
+        `type` corresponds to an SQLAlchemy type as described by `dataset.db.Types`
         """
         name = normalize_column_name(name)
         if self.has_column(name):
