@@ -108,7 +108,7 @@ def ensure_tuple(obj):
 
 def ndarray2binary(array):
     """Convert a numpy ndarray to a binary string suited for LargeBinary storage"""
-    if not isinstance(array,np.ndarray):
+    if not isinstance(array, np.ndarray):
         raise TypeError("The argument has to be a numpy ndarray")
     out = io.BytesIO()
     np.save(out, array)
@@ -126,7 +126,7 @@ def binary2ndarray(string):
 def convert_blobs(row):
     """Tries to convert the blob entries into the correct datatypes"""
     for key in row.keys():
-        if isinstance(row[key],str):
+        if isinstance(row[key], str):
             # Numpy's binary format starts with the "magic" string \x93NUMPY
             if row[key].startswith("\x93NUMPY"):
                 array = binary2ndarray(row[key])

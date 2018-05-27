@@ -445,14 +445,14 @@ class TableTestCase(unittest.TestCase):
         assert allclose(array, row["numpy_array"])
 
         # Test 2D arrays
-        array = rand(10,10)
+        array = rand(10, 10)
         pid = tbl.insert(dict(numpy_array=array))
         row = tbl.find_one(id=pid)
         assert allclose(array, row["numpy_array"])
 
         # Verify that update also works
-        array = rand(10,10)
-        tbl.update(dict(numpy_array=array,id=pid), ["id"])
+        array = rand(10, 10)
+        tbl.update(dict(numpy_array=array, id=pid), ["id"])
         row = tbl.find_one(id=pid)
         assert allclose(array, row["numpy_array"])
 
