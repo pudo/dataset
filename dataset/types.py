@@ -1,8 +1,9 @@
 from datetime import datetime, date
 
-from sqlalchemy import Integer, UnicodeText, Float, BigInteger
+from sqlalchemy import Integer, UnicodeText, Float, BigInteger, LargeBinary
 from sqlalchemy import Boolean, Date, DateTime, Unicode
 from sqlalchemy.types import TypeEngine
+from numpy import ndarray
 
 
 class Types(object):
@@ -15,6 +16,7 @@ class Types(object):
     boolean = Boolean
     date = Date
     datetime = DateTime
+    blob = LargeBinary
 
     def guess(cls, sample):
         """Given a single sample, guess the column type for the field.
@@ -34,4 +36,6 @@ class Types(object):
             return cls.datetime
         elif isinstance(sample, date):
             return cls.date
+        elif isinstance(sample, ndarray):
+            return cls.blob
         return cls.text
