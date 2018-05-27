@@ -15,7 +15,6 @@ from sqlalchemy import FLOAT, INTEGER, TEXT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect
-from dataset.util import convert_blobs
 
 from .sample_data import TEST_DATA, TEST_CITY_1
 
