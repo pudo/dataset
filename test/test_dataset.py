@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import os
 import unittest
 from datetime import datetime
+from numpy.random import rand
+from numpy import allclose
 
 try:
     from collections import OrderedDict
@@ -13,6 +15,7 @@ from sqlalchemy import FLOAT, INTEGER, TEXT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect
+from dataset.util import convert_blobs
 
 from .sample_data import TEST_DATA, TEST_CITY_1
 
@@ -432,6 +435,21 @@ class TableTestCase(unittest.TestCase):
     def test_empty_query(self):
         empty = list(self.tbl.find(place='not in data'))
         assert len(empty) == 0, empty
+
+    def test_ndarray(self):
+        tbl = self.tbl
+
+        # Test 1D arrays
+        array = rand(10)
+        pid = tbl.insert({"numpy_array":array})
+        row = convert_blobs(tbl.find_one(id=pid))
+        assert allclose(array,row["numpy_array"])
+
+        # Test 2D arrays
+        array = rand(10,10)
+        pid = tbl.insert({"numpy_array":array})
+        row = convert_blobs(tbl.find_one(id=pid))
+        assert allclose(array,row["numpy_array"])
 
 
 class Constructor(dict):
