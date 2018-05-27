@@ -119,3 +119,12 @@ def binary2ndarray(string):
     data = io.BytesIO(string)
     data.seek(0)
     return np.load(data)
+
+def convert_blobs(row):
+    """Tries to convert the blob entries into the correct datatypes"""
+    for key in row.keys():
+        if ( isinstance(row[key],str) ):
+            if ( row[key].find("NUMPY") != -1 ):
+                array = binary2ndarray(row[key])
+                row[key] = array
+    return row
