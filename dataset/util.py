@@ -16,7 +16,7 @@ class DatasetException(Exception):
 def convert_row(row_type, row):
     if row is None:
         return None
-    return row_type(row.items())
+    return convert_blobs(row_type(row.items()))
 
 
 def iter_result_proxy(rp, step=None):
@@ -124,7 +124,8 @@ def convert_blobs(row):
     """Tries to convert the blob entries into the correct datatypes"""
     for key in row.keys():
         if ( isinstance(row[key],str) ):
-            if ( row[key].find("NUMPY") != -1 ):
+            # Numpy's binary format starts with the "magic" string \x93NUMPY
+            if ( row[key].startswith("\x93NUMPY") ):
                 array = binary2ndarray(row[key])
                 row[key] = array
     return row
