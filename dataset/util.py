@@ -131,4 +131,8 @@ def convert_blobs(row):
             if row[key].startswith("\x93NUMPY"):
                 array = binary2ndarray(row[key])
                 row[key] = array
+        elif isinstance(row[key], bytes):
+            if row[key][:6] == b"\x93NUMPY":
+                array = binary2ndarray(row[key])
+                row[key] = array
     return row
