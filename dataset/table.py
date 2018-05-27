@@ -277,7 +277,7 @@ class Table(object):
                 sync_columns.append(Column(name, _type))
                 columns.append(name)
             if name in columns:
-                if ( isinstance(value,ndarray) ):
+                if isinstance(value, ndarray):
                     out[name] = ndarray2binary(value)
                 else:
                     out[name] = value

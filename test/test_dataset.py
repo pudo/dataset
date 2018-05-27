@@ -440,21 +440,21 @@ class TableTestCase(unittest.TestCase):
 
         # Test 1D arrays
         array = rand(10)
-        pid = tbl.insert({"numpy_array":array})
+        pid = tbl.insert(dict(numpy_array=array))
         row = tbl.find_one(id=pid)
-        assert allclose(array,row["numpy_array"])
+        assert allclose(array, row["numpy_array"])
 
         # Test 2D arrays
         array = rand(10,10)
-        pid = tbl.insert({"numpy_array":array})
+        pid = tbl.insert(dict(numpy_array=array))
         row = tbl.find_one(id=pid)
-        assert allclose(array,row["numpy_array"])
+        assert allclose(array, row["numpy_array"])
 
         # Verify that update also works
         array = rand(10,10)
-        tbl.update({"numpy_array":array,"id":pid},["id"])
+        tbl.update(dict(numpy_array=array,id=pid), ["id"])
         row = tbl.find_one(id=pid)
-        assert allclose(array,row["numpy_array"])
+        assert allclose(array, row["numpy_array"])
 
 
 class Constructor(dict):
