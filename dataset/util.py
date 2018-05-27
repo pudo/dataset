@@ -2,6 +2,8 @@ import six
 from hashlib import sha1
 from collections import OrderedDict, Sequence
 from six.moves.urllib.parse import urlparse
+import io
+import numpy as np
 
 QUERY_STEP = 1000
 row_type = OrderedDict
@@ -102,3 +104,18 @@ def ensure_tuple(obj):
     if isinstance(obj, Sequence) and not isinstance(obj, six.string_types):
         return tuple(obj)
     return obj,
+
+def ndarray2binary(array):
+    """Convert a numpy ndarray to a binary string suited for LargeBinary storage"""
+    if ( not isinstance(array,np.ndarray) ):
+        raise TypeError("The argument has to be a numpy ndarray")
+    out = io.BytesIO()
+    np.save(out,array)
+    out.seek(0)
+    return out.read()
+
+def binary2ndarray(string):
+    """Convert a binary string to ndarray"""
+    data = io.BytesIO(string)
+    data.seek(0)
+    return np.load(data)
