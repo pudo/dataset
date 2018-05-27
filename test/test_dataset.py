@@ -451,6 +451,12 @@ class TableTestCase(unittest.TestCase):
         row = convert_blobs(tbl.find_one(id=pid))
         assert allclose(array,row["numpy_array"])
 
+        # Verify that update also works
+        array = rand(10,10)
+        tbl.update({"numpy_array":array,"id":pid},["id"])
+        row = convert_blobs(tbl.find_one(id=pid))
+        assert allclose(array,row["numpy_array"])
+
 
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to
