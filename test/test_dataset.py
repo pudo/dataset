@@ -3,13 +3,11 @@ from __future__ import unicode_literals
 import os
 import unittest
 from datetime import datetime
+from dataset.numpy_util import has_numpy
 
-try:
+if ( has_numpy ):
     from numpy.random import rand
     from numpy import allclose
-    has_numpy = True
-except ImportError:
-    has_numpy = False
 
 try:
     from collections import OrderedDict

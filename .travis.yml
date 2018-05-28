@@ -11,6 +11,9 @@ env:
   - 'DATABASE_URL=sqlite:///:memory:'
   - DATABASE_URL=postgresql+psycopg2://postgres@127.0.0.1/dataset
   - DATABASE_URL=mysql+pymysql://root@127.0.0.1/dataset?charset=utf8
+  - DEACTIVATE_NUMPY=1
+  - DEACTIVATE_NUMPY=0
+  
 install:
   - pip install -U pip wheel
   - pip install flake8 psycopg2 PyMySQL nose
