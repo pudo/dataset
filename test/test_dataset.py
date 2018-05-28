@@ -3,8 +3,13 @@ from __future__ import unicode_literals
 import os
 import unittest
 from datetime import datetime
-from numpy.random import rand
-from numpy import allclose
+
+try:
+    from numpy.random import rand
+    from numpy import allclose
+    has_numpy = True
+except ImportError:
+    has_numpy = False
 
 try:
     from collections import OrderedDict
@@ -436,6 +441,8 @@ class TableTestCase(unittest.TestCase):
         assert len(empty) == 0, empty
 
     def test_ndarray(self):
+        if not has_numpy:
+            self.skipTest("Numpy is not installed")
         tbl = self.tbl
 
         # Test 1D arrays
