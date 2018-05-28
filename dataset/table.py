@@ -14,7 +14,7 @@ from dataset.util import normalize_column_name, index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
 from dataset.util import normalize_table_name
 from dataset.util import ndarray2binary
-from numpy import ndarray
+from numpy_util import npy_array
 
 
 log = logging.getLogger(__name__)
@@ -277,7 +277,7 @@ class Table(object):
                 sync_columns.append(Column(name, _type))
                 columns.append(name)
             if name in columns:
-                if isinstance(value, ndarray):
+                if isinstance(value, npy_array):
                     out[name] = ndarray2binary(value)
                 else:
                     out[name] = value

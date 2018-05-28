@@ -3,7 +3,7 @@ from hashlib import sha1
 from collections import OrderedDict, Sequence
 from six.moves.urllib.parse import urlparse
 import io
-import numpy as np
+from numpy_util import npy_load, npy_save, npy_array
 
 QUERY_STEP = 1000
 row_type = OrderedDict
@@ -108,10 +108,10 @@ def ensure_tuple(obj):
 
 def ndarray2binary(array):
     """Convert a numpy ndarray to a binary string suited for LargeBinary storage"""
-    if not isinstance(array, np.ndarray):
+    if not isinstance(array, npy_array):
         raise TypeError("The argument has to be a numpy ndarray")
     out = io.BytesIO()
-    np.save(out, array)
+    npy_save(out, array)
     out.seek(0)
     return out.read()
 
@@ -120,7 +120,7 @@ def binary2ndarray(string):
     """Convert a binary string to ndarray"""
     data = io.BytesIO(string)
     data.seek(0)
-    return np.load(data)
+    return npy_load(data)
 
 
 def convert_blobs(row):
