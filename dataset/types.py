@@ -3,7 +3,7 @@ from datetime import datetime, date
 from sqlalchemy import Integer, UnicodeText, Float, BigInteger, LargeBinary
 from sqlalchemy import Boolean, Date, DateTime, Unicode
 from sqlalchemy.types import TypeEngine
-from numpy_util import npy_array
+from numpy_util import is_numpy_array
 
 
 class Types(object):
@@ -36,6 +36,6 @@ class Types(object):
             return cls.datetime
         elif isinstance(sample, date):
             return cls.date
-        elif isinstance(sample, npy_array):
+        elif is_numpy_array(sample):
             return cls.blob
         return cls.text
