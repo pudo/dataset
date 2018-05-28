@@ -26,5 +26,5 @@ except ImportError:
 
 def is_numpy_array(obj):
     if has_numpy:
-        return isinstance(obj,ndarray)
+        return isinstance(obj, ndarray)
     return False

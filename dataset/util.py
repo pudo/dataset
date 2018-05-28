@@ -3,7 +3,7 @@ from hashlib import sha1
 from collections import OrderedDict, Sequence
 from six.moves.urllib.parse import urlparse
 import io
-from numpy_util import npy_load, npy_save, is_numpy_array
+from dataset.numpy_util import npy_load, npy_save, is_numpy_array
 
 QUERY_STEP = 1000
 row_type = OrderedDict

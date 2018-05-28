@@ -438,7 +438,6 @@ class TableTestCase(unittest.TestCase):
         if not has_numpy:
             self.skipTest("Numpy is not installed")
             return
-        
         from numpy.random import rand
         from numpy import allclose
         tbl = self.tbl

@@ -3,7 +3,7 @@ from datetime import datetime, date
 from sqlalchemy import Integer, UnicodeText, Float, BigInteger, LargeBinary
 from sqlalchemy import Boolean, Date, DateTime, Unicode
 from sqlalchemy.types import TypeEngine
-from numpy_util import is_numpy_array
+from dataset.numpy_util import is_numpy_array
 
 
 class Types(object):

@@ -14,7 +14,7 @@ from dataset.util import normalize_column_name, index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
 from dataset.util import normalize_table_name
 from dataset.util import ndarray2binary
-from numpy_util import is_numpy_array
+from dataset.numpy_util import is_numpy_array
 
 
 log = logging.getLogger(__name__)
