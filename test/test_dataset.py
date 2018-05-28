@@ -5,10 +5,6 @@ import unittest
 from datetime import datetime
 from dataset.numpy_util import has_numpy
 
-if ( has_numpy ):
-    from numpy.random import rand
-    from numpy import allclose
-
 try:
     from collections import OrderedDict
 except ImportError:  # pragma: no cover
@@ -442,6 +438,9 @@ class TableTestCase(unittest.TestCase):
         if not has_numpy:
             self.skipTest("Numpy is not installed")
             return
+        
+        from numpy.random import rand
+        from numpy import allclose
         tbl = self.tbl
 
         # Test 1D arrays
