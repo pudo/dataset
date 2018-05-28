@@ -443,6 +443,7 @@ class TableTestCase(unittest.TestCase):
     def test_ndarray(self):
         if not has_numpy:
             self.skipTest("Numpy is not installed")
+            return
         tbl = self.tbl
 
         # Test 1D arrays
