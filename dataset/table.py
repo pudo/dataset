@@ -12,7 +12,7 @@ from sqlalchemy.exc import NoSuchTableError
 from dataset.types import Types
 from dataset.util import normalize_column_name, index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
-from dataset.util import normalize_table_name
+from dataset.util import normalize_table_name, pad_chunk_columns
 
 
 log = logging.getLogger(__name__)
@@ -127,10 +127,12 @@ class Table(object):
             row = self._sync_columns(row, ensure, types=types)
             chunk.append(row)
             if len(chunk) == chunk_size:
+                chunk = pad_chunk_columns(chunk)
                 self.table.insert().execute(chunk)
                 chunk = []
 
         if len(chunk):
+            chunk = pad_chunk_columns(chunk)
             self.table.insert().execute(chunk)
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):

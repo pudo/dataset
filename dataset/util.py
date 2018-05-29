@@ -102,3 +102,15 @@ def ensure_tuple(obj):
     if isinstance(obj, Sequence) and not isinstance(obj, six.string_types):
         return tuple(obj)
     return obj,
+
+
+def pad_chunk_columns(chunk):
+    """Given a set of items to be inserted, make sure they all have the
+    same columns by padding columns with None if they are missing."""
+    columns = set()
+    for record in chunk:
+        columns.update(record.keys())
+    for record in chunk:
+        for column in columns:
+            record.setdefault(column, None)
+    return chunk
