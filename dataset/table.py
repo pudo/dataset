@@ -446,7 +446,7 @@ class Table(object):
         instead.
         """
         if not self.exists:
-            return []
+            return iter([])
 
         _limit = kwargs.pop('_limit', None)
         _offset = kwargs.pop('_offset', 0)
