@@ -2,7 +2,7 @@ import logging
 import warnings
 import threading
 
-from sqlalchemy.sql import and_, expression
+from sqlalchemy.sql import and_, between, expression
 from sqlalchemy.sql.expression import ClauseElement
 from sqlalchemy.schema import Column, Index
 from sqlalchemy import func, select, false
@@ -293,6 +293,24 @@ class Table(object):
                 clauses.append(false())
             elif isinstance(value, (list, tuple)):
                 clauses.append(self.table.c[column].in_(value))
+            elif isinstance(value, dict):
+                key = list(value.keys())[0]
+                if key in ['like']:
+                    clauses.append(self.table.c[column].like(value[key]))
+                elif key in ['>', 'gt']:
+                    clauses.append(self.table.c[column] > value[key])
+                elif key in ['<', 'lt']:
+                    clauses.append(self.table.c[column] < value[key])
+                elif key in ['>=', 'gte']:
+                    clauses.append(self.table.c[column] >= value[key])
+                elif key in ['<=', 'lte']:
+                    clauses.append(self.table.c[column] <= value[key])
+                elif key in ['!=', '<>', 'not']:
+                    clauses.append(self.table.c[column] != value[key])
+                elif key in ['between', '..']:
+                    clauses.append(self.table.c[column].between(value[key][0], value[key][1]))
+                else:
+                    clauses.append(false)
             else:
                 clauses.append(self.table.c[column] == value)
         return and_(*clauses)

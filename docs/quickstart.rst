@@ -138,8 +138,24 @@ We can search for specific entries using :py:meth:`find() <dataset.Table.find>` 
    # Get a specific user
    john = table.find_one(name='John Doe')
 
-   # Find by comparison
+   # Find multiple at once
+   winners = table.find(id=[1, 3, 7])
+
+   # Find by comparison operator
+   elderly_users = table.find(age={'>=', 70})
+   possible_customers = table.find(age={'between', [21, 80]})
+
+   # Use the underlying SQLAlchemy directly
    elderly_users = table.find(table.table.columns.age >= 70)
+
+Possible comparison operators::
+
+  gt, >
+  lt, <
+  gte, >=
+  lte, <=
+  !=, <>, not
+  between, ..
 
 Using  :py:meth:`distinct() <dataset.Table.distinct>` we can grab a set of rows
 with unique values in one or more columns::
