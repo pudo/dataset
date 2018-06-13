@@ -2,7 +2,7 @@ import logging
 import warnings
 import threading
 
-from sqlalchemy.sql import and_, between, expression
+from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import ClauseElement
 from sqlalchemy.schema import Column, Index
 from sqlalchemy import func, select, false
