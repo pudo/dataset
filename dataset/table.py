@@ -310,7 +310,7 @@ class Table(object):
                 elif key in ('between', '..'):
                     clauses.append(self.table.c[column].between(value[key][0], value[key][1]))
                 else:
-                    clauses.append(false)
+                    clauses.append(false())
             else:
                 clauses.append(self.table.c[column] == value)
         return and_(*clauses)
