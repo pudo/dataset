@@ -295,19 +295,19 @@ class Table(object):
                 clauses.append(self.table.c[column].in_(value))
             elif isinstance(value, dict):
                 key = list(value.keys())[0]
-                if key in ['like']:
+                if key in ('like',):
                     clauses.append(self.table.c[column].like(value[key]))
-                elif key in ['>', 'gt']:
+                elif key in ('>', 'gt'):
                     clauses.append(self.table.c[column] > value[key])
-                elif key in ['<', 'lt']:
+                elif key in ('<', 'lt'):
                     clauses.append(self.table.c[column] < value[key])
-                elif key in ['>=', 'gte']:
+                elif key in ('>=', 'gte'):
                     clauses.append(self.table.c[column] >= value[key])
-                elif key in ['<=', 'lte']:
+                elif key in ('<=', 'lte'):
                     clauses.append(self.table.c[column] <= value[key])
-                elif key in ['!=', '<>', 'not']:
+                elif key in ('!=', '<>', 'not'):
                     clauses.append(self.table.c[column] != value[key])
-                elif key in ['between', '..']:
+                elif key in ('between', '..'):
                     clauses.append(self.table.c[column].between(value[key][0], value[key][1]))
                 else:
                     clauses.append(false)
