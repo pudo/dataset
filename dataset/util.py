@@ -1,6 +1,6 @@
 import six
 from hashlib import sha1
-from collections import OrderedDict, Sequence
+from collections import OrderedDict, Iterable
 from six.moves.urllib.parse import urlparse
 
 QUERY_STEP = 1000
@@ -99,7 +99,7 @@ def ensure_tuple(obj):
     """Try and make the given argument into a tuple."""
     if obj is None:
         return tuple()
-    if isinstance(obj, Sequence) and not isinstance(obj, six.string_types):
+    if isinstance(obj, Iterable) and not isinstance(obj, six.string_types):
         return tuple(obj)
     return obj,
 
