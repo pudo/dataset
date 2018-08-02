@@ -12,11 +12,9 @@ from sqlalchemy.exc import NoSuchTableError
 from dataset.types import Types
 from dataset.util import normalize_column_name, index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
-from dataset.util import normalize_table_name
 from dataset.util import ndarray2binary
-from dataset.numpy_util import is_numpy_array
 from dataset.util import normalize_table_name, pad_chunk_columns
-
+from dataset.numpy_util import is_numpy_array
 
 
 log = logging.getLogger(__name__)

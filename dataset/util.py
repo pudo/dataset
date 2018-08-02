@@ -137,6 +137,7 @@ def convert_blobs(row):
                 row[key] = array
     return row
 
+
 def pad_chunk_columns(chunk):
     """Given a set of items to be inserted, make sure they all have the
     same columns by padding columns with None if they are missing."""
