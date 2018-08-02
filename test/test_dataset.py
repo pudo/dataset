@@ -322,6 +322,22 @@ class TableTestCase(unittest.TestCase):
         ds = list(self.tbl.find(self.tbl.table.columns.temperature > 4))
         assert len(ds) == 3, ds
 
+    def test_find_dsl(self):
+        ds = list(self.tbl.find(place={'like': '%lw%'}))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(temperature={'>': 5}))
+        assert len(ds) == 2, ds
+        ds = list(self.tbl.find(temperature={'>=': 5}))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(temperature={'<': 0}))
+        assert len(ds) == 1, ds
+        ds = list(self.tbl.find(temperature={'<=': 0}))
+        assert len(ds) == 2, ds
+        ds = list(self.tbl.find(temperature={'!=': -1}))
+        assert len(ds) == 5, ds
+        ds = list(self.tbl.find(temperature={'between': [5, 8]}))
+        assert len(ds) == 3, ds
+
     def test_offset(self):
         ds = list(self.tbl.find(place=TEST_CITY_1, _offset=1))
         assert len(ds) == 2, ds

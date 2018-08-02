@@ -15,6 +15,8 @@ from dataset.util import DatasetException, ResultIter, QUERY_STEP
 from dataset.util import normalize_table_name
 from dataset.util import ndarray2binary
 from dataset.numpy_util import is_numpy_array
+from dataset.util import normalize_table_name, pad_chunk_columns
+
 
 
 log = logging.getLogger(__name__)
@@ -129,10 +131,12 @@ class Table(object):
             row = self._sync_columns(row, ensure, types=types)
             chunk.append(row)
             if len(chunk) == chunk_size:
+                chunk = pad_chunk_columns(chunk)
                 self.table.insert().execute(chunk)
                 chunk = []
 
         if len(chunk):
+            chunk = pad_chunk_columns(chunk)
             self.table.insert().execute(chunk)
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
@@ -296,6 +300,24 @@ class Table(object):
                 clauses.append(false())
             elif isinstance(value, (list, tuple)):
                 clauses.append(self.table.c[column].in_(value))
+            elif isinstance(value, dict):
+                key = list(value.keys())[0]
+                if key in ('like',):
+                    clauses.append(self.table.c[column].like(value[key]))
+                elif key in ('>', 'gt'):
+                    clauses.append(self.table.c[column] > value[key])
+                elif key in ('<', 'lt'):
+                    clauses.append(self.table.c[column] < value[key])
+                elif key in ('>=', 'gte'):
+                    clauses.append(self.table.c[column] >= value[key])
+                elif key in ('<=', 'lte'):
+                    clauses.append(self.table.c[column] <= value[key])
+                elif key in ('!=', '<>', 'not'):
+                    clauses.append(self.table.c[column] != value[key])
+                elif key in ('between', '..'):
+                    clauses.append(self.table.c[column].between(value[key][0], value[key][1]))
+                else:
+                    clauses.append(false())
             else:
                 clauses.append(self.table.c[column] == value)
         return and_(*clauses)
@@ -327,6 +349,8 @@ class Table(object):
         ::
 
             table.create_column('created_at', db.types.datetime)
+
+        `type` corresponds to an SQLAlchemy type as described by `dataset.db.Types`
         """
         name = normalize_column_name(name)
         if self.has_column(name):
@@ -449,7 +473,7 @@ class Table(object):
         instead.
         """
         if not self.exists:
-            return []
+            return iter([])
 
         _limit = kwargs.pop('_limit', None)
         _offset = kwargs.pop('_offset', 0)

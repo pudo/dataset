@@ -11,6 +11,7 @@ warnings.filterwarnings(
     'ignore', 'Skipping unsupported ALTER for creation of implicit constraint')
 
 __all__ = ['Database', 'Table', 'freeze', 'connect']
+__version__ = '1.1.0'
 
 
 def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,

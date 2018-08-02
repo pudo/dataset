@@ -1,6 +1,6 @@
 import six
 from hashlib import sha1
-from collections import OrderedDict, Sequence
+from collections import OrderedDict, Iterable
 from six.moves.urllib.parse import urlparse
 import io
 from dataset.numpy_util import npy_load, npy_save, is_numpy_array
@@ -101,7 +101,7 @@ def ensure_tuple(obj):
     """Try and make the given argument into a tuple."""
     if obj is None:
         return tuple()
-    if isinstance(obj, Sequence) and not isinstance(obj, six.string_types):
+    if isinstance(obj, Iterable) and not isinstance(obj, six.string_types):
         return tuple(obj)
     return obj,
 
@@ -136,3 +136,14 @@ def convert_blobs(row):
                 array = binary2ndarray(row[key])
                 row[key] = array
     return row
+
+def pad_chunk_columns(chunk):
+    """Given a set of items to be inserted, make sure they all have the
+    same columns by padding columns with None if they are missing."""
+    columns = set()
+    for record in chunk:
+        columns.update(record.keys())
+    for record in chunk:
+        for column in columns:
+            record.setdefault(column, None)
+    return chunk
