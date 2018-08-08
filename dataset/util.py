@@ -3,7 +3,7 @@ from hashlib import sha1
 from collections import OrderedDict, Iterable
 from six.moves.urllib.parse import urlparse
 import io
-from dataset.numpy_util import npy_load, npy_save, is_numpy_array
+from dataset.numpy_util import npy_load, npy_save, is_numpy_array, has_numpy
 
 QUERY_STEP = 1000
 row_type = OrderedDict
@@ -16,7 +16,9 @@ class DatasetException(Exception):
 def convert_row(row_type, row):
     if row is None:
         return None
-    return convert_blobs(row_type(row.items()))
+    if has_numpy:
+        return convert_blobs(row_type(row.items()))
+    return row_type(row.items())
 
 
 def iter_result_proxy(rp, step=None):

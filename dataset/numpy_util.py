@@ -1,4 +1,3 @@
-import os
 
 
 def npy_load_placeholder(fname):
@@ -10,9 +9,6 @@ def npy_save_placeholder(fname):
 
 
 try:
-    if "DEACTIVATE_NUMPY" in os.environ.keys():
-        if os.environ["DEACTIVATE_NUMPY"] == "1":
-            raise ImportError("Numpy is expclitly deactivated!")
     from numpy import load, save, ndarray
     npy_load = load
     npy_save = save
