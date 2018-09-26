@@ -221,6 +221,10 @@ class Database(object):
         """Get a given table."""
         return self.get_table(table_name)
 
+    def _ipython_key_completions_(self):
+        """Completion for table names with IPython."""
+        return self.tables
+
     def query(self, query, *args, **kwargs):
         """Run a statement on the database directly.
 
