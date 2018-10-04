@@ -546,27 +546,23 @@ class Table(object):
         if not self.exists:
             return iter([])
 
-        filters = []
-        for column, value in _filter.items():
-            if not self.has_column(column):
-                raise DatasetException("No such column: %s" % column)
-            filters.append(self.table.c[column] == value)
-
         columns = []
+        clauses = []
         for column in args:
             if isinstance(column, ClauseElement):
-                filters.append(column)
+                clauses.append(column)
             else:
                 if not self.has_column(column):
                     raise DatasetException("No such column: %s" % column)
                 columns.append(self.table.c[column])
 
+        clause = self._args_to_clause(_filter, clauses=clauses)
         if not len(columns):
             return iter([])
 
         q = expression.select(columns,
                               distinct=True,
-                              whereclause=and_(*filters),
+                              whereclause=clause,
                               order_by=[c.asc() for c in columns])
         return self.db.query(q)
 

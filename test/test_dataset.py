@@ -360,6 +360,12 @@ class TableTestCase(unittest.TestCase):
             self.tbl.table.columns.date >= datetime(2011, 1, 2, 0, 0)))
         assert len(x) == 4, x
 
+        x = list(self.tbl.distinct('temperature', place='B€rkeley'))
+        assert len(x) == 3, x
+        x = list(self.tbl.distinct('temperature',
+                                   place=['B€rkeley', 'G€lway']))
+        assert len(x) == 6, x
+
     def test_insert_many(self):
         data = TEST_DATA * 100
         self.tbl.insert_many(data, chunk_size=13)
