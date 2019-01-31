@@ -1,6 +1,10 @@
 import six
 from hashlib import sha1
-from collections import OrderedDict, Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections as Iterable
+from collections import OrderedDict 
 from six.moves.urllib.parse import urlparse
 
 QUERY_STEP = 1000
