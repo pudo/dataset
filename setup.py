@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dataset',
-    version='1.1.0',
+    version='1.1.1',
     description="Toolkit for Python-based database access.",
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -26,7 +26,7 @@ setup(
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        'sqlalchemy >= 1.1.0',
+        'sqlalchemy >= 1.1.1',
         'alembic >= 0.6.2',
         'normality >= 0.5.1',
         "six >= 1.11.0"
