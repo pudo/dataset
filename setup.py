@@ -28,7 +28,6 @@ setup(
     install_requires=[
         'sqlalchemy >= 1.1.1',
         'alembic >= 0.6.2',
-        'normality >= 0.5.1',
         "six >= 1.11.0"
     ],
     tests_require=[
