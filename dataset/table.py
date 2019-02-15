@@ -29,8 +29,14 @@ class Table(object):
         self.name = normalize_table_name(table_name)
         self._table = None
         self._indexes = []
-        self._primary_id = primary_id
-        self._primary_type = primary_type
+        if primary_id is not None:
+            self._primary_id = primary_id
+        else:
+            self._primary_id = self.PRIMARY_DEFAULT
+        if primary_type is not None:
+            self._primary_type = primary_type
+        else:
+            self._primary_type = Types.integer
         self._auto_create = auto_create
 
     @property
@@ -235,8 +241,8 @@ class Table(object):
                 if self._primary_id is not False:
                     # This can go wrong on DBMS like MySQL and SQLite where
                     # tables cannot have no columns.
-                    primary_id = self._primary_id or self.PRIMARY_DEFAULT
-                    primary_type = self._primary_type or Types.integer
+                    primary_id = self._primary_id
+                    primary_type = self._primary_type
                     increment = primary_type in [Types.integer, Types.bigint]
                     column = Column(primary_id, primary_type,
                                     primary_key=True,

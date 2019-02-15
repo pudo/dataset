@@ -236,6 +236,12 @@ class TableTestCase(unittest.TestCase):
             )
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
+    def test_upsert_id(self):
+        table = self.db['banana_with_id']
+        data = dict(id=10, title='I am a banana!')
+        table.upsert(data, ['id'])
+        assert len(table) == 1, len(table)
+
     def test_update_while_iter(self):
         for row in self.tbl:
             row['foo'] = 'bar'
