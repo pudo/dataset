@@ -6,7 +6,6 @@ import os
 import unittest
 from datetime import datetime
 
-
 from sqlalchemy import FLOAT, INTEGER, TEXT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
