@@ -192,3 +192,31 @@ programmatic construction of more complex queries::
    table = db['user'].table
    statement = table.select(table.c.name.like('%John%'))
    result = db.query(statement)
+
+Data schema definition (optional)
+---------------------------------
+
+You don't need to declare your data definition with a schema or sqlalchemy class declarations before you store it, as you can include type information with insertions. But doing so serves to document it so if you want to, here is one way you can::
+
+   import dataset
+   from sqlalchemy.types import *
+   
+   def create_database(dbname='testdb', clobber=False):
+      db = dataset.connect('...' + dbname)
+    
+      t = db['users'] # makes primary key autoincrementing integer 'id'
+      if clobber: t.drop()
+      t.create_column('email', String(length=100))
+      t.create_column('name', String(length=100))
+      t.create_index(['email', 'name'])
+      t.create_column('registered', DateTime())
+      t.create_column('passhash', String(length=512))
+      t.create_column('telephone', String(length=30))
+      t.create_column('about', Text())
+  
+      t = db['tests']
+      if clobber: t.drop()
+      t.create_column('userid', Integer()) # foreign key: users/id
+      t.create_index(['userid'])
+      t.create_column('score', Float(precision=2))
+      t.create_column('timestamp', DateTime())
