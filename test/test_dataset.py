@@ -6,7 +6,7 @@ import os
 import unittest
 from datetime import datetime
 
-from sqlalchemy import FLOAT, INTEGER, TEXT
+from sqlalchemy import FLOAT, INTEGER, TEXT, BIGINT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect
@@ -441,6 +441,14 @@ class TableTestCase(unittest.TestCase):
         assert 'pippo' in tbl.table.c, tbl.table.c
         assert isinstance(tbl.table.c['pippo'].type, TEXT), \
             tbl.table.c['pippo'].type
+        tbl.create_column_by_example('bigbar', 11111111111)
+        assert 'bigbar' in tbl.table.c, tbl.table.c
+        assert isinstance(tbl.table.c['bigbar'].type, BIGINT), \
+            tbl.table.c['bigbar'].type
+        tbl.create_column_by_example('littlebar', -11111111111)
+        assert 'littlebar' in tbl.table.c, tbl.table.c
+        assert isinstance(tbl.table.c['littlebar'].type, BIGINT), \
+            tbl.table.c['littlebar'].type
 
     def test_key_order(self):
         res = self.db.query('SELECT temperature, place FROM weather LIMIT 1')
