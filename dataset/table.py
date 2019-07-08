@@ -122,17 +122,28 @@ class Table(object):
             rows = [dict(name='Dolly')] * 10000
             table.insert_many(rows)
         """
+        # Sync table before inputting rows.
+        sync_row = {}
+        for row in rows:
+            # Only get non-existing columns.
+            for key in set(row.keys()).difference(set(sync_row.keys())):
+                # Get a sample of the new column(s) from the row.
+                sync_row[key] = row[key]
+        self._sync_columns(sync_row, ensure, types=types)
+
+        # Get columns name list to be used for padding later.
+        columns = sync_row.keys()
+
         chunk = []
         for row in rows:
-            row = self._sync_columns(row, ensure, types=types)
             chunk.append(row)
             if len(chunk) == chunk_size:
-                chunk = pad_chunk_columns(chunk)
+                chunk = pad_chunk_columns(chunk, columns)
                 self.table.insert().execute(chunk)
                 chunk = []
 
         if len(chunk):
-            chunk = pad_chunk_columns(chunk)
+            chunk = pad_chunk_columns(chunk, columns)
             self.table.insert().execute(chunk)
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
@@ -198,7 +209,6 @@ class Table(object):
                 )
                 self.db.executable.execute(stmt, chunk)
                 chunk = []
-                columns = set()
 
     def upsert(self, row, keys, ensure=None, types=None):
         """An UPSERT is a smart combination of insert and update.
