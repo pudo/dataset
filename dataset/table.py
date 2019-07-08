@@ -173,6 +173,9 @@ class Table(object):
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
         """
+        # Convert keys to a list if not a list or tuple.
+        keys = keys if type(keys) in (list, tuple) else [keys]
+
         chunk = []
         columns = set()
         for row in rows:
@@ -183,7 +186,8 @@ class Table(object):
             for key in keys:
                 row[f'_{key}'] = row[f'{key}']
 
-            if len(chunk) == chunk_size:
+            # Update when chunksize is fulfilled or this is the last row
+            if len(chunk) == chunk_size or rows.index(row) == len(rows)-1:
                 stmt = self.table.update(
                     whereclause=and_(
                         *[self.table.c[key] == bindparam(f'_{key}') for key in keys]
@@ -195,18 +199,6 @@ class Table(object):
                 self.db.executable.execute(stmt, chunk)
                 chunk = []
                 columns = set()
-
-        if len(chunk):
-            stmt = self.table.update(
-                whereclause=and_(
-                    *[self.table.c[key] == bindparam(f'_{key}') for key in keys]
-                ),
-                values={
-                    column: bindparam(column, required=False) for column in columns
-                }
-            )
-            self.db.executable.execute(stmt, chunk)
-
 
     def upsert(self, row, keys, ensure=None, types=None):
         """An UPSERT is a smart combination of insert and update.
@@ -252,7 +244,6 @@ class Table(object):
 
         # Update existing rows.
         self.update_many(to_update, keys, chunk_size, ensure, types)
-
 
     def delete(self, *clauses, **filters):
         """Delete rows from the table.
