@@ -388,8 +388,8 @@ class TableTestCase(unittest.TestCase):
         tbl.upsert_many([dict(age=10), dict(weight=W)], 'id')
         assert tbl.find_one(id=1)['age'] == 10
 
-        tbl.upsert_many([dict(id=1, age=70), dict(id=2, weight=W/2)], 'id')
-        assert tbl.find_one(id=2)['weight'] == W/2
+        tbl.upsert_many([dict(id=1, age=70), dict(id=2, weight=W / 2)], 'id')
+        assert tbl.find_one(id=2)['weight'] == W / 2
 
     def test_drop_operations(self):
         assert self.tbl._table is not None, \
