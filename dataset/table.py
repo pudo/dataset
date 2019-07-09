@@ -135,16 +135,14 @@ class Table(object):
         columns = sync_row.keys()
 
         chunk = []
-        for row in rows:
+        for index, row in enumerate(rows):
             chunk.append(row)
-            if len(chunk) == chunk_size:
+
+            # Insert when chunk_size is fulfilled or this is the last row
+            if len(chunk) == chunk_size or index == len(row) - 1:
                 chunk = pad_chunk_columns(chunk, columns)
                 self.table.insert().execute(chunk)
                 chunk = []
-
-        if len(chunk):
-            chunk = pad_chunk_columns(chunk, columns)
-            self.table.insert().execute(chunk)
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
         """Update a row in the table.
@@ -189,7 +187,7 @@ class Table(object):
 
         chunk = []
         columns = set()
-        for row in rows:
+        for index, row in enumerate(rows):
             chunk.append(row)
             columns = columns.union(set(row.keys()))
 
@@ -197,14 +195,14 @@ class Table(object):
             for key in keys:
                 row[f'_{key}'] = row[f'{key}']
 
-            # Update when chunksize is fulfilled or this is the last row
-            if len(chunk) == chunk_size or rows.index(row) == len(rows)-1:
+            # Update when chunk_size is fulfilled or this is the last row
+            if len(chunk) == chunk_size or index == len(rows) - 1:
                 stmt = self.table.update(
                     whereclause=and_(
-                        *[self.table.c[key] == bindparam(f'_{key}') for key in keys]
+                        *[self.table.c[k] == bindparam(f'_{k}') for k in keys]
                     ),
                     values={
-                        column: bindparam(column, required=False) for column in columns
+                        col: bindparam(col, required=False) for col in columns
                     }
                 )
                 self.db.executable.execute(stmt, chunk)
