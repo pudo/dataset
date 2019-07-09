@@ -139,7 +139,7 @@ class Table(object):
             chunk.append(row)
 
             # Insert when chunk_size is fulfilled or this is the last row
-            if len(chunk) == chunk_size or index == len(row) - 1:
+            if len(chunk) == chunk_size or index == len(rows) - 1:
                 chunk = pad_chunk_columns(chunk, columns)
                 self.table.insert().execute(chunk)
                 chunk = []
