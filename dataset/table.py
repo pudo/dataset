@@ -193,13 +193,13 @@ class Table(object):
 
             # bindparam requires names to not conflict (cannot be "id" for id)
             for key in keys:
-                row[f'_{key}'] = row[f'{key}']
+                row['_%s' % key] = row[key]
 
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 stmt = self.table.update(
                     whereclause=and_(
-                        *[self.table.c[k] == bindparam(f'_{k}') for k in keys]
+                        *[self.table.c[k] == bindparam('_%s' % k) for k in keys]
                     ),
                     values={
                         col: bindparam(col, required=False) for col in columns
