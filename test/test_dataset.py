@@ -374,6 +374,29 @@ class TableTestCase(unittest.TestCase):
         self.tbl.insert_many(data, chunk_size=13)
         assert len(self.tbl) == len(data) + 6
 
+    def test_update_many(self):
+        tbl = self.db['update_many_test']
+        tbl.insert_many([
+            dict(temp=10), dict(temp=20), dict(temp=30)
+        ])
+        tbl.update_many(
+            [dict(id=1, temp=50), dict(id=3, temp=50)], 'id'
+        )
+
+        # Ensure data has been updated.
+        assert tbl.find_one(id=1)['temp'] == tbl.find_one(id=3)['temp']
+
+    def test_upsert_many(self):
+        # Also tests updating on records with different attributes
+        tbl = self.db['upsert_many_test']
+
+        W = 100
+        tbl.upsert_many([dict(age=10), dict(weight=W)], 'id')
+        assert tbl.find_one(id=1)['age'] == 10
+
+        tbl.upsert_many([dict(id=1, age=70), dict(id=2, weight=W / 2)], 'id')
+        assert tbl.find_one(id=2)['weight'] == W / 2
+
     def test_drop_operations(self):
         assert self.tbl._table is not None, \
             'table shouldn\'t be dropped yet'

@@ -108,12 +108,9 @@ def ensure_tuple(obj):
     return obj,
 
 
-def pad_chunk_columns(chunk):
+def pad_chunk_columns(chunk, columns):
     """Given a set of items to be inserted, make sure they all have the
     same columns by padding columns with None if they are missing."""
-    columns = set()
-    for record in chunk:
-        columns.update(record.keys())
     for record in chunk:
         for column in columns:
             record.setdefault(column, None)
