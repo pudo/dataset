@@ -6,7 +6,7 @@ import os
 import unittest
 from datetime import datetime
 
-from sqlalchemy import FLOAT, INTEGER, TEXT, BIGINT
+from sqlalchemy import FLOAT, TEXT, BIGINT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect
@@ -435,7 +435,7 @@ class TableTestCase(unittest.TestCase):
             tbl.table.c['bar'].type
         tbl.create_column_by_example('bar', 1)
         assert 'bar' in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c['bar'].type, INTEGER), \
+        assert isinstance(tbl.table.c['bar'].type, BIGINT), \
             tbl.table.c['bar'].type
         tbl.create_column_by_example('pippo', 'test')
         assert 'pippo' in tbl.table.c, tbl.table.c
