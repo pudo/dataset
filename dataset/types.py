@@ -27,7 +27,7 @@ class Types(object):
         if isinstance(sample, bool):
             return cls.boolean
         elif isinstance(sample, int):
-            return cls.integer
+            return cls.bigint
         elif isinstance(sample, float):
             return cls.float
         elif isinstance(sample, datetime):
