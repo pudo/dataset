@@ -503,6 +503,7 @@ class TableTestCase(unittest.TestCase):
 
         assert tbl.find_one(id=1)['temp'] == 20
 
+
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to
     provide attribute access to dictionary contents"""
