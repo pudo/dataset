@@ -115,3 +115,10 @@ def pad_chunk_columns(chunk, columns):
         for column in columns:
             record.setdefault(column, None)
     return chunk
+
+
+def universal_len(obj):
+    """Gets count of items from many data types that len doesn't work
+    on such as generators and iterators."""
+    return sum(1 for _ in obj)
+

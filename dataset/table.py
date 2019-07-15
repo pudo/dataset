@@ -1,3 +1,4 @@
+import itertools
 import logging
 import warnings
 import threading
@@ -12,7 +13,7 @@ from sqlalchemy.exc import NoSuchTableError
 from dataset.types import Types
 from dataset.util import normalize_column_name, index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
-from dataset.util import normalize_table_name, pad_chunk_columns
+from dataset.util import normalize_table_name, pad_chunk_columns, universal_len
 
 
 log = logging.getLogger(__name__)
@@ -128,9 +129,15 @@ class Table(object):
             rows = [dict(name='Dolly')] * 10000
             table.insert_many(rows)
         """
+        # Create multiple instances of rows, needed if it is an iterator.
+        instances = itertools.tee(rows, 3)
+
+        # Count the number of rows.
+        num_rows = universal_len(instances[0])
+
         # Sync table before inputting rows.
         sync_row = {}
-        for row in rows:
+        for row in instances[1]:
             # Only get non-existing columns.
             for key in set(row.keys()).difference(set(sync_row.keys())):
                 # Get a sample of the new column(s) from the row.
@@ -141,11 +148,11 @@ class Table(object):
         columns = sync_row.keys()
 
         chunk = []
-        for index, row in enumerate(rows):
+        for index, row in enumerate(instances[2]):
             chunk.append(row)
 
             # Insert when chunk_size is fulfilled or this is the last row
-            if len(chunk) == chunk_size or index == len(rows) - 1:
+            if len(chunk) == chunk_size or index == num_rows - 1:
                 chunk = pad_chunk_columns(chunk, columns)
                 self.table.insert().execute(chunk)
                 chunk = []
@@ -188,12 +195,18 @@ class Table(object):
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
         """
+        # Create multiple instances of rows, needed if it is an iterator.
+        instances = itertools.tee(rows, 2)
+
+        # Count the number of rows.
+        num_rows = universal_len(instances[0])
+
         # Convert keys to a list if not a list or tuple.
         keys = keys if type(keys) in (list, tuple) else [keys]
 
         chunk = []
         columns = set()
-        for index, row in enumerate(rows):
+        for index, row in enumerate(instances[1]):
             chunk.append(row)
             columns = columns.union(set(row.keys()))
 
@@ -202,7 +215,7 @@ class Table(object):
                 row['_%s' % key] = row[key]
 
             # Update when chunk_size is fulfilled or this is the last row
-            if len(chunk) == chunk_size or index == len(rows) - 1:
+            if len(chunk) == chunk_size or index == num_rows - 1:
                 stmt = self.table.update(
                     whereclause=and_(
                         *[self.table.c[k] == bindparam('_%s' % k) for k in keys]

@@ -489,6 +489,19 @@ class TableTestCase(unittest.TestCase):
         empty = list(self.tbl.find(place='not in data'))
         assert len(empty) == 0, empty
 
+    def test_iterators(self):
+        tbl = self.db['iterators_test']
+        tbl.insert_many(iter([
+            dict(temp=10), dict(temp=20), dict(temp=30)
+        ]))
+
+        assert tbl.find_one(id=1)['temp'] == 10
+
+        tbl.update_many(iter([
+            dict(id=1, temp=20), dict(id=2, temp=30), dict(id=3, temp=40)
+        ]), ['id'])
+
+        assert tbl.find_one(id=1)['temp'] == 20
 
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to
