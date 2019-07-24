@@ -489,6 +489,18 @@ class TableTestCase(unittest.TestCase):
         empty = list(self.tbl.find(place='not in data'))
         assert len(empty) == 0, empty
 
+    def test_database_autocreate(self):
+        # Test only if file doesn't exists to prevent (potential) data loss.
+        # Also cannot test creation of file.
+        msg = 'autocreate_test.db already exists. Stopping test.'
+        exists = os.path.exists('autocreate_test.db')
+        assert not exists, msg
+
+        if not exists:
+            db = connect('sqlite:///autocreate_test.db', autocreate_db=True)
+            assert os.path.exists('autocreate_test.db')
+            os.remove('autocreate_test.db')
+
 
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to

@@ -29,7 +29,8 @@ setup(
     install_requires=[
         'sqlalchemy >= 1.1.2',
         'alembic >= 0.6.2',
-        "six >= 1.11.0"
+        "six >= 1.11.0",
+        'sqlalchemy_utils'
     ],
     tests_require=[
         'nose'
