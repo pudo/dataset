@@ -503,6 +503,23 @@ class TableTestCase(unittest.TestCase):
 
         assert tbl.find_one(id=1)['temp'] == 20
 
+    def test_update_unexisting_fields(self):
+        tbl = self.db['update_unexisting_fields']
+        tbl.insert(dict(temp=10))
+        tbl.update(dict(id=1, temp=20, area=3, height=100), 'id')
+
+        # Assert that missing field is synced.
+        assert tbl.find_one(id=1) == dict(id=1, temp=20, area=3, height=100)
+
+    def test_upsert_unexisting_fields(self):
+        tbl = self.db['upsert_unexisting_fields']
+        tbl.insert_many([dict(temp=10), dict(area=3)])
+        tbl.upsert_many([dict(id=1, temp=20), dict(id=2, area=2, day=3)], 'id')
+
+        # Assert that missing fields are synced (NULLED in rows).
+        assert tbl.find_one(id=1) == dict(id=1, area=None, day=None, temp=20)
+        assert tbl.find_one(id=2) == dict(id=2, area=2, day=3, temp=None)
+
 
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to

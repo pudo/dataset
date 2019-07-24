@@ -61,6 +61,16 @@ class Table(object):
             return []
         return self.table.columns.keys()
 
+    def create_missing_columns(self, rows, ensure, types):
+        sync_row = {}
+        for row in rows:
+            # Only get non-existing columns.
+            for key in set(row.keys()).difference(set(sync_row.keys())):
+                # Get a sample of the new column(s) from the row.
+                sync_row[key] = row[key]
+        self._sync_columns(sync_row, ensure, types=types)
+        return sync_row.keys()
+
     def has_column(self, column):
         """Check if a column with the given name exists on this table."""
         return normalize_column_name(column) in self.columns
@@ -135,17 +145,8 @@ class Table(object):
         # Count the number of rows.
         num_rows = universal_len(instances[0])
 
-        # Sync table before inputting rows.
-        sync_row = {}
-        for row in instances[1]:
-            # Only get non-existing columns.
-            for key in set(row.keys()).difference(set(sync_row.keys())):
-                # Get a sample of the new column(s) from the row.
-                sync_row[key] = row[key]
-        self._sync_columns(sync_row, ensure, types=types)
-
-        # Get columns name list to be used for padding later.
-        columns = sync_row.keys()
+        # Sync table (add missing columns) before inputting rows.
+        columns = self.create_missing_columns(instances[1], ensure, types=types)
 
         chunk = []
         for index, row in enumerate(instances[2]):
@@ -196,29 +197,30 @@ class Table(object):
         the other parameters.
         """
         # Create multiple instances of rows, needed if it is an iterator.
-        instances = itertools.tee(rows, 2)
+        instances = itertools.tee(rows, 3)
 
         # Count the number of rows.
         num_rows = universal_len(instances[0])
+
+        # Sync table (add missing columns) before inputting rows.
+        columns = self.create_missing_columns(instances[1], ensure, types=types)
 
         # Convert keys to a list if not a list or tuple.
         keys = keys if type(keys) in (list, tuple) else [keys]
 
         chunk = []
-        columns = set()
-        for index, row in enumerate(instances[1]):
+        for index, row in enumerate(instances[2]):
             chunk.append(row)
-            columns = columns.union(set(row.keys()))
 
             # bindparam requires names to not conflict (cannot be "id" for id)
             for key in keys:
-                row['_%s' % key] = row[key]
+                row['-%s' % key] = row[key]
 
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == num_rows - 1:
                 stmt = self.table.update(
                     whereclause=and_(
-                        *[self.table.c[k] == bindparam('_%s' % k) for k in keys]
+                        *[self.table.c[k] == bindparam('-%s' % k) for k in keys]
                     ),
                     values={
                         col: bindparam(col, required=False) for col in columns
