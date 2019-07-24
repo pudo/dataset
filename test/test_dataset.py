@@ -497,7 +497,7 @@ class TableTestCase(unittest.TestCase):
         assert not exists, msg
 
         if not exists:
-            db = connect('sqlite:///autocreate_test.db', autocreate_db=True)
+            connect('sqlite:///autocreate_test.db', autocreate_db=True)
             assert os.path.exists('autocreate_test.db')
             os.remove('autocreate_test.db')
 
