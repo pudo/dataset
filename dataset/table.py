@@ -68,8 +68,7 @@ class Table(object):
             for key in set(row.keys()).difference(set(sync_row.keys())):
                 # Get a sample of the new column(s) from the row.
                 sync_row[key] = row[key]
-        self._sync_columns(sync_row, ensure, types=types)
-        return sync_row.keys()
+        return self._sync_columns(sync_row, ensure, types=types).keys()
 
     def has_column(self, column):
         """Check if a column with the given name exists on this table."""
