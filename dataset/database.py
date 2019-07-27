@@ -11,6 +11,8 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.util import safe_reraise
 from sqlalchemy.engine.reflection import Inspector
 
+from sqlalchemy_utils import database_exists, create_database
+
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
@@ -27,7 +29,7 @@ class Database(object):
 
     def __init__(self, url, schema=None, reflect_metadata=True,
                  engine_kwargs=None, reflect_views=True,
-                 ensure_schema=True, row_type=row_type):
+                 ensure_schema=True, row_type=row_type, autocreate_db=False):
         """Configure and connect to the database."""
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -55,6 +57,11 @@ class Database(object):
         self.row_type = row_type
         self.ensure_schema = ensure_schema
         self._tables = {}
+
+        # Create DB it doesn't exist (this is automatic only for SQLite DBs)
+        # ref: https://stackoverflow.com/a/30971098
+        if autocreate_db and not database_exists(self.engine.url):
+            create_database(self.engine.url)
 
     @property
     def executable(self):

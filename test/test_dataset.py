@@ -489,6 +489,7 @@ class TableTestCase(unittest.TestCase):
         empty = list(self.tbl.find(place='not in data'))
         assert len(empty) == 0, empty
 
+<<<<<<< HEAD
     def test_iterators(self):
         tbl = self.db['iterators_test']
         tbl.insert_many(iter([
@@ -520,6 +521,17 @@ class TableTestCase(unittest.TestCase):
         assert tbl.find_one(id=1) == dict(id=1, area=None, day=None, temp=20)
         assert tbl.find_one(id=2) == dict(id=2, area=2, day=3, temp=None)
 
+    def test_database_autocreate(self):
+        # Test only if file doesn't exists to prevent (potential) data loss.
+        # Also cannot test creation of file.
+        msg = 'autocreate_test.db already exists. Stopping test.'
+        exists = os.path.exists('autocreate_test.db')
+        assert not exists, msg
+
+        if not exists:
+            connect('sqlite:///autocreate_test.db', autocreate_db=True)
+            assert os.path.exists('autocreate_test.db')
+            os.remove('autocreate_test.db')
 
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to
