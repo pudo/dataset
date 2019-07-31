@@ -489,7 +489,6 @@ class TableTestCase(unittest.TestCase):
         empty = list(self.tbl.find(place='not in data'))
         assert len(empty) == 0, empty
 
-<<<<<<< HEAD
     def test_iterators(self):
         tbl = self.db['iterators_test']
         tbl.insert_many(iter([
