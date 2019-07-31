@@ -533,6 +533,7 @@ class TableTestCase(unittest.TestCase):
             assert os.path.exists('autocreate_test.db')
             os.remove('autocreate_test.db')
 
+
 class Constructor(dict):
     """ Very simple low-functionality extension to ``dict`` to
     provide attribute access to dictionary contents"""
