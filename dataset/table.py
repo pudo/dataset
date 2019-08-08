@@ -389,6 +389,8 @@ class Table(object):
                 key = list(value.keys())[0]
                 if key in ('like',):
                     clauses.append(self.table.c[column].like(value[key]))
+                elif key in ('ilike',):
+                    clauses.append(self.table.c[column].ilike(value[key]))
                 elif key in ('>', 'gt'):
                     clauses.append(self.table.c[column] > value[key])
                 elif key in ('<', 'lt'):
@@ -397,6 +399,8 @@ class Table(object):
                     clauses.append(self.table.c[column] >= value[key])
                 elif key in ('<=', 'lte'):
                     clauses.append(self.table.c[column] <= value[key])
+                elif key in ('=', '==', 'is'):
+                    clauses.append(self.table.c[column] == value[key])
                 elif key in ('!=', '<>', 'not'):
                     clauses.append(self.table.c[column] != value[key])
                 elif key in ('between', '..'):
