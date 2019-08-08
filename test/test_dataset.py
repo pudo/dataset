@@ -339,6 +339,10 @@ class TableTestCase(unittest.TestCase):
         assert len(ds) == 5, ds
         ds = list(self.tbl.find(temperature={'between': [5, 8]}))
         assert len(ds) == 3, ds
+        ds = list(self.tbl.find(place={'=': 'G€lway'}))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(place={'ilike': '%LwAy'}))
+        assert len(ds) == 3, ds
 
     def test_offset(self):
         ds = list(self.tbl.find(place=TEST_CITY_1, _offset=1))
