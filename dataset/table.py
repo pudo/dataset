@@ -15,6 +15,8 @@ from dataset.util import normalize_column_name, index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
 from dataset.util import normalize_table_name, pad_chunk_columns, universal_len
 
+from collections import OrderedDict
+
 
 log = logging.getLogger(__name__)
 
@@ -62,10 +64,10 @@ class Table(object):
         return self.table.columns.keys()
 
     def create_missing_columns(self, rows, ensure, types):
-        sync_row = {}
+        sync_row = OrderedDict()
         for row in rows:
             # Only get non-existing columns.
-            for key in set(row.keys()).difference(set(sync_row.keys())):
+            for key in [k for k in row.keys() if k not in sync_row.keys()]:
                 # Get a sample of the new column(s) from the row.
                 sync_row[key] = row[key]
         return self._sync_columns(sync_row, ensure, types=types).keys()
