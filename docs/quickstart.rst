@@ -172,7 +172,7 @@ results will be returned::
     db = dataset.connect('sqlite:///mydatabase.db', row_type=stuf)
 
 Now contents will be returned in ``stuf`` objects (basically, ``dict``
-objects whose elements can be acessed as attributes (``item.name``) as well as
+objects whose elements can be accessed as attributes (``item.name``) as well as
 by index (``item['name']``).
 
 Running custom SQL queries
