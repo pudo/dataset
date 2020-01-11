@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlparse
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from sqlalchemy.schema import MetaData
-from sqlalchemy.pool import StaticPool
 from sqlalchemy.util import safe_reraise
 from sqlalchemy.engine.reflection import Inspector
 
@@ -31,10 +30,10 @@ class Database(object):
             engine_kwargs = {}
 
         parsed_url = urlparse(url)
-        if parsed_url.scheme.lower() in 'sqlite':
-            # ref: https://github.com/pudo/dataset/issues/163
-            if 'poolclass' not in engine_kwargs:
-                engine_kwargs['poolclass'] = StaticPool
+        # if parsed_url.scheme.lower() in 'sqlite':
+        #     # ref: https://github.com/pudo/dataset/issues/163
+        #     if 'poolclass' not in engine_kwargs:
+        #         engine_kwargs['poolclass'] = StaticPool
 
         self.lock = threading.RLock()
         self.local = threading.local()
