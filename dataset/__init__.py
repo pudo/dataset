@@ -24,12 +24,17 @@ def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
     to False if you don't want the entire database schema to be pre-loaded.
     This significantly speeds up connecting to large databases with lots of
     tables. *reflect_views* can be set to False if you don't want views to be
-    loaded.  Additionally, *engine_kwargs* will be directly passed to
+    loaded. Additionally, *engine_kwargs* will be directly passed to
     SQLAlchemy, e.g.  set *engine_kwargs={'pool_recycle': 3600}* will avoid `DB
     connection timeout`_. Set *row_type* to an alternate dict-like class to
     change the type of container rows are stored in.::
 
         db = dataset.connect('sqlite:///factbook.db')
+
+    One of the main features of `dataset` is to automatically create tables and
+    columns as data is inserted. This behaviour can optionally be disabled via
+    the `ensure_schema` argument. It can also be overridden in a lot of the
+    data manipulation methods using the `ensure` flag.
 
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
     .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
