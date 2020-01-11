@@ -1,8 +1,6 @@
 import logging
 import threading
-
-import six
-from six.moves.urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
@@ -182,7 +180,7 @@ class Database(object):
             table5 = db.create_table('population5',
                                      primary_id=False)
         """
-        assert not isinstance(primary_type, six.string_types), \
+        assert not isinstance(primary_type, str), \
             'Text-based primary_type support is dropped, use db.types.'
         table_name = normalize_table_name(table_name)
         with self.lock:
@@ -253,7 +251,7 @@ class Database(object):
 
         The returned iterator will yield each result sequentially.
         """
-        if isinstance(query, six.string_types):
+        if isinstance(query, str):
             query = text(query)
         _step = kwargs.pop('_step', QUERY_STEP)
         rp = self.executable.execute(query, *args, **kwargs)

@@ -17,7 +17,7 @@ setup(
     ],
     keywords='sql sqlalchemy etl loading utility',
     author='Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer',
-    author_email='friedrich@pudo.org',
+    author_email='friedrich.lindenberg@gmail.com',
     url='http://github.com/pudo/dataset',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'test']),
@@ -26,8 +26,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'sqlalchemy >= 1.1.2',
-        'alembic >= 0.6.2',
-        'six >= 1.11.0'
+        'alembic >= 0.6.2'
     ],
     tests_require=[
         'nose'
