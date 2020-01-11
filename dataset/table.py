@@ -426,9 +426,8 @@ class Table(object):
     def _keys_to_args(self, row, keys):
         keys = ensure_tuple(keys)
         keys = [normalize_column_name(k) for k in keys]
-        # keys = [self.has_column(k) for k in keys]
         row = row.copy()
-        args = {k: row.pop(k) for k in keys if k in row}
+        args = {k: row.pop(k, None) for k in keys}
         return args, row
 
     def create_column(self, name, type):
