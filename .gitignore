@@ -1,6 +1,7 @@
 *.pyc
 *.egg-info
 *.egg
+.eggs/
 dist/*
 .tox/*
 .vscode/*

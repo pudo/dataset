@@ -158,7 +158,8 @@ class Table(object):
         values in ``row``.
         ::
 
-            # update all entries with id matching 10, setting their title columns
+            # update all entries with id matching 10, setting their title
+            # columns
             data = dict(id=10, title='I am a banana!')
             table.update(data, ['id'])
 
@@ -178,7 +179,8 @@ class Table(object):
         if return_count:
             return self.count(clause)
 
-    def update_many(self, rows, keys, chunk_size=1000, ensure=None, types=None):
+    def update_many(self, rows, keys, chunk_size=1000, ensure=None,
+                    types=None):
         """Update many rows in the table at a time.
 
         This is significantly faster than updating them one by one. Per default
@@ -203,10 +205,9 @@ class Table(object):
 
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
+                cl = [self.table.c[k] == bindparam('_%s' % k) for k in keys]
                 stmt = self.table.update(
-                    whereclause=and_(
-                        *[self.table.c[k] == bindparam('_%s' % k) for k in keys]
-                    ),
+                    whereclause=and_(*cl),
                     values={
                         col: bindparam(col, required=False) for col in columns
                     }
@@ -232,7 +233,8 @@ class Table(object):
             return self.insert(row, ensure=False)
         return True
 
-    def upsert_many(self, rows, keys, chunk_size=1000, ensure=None, types=None):
+    def upsert_many(self, rows, keys, chunk_size=1000, ensure=None,
+                    types=None):
         """
         Sorts multiple input rows into upserts and inserts. Inserts are passed
         to insert_many and upserts are updated.
@@ -330,7 +332,9 @@ class Table(object):
                 self._threading_warn()
                 for column in columns:
                     if not self.has_column(column.name):
-                        self.db.op.add_column(self.name, column, self.db.schema)
+                        self.db.op.add_column(self.name,
+                                              column,
+                                              self.db.schema)
                 self._reflect_table()
 
     def _sync_columns(self, row, ensure, types=None):
@@ -386,7 +390,9 @@ class Table(object):
                 elif key in ('!=', '<>', 'not'):
                     clauses.append(self.table.c[column] != value[key])
                 elif key in ('between', '..'):
-                    clauses.append(self.table.c[column].between(value[key][0], value[key][1]))
+                    start = value[key][0]
+                    end = value[key][1]
+                    clauses.append(self.table.c[column].between(start, end))
                 else:
                     clauses.append(false())
             else:
@@ -421,7 +427,8 @@ class Table(object):
 
             table.create_column('created_at', db.types.datetime)
 
-        `type` corresponds to an SQLAlchemy type as described by `dataset.db.Types`
+        `type` corresponds to an SQLAlchemy type as described by
+        `dataset.db.Types`
         """
         name = normalize_column_name(name)
         if self.has_column(name):
