@@ -91,7 +91,7 @@ class Table(object):
     def insert_ignore(self, row, keys, ensure=None, types=None):
         """Add a ``row`` dict into the table if the row does not exist.
 
-        If rows with matching ``keys`` exist they will be added to the table.
+        If rows with matching ``keys`` exist no change is made.
 
         Setting ``ensure`` results in automatically creating missing columns,
         i.e., keys of the row are not table columns.
