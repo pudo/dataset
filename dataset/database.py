@@ -136,6 +136,12 @@ class Database(object):
         else:
             self.rollback()
 
+    def close(self):
+        """Close database connections. Makes this object unusable."""
+        self.engine.dispose()
+        self._tables = {}
+        self.engine = None
+
     @property
     def tables(self):
         """Get a listing of all tables that exist in the database."""
