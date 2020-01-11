@@ -23,7 +23,7 @@ def iter_result_proxy(rp, step=None):
         if step is None:
             chunk = rp.fetchall()
         else:
-            chunk = rp.fetchmany(step)
+            chunk = rp.fetchmany(size=step)
         if not chunk:
             break
         for row in chunk:
@@ -41,7 +41,11 @@ class ResultIter(object):
         self._iter = iter_result_proxy(result_proxy, step=step)
 
     def __next__(self):
-        return convert_row(self.row_type, next(self._iter))
+        try:
+            return convert_row(self.row_type, next(self._iter))
+        except StopIteration:
+            self.close()
+            raise
 
     next = __next__
 

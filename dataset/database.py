@@ -254,6 +254,8 @@ class Database(object):
         if isinstance(query, str):
             query = text(query)
         _step = kwargs.pop('_step', QUERY_STEP)
+        if _step is False or _step == 0:
+            _step = None
         rp = self.executable.execute(query, *args, **kwargs)
         return ResultIter(rp, row_type=self.row_type, step=_step)
 
