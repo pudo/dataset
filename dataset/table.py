@@ -132,7 +132,7 @@ class Table(object):
         sync_row = {}
         for row in rows:
             # Only get non-existing columns.
-            for key in set(row.keys()).difference(set(sync_row.keys())):
+            for key in [k for k in row.keys() if k not in sync_row.keys()]:
                 # Get a sample of the new column(s) from the row.
                 sync_row[key] = row[key]
         self._sync_columns(sync_row, ensure, types=types)
@@ -192,10 +192,10 @@ class Table(object):
         keys = keys if type(keys) in (list, tuple) else [keys]
 
         chunk = []
-        columns = set()
+        columns = []
         for index, row in enumerate(rows):
             chunk.append(row)
-            columns = columns.union(set(row.keys()))
+            columns = [col for col in row.keys() if col not in columns]
 
             # bindparam requires names to not conflict (cannot be "id" for id)
             for key in keys:
