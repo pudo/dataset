@@ -3,6 +3,10 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
+* 1.2.0: Add support for views, multiple comparison operators.
+  Remove support for Python 2.
+* 1.1.0: Introduce `types` system to shortcut for SQLA types.
+* 1.0.0: Massive re-factor and code cleanup.
 * 0.6.0: Remove sqlite_datetime_fix for automatic int-casting of dates,
   make table['foo', 'bar'] an alias for table.distinct('foo', 'bar'),
   check validity of column and table names more thoroughly, rename
