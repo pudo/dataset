@@ -10,12 +10,10 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='sql sqlalchemy etl loading utility',
     author='Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer',
@@ -29,7 +27,7 @@ setup(
     install_requires=[
         'sqlalchemy >= 1.1.2',
         'alembic >= 0.6.2',
-        "six >= 1.11.0"
+        'six >= 1.11.0'
     ],
     tests_require=[
         'nose'
