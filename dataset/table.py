@@ -371,39 +371,42 @@ class Table(object):
             return self.db.ensure_schema
         return ensure
 
+    def _generate_clause(self, column, op, value):
+        if op in ('like',):
+            return self.table.c[column].like(value)
+        if op in ('ilike',):
+            return self.table.c[column].ilike(value)
+        if op in ('>', 'gt'):
+            return self.table.c[column] > value
+        if op in ('<', 'lt'):
+            return self.table.c[column] < value
+        if op in ('>=', 'gte'):
+            return self.table.c[column] >= value
+        if op in ('<=', 'lte'):
+            return self.table.c[column] <= value
+        if op in ('=', '==', 'is'):
+            return self.table.c[column] == value
+        if op in ('!=', '<>', 'not'):
+            return self.table.c[column] != value
+        if op in ('in'):
+            return self.table.c[column].in_(value)
+        if op in ('between', '..'):
+            start, end = value
+            return self.table.c[column].between(start, end)
+        return false()
+
     def _args_to_clause(self, args, clauses=()):
         clauses = list(clauses)
         for column, value in args.items():
             if not self.has_column(column):
                 clauses.append(false())
-            elif isinstance(value, (list, tuple)):
-                clauses.append(self.table.c[column].in_(value))
+            elif isinstance(value, (list, tuple, set)):
+                clauses.append(self._generate_clause(column, 'in', value))
             elif isinstance(value, dict):
-                key = list(value.keys())[0]
-                if key in ('like',):
-                    clauses.append(self.table.c[column].like(value[key]))
-                elif key in ('ilike',):
-                    clauses.append(self.table.c[column].ilike(value[key]))
-                elif key in ('>', 'gt'):
-                    clauses.append(self.table.c[column] > value[key])
-                elif key in ('<', 'lt'):
-                    clauses.append(self.table.c[column] < value[key])
-                elif key in ('>=', 'gte'):
-                    clauses.append(self.table.c[column] >= value[key])
-                elif key in ('<=', 'lte'):
-                    clauses.append(self.table.c[column] <= value[key])
-                elif key in ('=', '==', 'is'):
-                    clauses.append(self.table.c[column] == value[key])
-                elif key in ('!=', '<>', 'not'):
-                    clauses.append(self.table.c[column] != value[key])
-                elif key in ('between', '..'):
-                    start = value[key][0]
-                    end = value[key][1]
-                    clauses.append(self.table.c[column].between(start, end))
-                else:
-                    clauses.append(false())
+                for op, op_value in value.items():
+                    clauses.append(self._generate_clause(column, op, op_value))
             else:
-                clauses.append(self.table.c[column] == value)
+                clauses.append(self._generate_clause(column, '=', value))
         return and_(*clauses)
 
     def _args_to_order_by(self, order_by):
