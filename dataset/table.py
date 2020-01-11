@@ -430,20 +430,26 @@ class Table(object):
         args = {k: row.pop(k, None) for k in keys}
         return args, row
 
-    def create_column(self, name, type):
+    def create_column(self, name, type, **kwargs):
         """Create a new column ``name`` of a specified type.
         ::
 
             table.create_column('created_at', db.types.datetime)
 
         `type` corresponds to an SQLAlchemy type as described by
-        `dataset.db.Types`
+        `dataset.db.Types`. Additional keyword arguments are passed
+        to the constructor of `Column`, so that default values, and
+        options like `nullable` and `unique` can be set.
+        ::
+
+            table.create_column('key', unique=True, nullable=False)
+            table.create_column('food', default='banana')
         """
         name = normalize_column_name(name)
         if self.has_column(name):
             log.debug("Column exists: %s" % name)
             return
-        self._sync_table((Column(name, type),))
+        self._sync_table((Column(name, type, **kwargs),))
 
     def create_column_by_example(self, name, value):
         """
