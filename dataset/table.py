@@ -288,7 +288,7 @@ class Table(object):
                                         schema=self.db.schema,
                                         autoload=True)
             except NoSuchTableError:
-                pass
+                self._table = None
 
     def _threading_warn(self):
         if self.db.in_transaction and threading.active_count() > 1:

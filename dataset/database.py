@@ -145,10 +145,20 @@ class Database(object):
         """Get a listing of all tables that exist in the database."""
         return self.inspect.get_table_names(schema=self.schema)
 
+    @property
+    def views(self):
+        """Get a listing of all views that exist in the database."""
+        return self.inspect.get_view_names(schema=self.schema)
+
     def __contains__(self, table_name):
         """Check if the given table name exists in the database."""
         try:
-            return normalize_table_name(table_name) in self.tables
+            table_name = normalize_table_name(table_name)
+            if table_name in self.tables:
+                return True
+            if table_name in self.views:
+                return True
+            return False
         except ValueError:
             return False
 
