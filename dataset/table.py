@@ -58,7 +58,8 @@ class Table(object):
 
     def has_column(self, column):
         """Check if a column with the given name exists on this table."""
-        return normalize_column_name(column) in self.columns
+        columns = [c.lower() for c in self.columns]
+        return normalize_column_name(column).lower() in columns
 
     def insert(self, row, ensure=None, types=None):
         """Add a ``row`` dict by inserting it into the table.
@@ -343,7 +344,7 @@ class Table(object):
         this will remove any keys from the ``row`` for which there is no
         matching column.
         """
-        columns = self.columns
+        columns = [c.lower() for c in self.columns]
         ensure = self._check_ensure(ensure)
         types = types or {}
         types = {normalize_column_name(k): v for (k, v) in types.items()}
@@ -351,7 +352,7 @@ class Table(object):
         sync_columns = []
         for name, value in row.items():
             name = normalize_column_name(name)
-            if ensure and name not in columns:
+            if ensure and name.lower() not in columns:
                 _type = types.get(name)
                 if _type is None:
                     _type = self.db.types.guess(value)
