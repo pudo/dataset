@@ -29,14 +29,10 @@ class Table(object):
         self.name = normalize_table_name(table_name)
         self._table = None
         self._indexes = []
-        if primary_id is not None:
-            self._primary_id = primary_id
-        else:
-            self._primary_id = self.PRIMARY_DEFAULT
-        if primary_type is not None:
-            self._primary_type = primary_type
-        else:
-            self._primary_type = Types.integer
+        self._primary_id = primary_id if primary_id is not None \
+            else self.PRIMARY_DEFAULT
+        self._primary_type = primary_type if primary_type is not None \
+            else Types.integer
         self._auto_create = auto_create
 
     @property
