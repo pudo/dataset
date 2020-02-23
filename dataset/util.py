@@ -73,6 +73,13 @@ def normalize_column_name(name):
     return name
 
 
+def normalize_column_key(name):
+    """Return a comparable column name."""
+    if name is None or not isinstance(name, str):
+        return None
+    return name.upper().strip().replace(' ', '')
+
+
 def normalize_table_name(name):
     """Check if the table name is obviously invalid."""
     if not isinstance(name, str):

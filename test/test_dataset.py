@@ -253,6 +253,22 @@ class TableTestCase(unittest.TestCase):
                 'qux.bar': 'Huhu'
             })
 
+    def test_cased_column_names(self):
+        tbl = self.db['cased_column_names']
+        tbl.insert({
+            'place': 'Berlin',
+        })
+        tbl.insert({
+            'Place': 'Berlin',
+        })
+        tbl.insert({
+            'PLACE ': 'Berlin',
+        })
+        assert len(tbl.columns) == 2, tbl.columns
+        assert len(list(tbl.find(Place='Berlin'))) == 3
+        assert len(list(tbl.find(place='Berlin'))) == 3
+        assert len(list(tbl.find(PLACE='Berlin'))) == 3
+
     def test_invalid_column_names(self):
         tbl = self.db['weather']
         with self.assertRaises(ValueError):
