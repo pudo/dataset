@@ -57,8 +57,10 @@ class Table(object):
         if not self.exists:
             return {}
         if self._columns is None:
+            # Initialise the table if it doesn't exist
+            table = self.table
             self._columns = {}
-            for column in self.table.columns:
+            for column in table.columns:
                 name = normalize_column_name(column.name)
                 key = normalize_column_key(name)
                 if key in self._columns:
