@@ -56,17 +56,22 @@ class Table(object):
         """Get a dictionary of all columns and their case mapping."""
         if not self.exists:
             return {}
-        if self._columns is None:
-            # Initialise the table if it doesn't exist
-            table = self.table
-            self._columns = {}
-            for column in table.columns:
-                name = normalize_column_name(column.name)
-                key = normalize_column_key(name)
-                if key in self._columns:
-                    log.warning("Duplicate column: %s", name)
-                self._columns[key] = name
-        return self._columns
+        with self.db.lock:
+            if self._columns is None:
+                # Initialise the table if it doesn't exist
+                table = self.table
+                self._columns = {}
+                for column in table.columns:
+                    name = normalize_column_name(column.name)
+                    key = normalize_column_key(name)
+                    if key in self._columns:
+                        log.warning("Duplicate column: %s", name)
+                    self._columns[key] = name
+            return self._columns
+
+    def _flush_metadata(self):
+        with self.db.lock:
+            self._columns = None
 
     @property
     def columns(self):
@@ -305,7 +310,7 @@ class Table(object):
     def _reflect_table(self):
         """Load the tables definition from the database."""
         with self.db.lock:
-            self._columns = None
+            self._flush_metadata()
             try:
                 self._table = SQLATable(self.name,
                                         self.db.metadata,
@@ -323,7 +328,7 @@ class Table(object):
 
     def _sync_table(self, columns):
         """Lazy load, create or adapt the table structure in the database."""
-        self._columns = None
+        self._flush_metadata()
         if self._table is None:
             # Load an existing table from the database.
             self._reflect_table()
@@ -520,7 +525,7 @@ class Table(object):
                 self._threading_warn()
                 self.table.drop(self.db.executable, checkfirst=True)
                 self._table = None
-                self._columns = None
+                self._flush_metadata()
 
     def has_index(self, columns):
         """Check if an index exists to cover the given ``columns``."""
