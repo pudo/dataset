@@ -426,6 +426,22 @@ class TableTestCase(unittest.TestCase):
         # Ensure data has been updated.
         assert tbl.find_one(id=1)['temp'] == tbl.find_one(id=3)['temp']
 
+    def test_chunked_update(self):
+        tbl = self.db['update_many_test']
+        tbl.insert_many([
+            dict(temp=10, location='asdf'), dict(temp=20, location='qwer'), dict(temp=30, location='asdf')
+        ])
+
+        chunked_tbl = chunked.ChunkedUpdate(tbl, 'id')
+        chunked_tbl.update(dict(id=1, temp=50))
+        chunked_tbl.update(dict(id=2, location='asdf'))
+        chunked_tbl.update(dict(id=3, temp=50))
+        chunked_tbl.flush()
+
+        # Ensure data has been updated.
+        assert tbl.find_one(id=1)['temp'] == tbl.find_one(id=3)['temp'] == 50
+        assert tbl.find_one(id=2)['location'] == tbl.find_one(id=3)['location'] == 'asdf'
+
     def test_upsert_many(self):
         # Also tests updating on records with different attributes
         tbl = self.db['upsert_many_test']
