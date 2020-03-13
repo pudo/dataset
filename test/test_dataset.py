@@ -396,7 +396,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_chunked_insert(self):
         data = TEST_DATA * 100
-        with  chunked.ChunkedInsert(self.tbl) as chunk_tbl:
+        with chunked.ChunkedInsert(self.tbl) as chunk_tbl:
             for item in data:
                 chunk_tbl.insert(item)
         assert len(self.tbl) == len(data) + 6
@@ -404,10 +404,11 @@ class TableTestCase(unittest.TestCase):
     def test_chunked_insert_callback(self):
         data = TEST_DATA * 100
         N = 0
+
         def callback(queue):
             nonlocal N
             N += len(queue)
-        with  chunked.ChunkedInsert(self.tbl, callback=callback) as chunk_tbl:
+        with chunked.ChunkedInsert(self.tbl, callback=callback) as chunk_tbl:
             for item in data:
                 chunk_tbl.insert(item)
         assert len(data) == N
