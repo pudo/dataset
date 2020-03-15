@@ -14,7 +14,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: dataset
         ports:
-        - 5432:5432
+        - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       mariadb:
         image: mariadb
@@ -24,7 +24,7 @@ jobs:
           MYSQL_DATABASE: dataset
           MYSQL_ROOT_PASSWORD: mariadb
         ports:
-        - 3306:3306
+        - 3306/tcp
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
@@ -49,12 +49,12 @@ jobs:
         make test
     - name: Run PostgreSQL tests
       env:
-        DATABASE_URI: 'postgresql+psycopg2://postgres:postgres@postgres/dataset'
+        DATABASE_URI: 'postgresql+psycopg2://postgres:postgres@postgres:${{ job.services.postgres.ports[5432] }}/dataset'
       run: |
         make test
     - name: Run MariaDB tests
       env:
-        DATABASE_URI: 'mysql+pymysql://mariadb:mariadb@mariadb/dataset?charset=utf8'
+        DATABASE_URI: 'mysql+pymysql://mariadb:mariadb@mariadb:${{ job.services.mariadb.ports[3306] }}/dataset?charset=utf8'
       run: |
         make test
     - name: Build a distribution
