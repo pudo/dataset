@@ -57,6 +57,9 @@ jobs:
         DATABASE_URI: 'mysql+pymysql://mariadb:mariadb@mariadb:${{ job.services.mariadb.ports[3306] }}/dataset?charset=utf8'
       run: |
         make test
+    - name: Run flake8 to lint
+      run: |
+        flake8 --ignore=E501,E123,E124,E126,E127,E128 dataset
     - name: Build a distribution
       run: |
         python setup.py sdist bdist_wheel
