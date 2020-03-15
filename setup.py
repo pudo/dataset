@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='dataset',
-    version='1.2.3',
+    version='1.3.0',
     description="Toolkit for Python-based database access.",
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -29,7 +29,7 @@ setup(
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        'sqlalchemy >= 1.2.3',
+        'sqlalchemy >= 1.3.0',
         'alembic >= 0.6.2'
     ],
     extras_require={
