@@ -1,0 +1,36 @@
+name: build
+
+on: [push]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Show ref
+      run: |
+        echo "$GITHUB_REF"
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get -qq update
+        pip install -e ".[dev]"
+    - name: Run SQLite tests
+      env:
+        DATABASE_URI: sqlite:///tmp/test.sqlite
+      run: |
+        make test
+    - name: Build a distribution
+      run: |
+        python setup.py sdist bdist_wheel
+    # - name: Publish a Python distribution to PyPI
+    #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    #   uses: pypa/gh-action-pypi-publish@master
+    #   with:
+    #     user: __token__
+    #     password: ${{ secrets.pypi_password }}
