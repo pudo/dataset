@@ -5,6 +5,19 @@ on: [push]
 jobs:
   python:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dataset
+        ports:
+        - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
     - uses: actions/checkout@v1
     - name: Show ref
@@ -23,6 +36,11 @@ jobs:
     - name: Run SQLite tests
       env:
         DATABASE_URI: 'sqlite:///:memory:'
+      run: |
+        make test
+    - name: Run PostgreSQL tests
+      env:
+        DATABASE_URI: 'postgresql+psycopg2://postgres:postgres@postgres/dataset'
       run: |
         make test
     - name: Build a distribution
