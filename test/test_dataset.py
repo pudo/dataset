@@ -9,7 +9,7 @@ from datetime import datetime
 from sqlalchemy import FLOAT, TEXT, BIGINT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
-from dataset import connect
+from dataset import connect, chunked
 
 from .sample_data import TEST_DATA, TEST_CITY_1
 
@@ -392,6 +392,26 @@ class TableTestCase(unittest.TestCase):
     def test_insert_many(self):
         data = TEST_DATA * 100
         self.tbl.insert_many(data, chunk_size=13)
+        assert len(self.tbl) == len(data) + 6
+
+    def test_chunked_insert(self):
+        data = TEST_DATA * 100
+        with chunked.ChunkedInsert(self.tbl) as chunk_tbl:
+            for item in data:
+                chunk_tbl.insert(item)
+        assert len(self.tbl) == len(data) + 6
+
+    def test_chunked_insert_callback(self):
+        data = TEST_DATA * 100
+        N = 0
+
+        def callback(queue):
+            nonlocal N
+            N += len(queue)
+        with chunked.ChunkedInsert(self.tbl, callback=callback) as chunk_tbl:
+            for item in data:
+                chunk_tbl.insert(item)
+        assert len(data) == N
         assert len(self.tbl) == len(data) + 6
 
     def test_update_many(self):
