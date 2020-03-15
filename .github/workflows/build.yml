@@ -22,7 +22,7 @@ jobs:
         pip install -e ".[dev]"
     - name: Run SQLite tests
       env:
-        DATABASE_URI: sqlite:///tmp/test.sqlite
+        DATABASE_URI: 'sqlite:///:memory:'
       run: |
         make test
     - name: Build a distribution

@@ -28,6 +28,17 @@ setup(
         'sqlalchemy >= 1.2.3',
         'alembic >= 0.6.2'
     ],
+    extras_require={
+        'dev': [
+            'pip',
+            'nose',
+            'wheel',
+            'flake8',
+            'coverage',
+            'psycopg2-binary',
+            'PyMySQL',
+        ]
+    },
     tests_require=[
         'nose'
     ],
