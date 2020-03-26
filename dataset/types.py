@@ -1,7 +1,7 @@
 from datetime import datetime, date
 
 from sqlalchemy import Integer, UnicodeText, Float, BigInteger
-from sqlalchemy import Boolean, Date, DateTime, Unicode
+from sqlalchemy import Boolean, Date, DateTime, Unicode, JSON
 from sqlalchemy.types import TypeEngine
 
 
@@ -15,6 +15,7 @@ class Types(object):
     boolean = Boolean
     date = Date
     datetime = DateTime
+    json = JSON
 
     def guess(self, sample):
         """Given a single sample, guess the column type for the field.
@@ -34,4 +35,6 @@ class Types(object):
             return self.datetime
         elif isinstance(sample, date):
             return self.date
+        elif isinstance(sample, dict):
+            return self.json
         return self.text

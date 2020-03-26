@@ -192,6 +192,20 @@ class TableTestCase(unittest.TestCase):
             )
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
 
+    def test_insert_json(self):
+        last_id = self.tbl.insert({
+            'date': datetime(2011, 1, 2),
+            'temperature': -10,
+            'place': 'Berlin',
+            'info': {
+                'currency': 'EUR',
+                'language': 'German',
+                'population': 3292365
+            }
+        })
+        assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)
+        assert self.tbl.find_one(id=last_id)['place'] == 'Berlin'
+
     def test_upsert(self):
         self.tbl.upsert({
             'date': datetime(2011, 1, 2),
