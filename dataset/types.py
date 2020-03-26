@@ -15,14 +15,26 @@ class Types(object):
     boolean = Boolean
     date = Date
     datetime = DateTime
-    json = JSON
 
-    def guess(self, sample):
+    def __init__(self, dialect = None):
+        self._dialect = dialect
+
+    @property
+    def json(self):
+        if self._dialect is not None and self._dialect == 'postgresql':
+            from sqlalchemy.dialects.postgresql import JSONB
+            return JSONB
+        return JSON
+
+    def guess(self, sample, dialect = None):
         """Given a single sample, guess the column type for the field.
 
         If the sample is an instance of an SQLAlchemy type, the type will be
         used instead.
         """
+        if dialect is not None:
+            self._dialect = dialect
+
         if isinstance(sample, TypeEngine):
             return sample
         if isinstance(sample, bool):
