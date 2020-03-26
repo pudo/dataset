@@ -16,7 +16,7 @@ class Types(object):
     date = Date
     datetime = DateTime
 
-    def guess(cls, sample):
+    def guess(self, sample):
         """Given a single sample, guess the column type for the field.
 
         If the sample is an instance of an SQLAlchemy type, the type will be
@@ -25,13 +25,13 @@ class Types(object):
         if isinstance(sample, TypeEngine):
             return sample
         if isinstance(sample, bool):
-            return cls.boolean
+            return self.boolean
         elif isinstance(sample, int):
-            return cls.bigint
+            return self.bigint
         elif isinstance(sample, float):
-            return cls.float
+            return self.float
         elif isinstance(sample, datetime):
-            return cls.datetime
+            return self.datetime
         elif isinstance(sample, date):
-            return cls.date
-        return cls.text
+            return self.date
+        return self.text
