@@ -45,9 +45,9 @@ class Database(object):
                 if len(schema_qs):
                     schema = schema_qs.pop()
 
-        self.types = Types()
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
+        self.types = Types(self.engine.dialect.name)
         self.url = url
         self.row_type = row_type
         self.ensure_schema = ensure_schema

@@ -1,7 +1,7 @@
 from datetime import datetime, date
 
 from sqlalchemy import Integer, UnicodeText, Float, BigInteger
-from sqlalchemy import Boolean, Date, DateTime, Unicode
+from sqlalchemy import Boolean, Date, DateTime, Unicode, JSON
 from sqlalchemy.types import TypeEngine
 
 
@@ -16,22 +16,37 @@ class Types(object):
     date = Date
     datetime = DateTime
 
-    def guess(cls, sample):
+    def __init__(self, dialect = None):
+        self._dialect = dialect
+
+    @property
+    def json(self):
+        if self._dialect is not None and self._dialect == 'postgresql':
+            from sqlalchemy.dialects.postgresql import JSONB
+            return JSONB
+        return JSON
+
+    def guess(self, sample, dialect = None):
         """Given a single sample, guess the column type for the field.
 
         If the sample is an instance of an SQLAlchemy type, the type will be
         used instead.
         """
+        if dialect is not None:
+            self._dialect = dialect
+
         if isinstance(sample, TypeEngine):
             return sample
         if isinstance(sample, bool):
-            return cls.boolean
+            return self.boolean
         elif isinstance(sample, int):
-            return cls.bigint
+            return self.bigint
         elif isinstance(sample, float):
-            return cls.float
+            return self.float
         elif isinstance(sample, datetime):
-            return cls.datetime
+            return self.datetime
         elif isinstance(sample, date):
-            return cls.date
-        return cls.text
+            return self.date
+        elif isinstance(sample, dict):
+            return self.json
+        return self.text
