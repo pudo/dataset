@@ -419,6 +419,10 @@ class Table(object):
         if op in ('between', '..'):
             start, end = value
             return self.table.c[column].between(start, end)
+        if op in ('startswith',):
+        	return self.table.c[column].like('%' + value)
+        if op in ('endswith',):
+        	return self.table.c[column].like(value + '%')
         return false()
 
     def _args_to_clause(self, args, clauses=()):
