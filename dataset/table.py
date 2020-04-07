@@ -398,6 +398,16 @@ class Table(object):
         return ensure
 
     def _generate_clause(self, column, op, value):
+        def escaping_value(val):
+            escaped_val = []
+            is_backslash = False
+            for char in val:
+                if char in ('%', '_') and not is_backslash:
+                    escaped_val.append('\\')
+                escaped_val.append(char)
+                is_backslash = (char == '\\')
+            return ''.join(escaped_val)
+
         if op in ('like',):
             return self.table.c[column].like(value)
         if op in ('ilike',):
@@ -414,15 +424,19 @@ class Table(object):
             return self.table.c[column] == value
         if op in ('!=', '<>', 'not'):
             return self.table.c[column] != value
-        if op in ('in'):
+        if op in ('in',):
             return self.table.c[column].in_(value)
         if op in ('between', '..'):
             start, end = value
             return self.table.c[column].between(start, end)
         if op in ('startswith',):
-        	return self.table.c[column].like('%' + value)
+            return self.table.c[column].like(escaping_value(value) + '%')
         if op in ('endswith',):
-        	return self.table.c[column].like(value + '%')
+            return self.table.c[column].like('%' + escaping_value(value))
+        if op in ('istartswith',):
+            return self.table.c[column].ilike(escaping_value(value) + '%')
+        if op in ('iendswith',):
+            return self.table.c[column].ilike('%' + escaping_value(value))
         return false()
 
     def _args_to_clause(self, args, clauses=()):
