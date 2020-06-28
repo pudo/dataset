@@ -223,13 +223,7 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
-        row = self._sync_columns(row, ensure, types=types)
-        if self._check_ensure(ensure):
-            self.create_index(keys)
-        row_count = self.update(row, keys, ensure=False, return_count=True)
-        if row_count == 0:
-            return self.insert(row, ensure=False)
-        return True
+        return self.upsert_many([row], keys, ensure=ensure, types=types)
 
     def upsert_many(self, rows, keys, chunk_size=1000, ensure=None,
                     types=None):
@@ -240,9 +234,10 @@ class Table(object):
         See :py:meth:`upsert() <dataset.Table.upsert>` and
         :py:meth:`insert_many() <dataset.Table.insert_many>`.
         """
-        keys = ensure_list(keys)
         for row in ensure_list(rows):
-            self.upsert(row, keys, ensure=ensure, types=types)
+            cnt = self.update(row, keys, ensure=ensure, return_count=True)
+            if cnt == 0:
+                self.insert(row, ensure=ensure)
 
     def delete(self, *clauses, **filters):
         """Delete rows from the table.
@@ -275,6 +270,7 @@ class Table(object):
 
         chunk = []
         for row in rows:
+            row = dict(row)
             for column in sync_row.keys():
                 row.setdefault(column, None)
             chunk.append(row)
