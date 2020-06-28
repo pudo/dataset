@@ -2,6 +2,7 @@ from hashlib import sha1
 from urllib.parse import urlparse
 from collections import OrderedDict
 from collections.abc import Iterable
+from sqlalchemy.exc import ResourceClosedError
 
 QUERY_STEP = 1000
 row_type = OrderedDict
@@ -19,15 +20,18 @@ def convert_row(row_type, row):
 
 def iter_result_proxy(rp, step=None):
     """Iterate over the ResultProxy."""
-    while True:
-        if step is None:
-            chunk = rp.fetchall()
-        else:
-            chunk = rp.fetchmany(size=step)
-        if not chunk:
-            break
-        for row in chunk:
-            yield row
+    try:
+        while True:
+            if step is None:
+                chunk = rp.fetchall()
+            else:
+                chunk = rp.fetchmany(size=step)
+            if not chunk:
+                break
+            for row in chunk:
+                yield row
+    except ResourceClosedError:
+        return
 
 
 class ResultIter(object):
