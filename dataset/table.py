@@ -6,6 +6,7 @@ from banal import ensure_list
 from sqlalchemy import func, select, false
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import bindparam, ClauseElement
+from sqlalchemy.dialects.postgresql import insert as upsert
 from sqlalchemy.schema import Column, Index
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.exc import NoSuchTableError
@@ -153,7 +154,7 @@ class Table(object):
             rows = [dict(name='Dolly')] * 10000
             table.insert_many(rows)
         """
-        for chunk in self._row_chunks(rows, chunk_size, ensure, types):
+        for chunk, _ in self._row_chunks(rows, chunk_size, ensure, types):
             self.db.executable.execute(self.table.insert(), chunk)
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
@@ -195,8 +196,7 @@ class Table(object):
         keys = [self._get_column_name(k) for k in ensure_list(keys)]
         bindings = [(k, 'u_%s' % k) for k in keys]
         rowcount = 0
-        for chunk in self._row_chunks(rows, chunk_size, ensure, types):
-            columns = list(chunk[0].keys())
+        for chunk, cols in self._row_chunks(rows, chunk_size, ensure, types):
             for row in chunk:
                 # bindparam requires names to not conflict
                 # (cannot be "id" for id)
@@ -204,7 +204,7 @@ class Table(object):
                     row[alias] = row.get(key, None)
 
             cl = [self.table.c[k] == bindparam(a) for k, a in bindings]
-            values = {c: bindparam(c, required=False) for c in columns}
+            values = {c: bindparam(c, required=False) for c in cols}
             stmt = self.table.update(whereclause=and_(*cl), values=values)
             rp = self.db.executable.execute(stmt, chunk)
             if rp.supports_sane_rowcount():
@@ -234,10 +234,21 @@ class Table(object):
         See :py:meth:`upsert() <dataset.Table.upsert>` and
         :py:meth:`insert_many() <dataset.Table.insert_many>`.
         """
+        if self.db.is_postgres:
+            return self._upsert_postgres(rows, keys, chunk_size, ensure, types)
         for row in ensure_list(rows):
             cnt = self.update(row, keys, ensure=ensure, return_count=True)
             if cnt == 0:
                 self.insert(row, ensure=ensure)
+
+    def _upsert_postgres(self, rows, keys, chunk_size, ensure, types):
+        """Postgres ON CONFLICT UPDATE for INSERT statements."""
+        keys = [self._get_column_name(k) for k in ensure_list(keys)]
+        for chunk, cols in self._row_chunks(rows, chunk_size, ensure, types):
+            stmt = upsert(self.table).values(chunk)
+            set_ = {c: stmt.excluded[c] for c in cols if c not in keys}
+            stmt = stmt.on_conflict_do_update(index_elements=keys, set_=set_)
+            self.db.executable.execute(stmt)
 
     def delete(self, *clauses, **filters):
         """Delete rows from the table.
@@ -267,6 +278,7 @@ class Table(object):
                 if sync_row.get(key) is None:
                     sync_row[key] = row[key]
         self._sync_columns(sync_row, ensure, types=types)
+        columns = tuple(sync_row.keys())
 
         chunk = []
         for row in rows:
@@ -275,10 +287,10 @@ class Table(object):
                 row.setdefault(column, None)
             chunk.append(row)
             if len(chunk) >= chunk_size:
-                yield chunk
+                yield chunk, columns
                 chunk = []
         if len(chunk):
-            yield chunk
+            yield chunk, columns
 
     def _reflect_table(self):
         """Load the tables definition from the database."""
