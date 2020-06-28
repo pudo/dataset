@@ -228,6 +228,8 @@ class Database(object):
             # you can also use the short-hand syntax:
             table = db['population']
         """
+        if not self.ensure_schema:
+            return self.load_table(table_name)
         return self.create_table(table_name, primary_id, primary_type)
 
     def __getitem__(self, table_name):
