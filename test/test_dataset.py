@@ -1,11 +1,7 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
-from collections import OrderedDict
 import os
 import unittest
 from datetime import datetime
-
+from collections import OrderedDict
 from sqlalchemy import FLOAT, TEXT, BIGINT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
@@ -17,8 +13,7 @@ from .sample_data import TEST_DATA, TEST_CITY_1
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
-        self.db = connect(os.environ['DATABASE_URL'])
+        self.db = connect()
         self.tbl = self.db['weather']
         self.tbl.insert_many(TEST_DATA)
 
@@ -97,7 +92,8 @@ class DatabaseTestCase(unittest.TestCase):
         table.insert({'int_id': 124})
         assert table.find_one(int_id=123)['int_id'] == 123
         assert table.find_one(int_id=124)['int_id'] == 124
-        self.assertRaises(IntegrityError, lambda: table.insert({'int_id': 123}))
+        self.assertRaises(IntegrityError,
+                          lambda: table.insert({'int_id': 123}))
 
     def test_create_table_shorthand2(self):
         pid = "string_id"
@@ -123,13 +119,18 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_invalid_values(self):
         if 'mysql' in self.db.engine.dialect.dbapi.__name__:
-            # WARNING: mysql seems to be doing some weird type casting upon insert.
-            # The mysql-python driver is not affected but it isn't compatible with Python 3
+            # WARNING: mysql seems to be doing some weird type casting
+            # upon insert. The mysql-python driver is not affected but
+            # it isn't compatible with Python 3
             # Conclusion: use postgresql.
             return
         with self.assertRaises(SQLAlchemyError):
             tbl = self.db['weather']
-            tbl.insert({'date': True, 'temperature': 'wrong_value', 'place': 'tmp_place'})
+            tbl.insert({
+                'date': True,
+                'temperature': 'wrong_value',
+                'place': 'tmp_place'
+            })
 
     def test_load_table(self):
         tbl = self.db.load_table('weather')
@@ -151,7 +152,7 @@ class DatabaseTestCase(unittest.TestCase):
 class TableTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db = connect('sqlite:///:memory:')
+        self.db = connect()
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
@@ -443,7 +444,8 @@ class TableTestCase(unittest.TestCase):
     def test_chunked_update(self):
         tbl = self.db['update_many_test']
         tbl.insert_many([
-            dict(temp=10, location='asdf'), dict(temp=20, location='qwer'), dict(temp=30, location='asdf')
+            dict(temp=10, location='asdf'), dict(temp=20, location='qwer'),
+            dict(temp=30, location='asdf')
         ])
 
         chunked_tbl = chunked.ChunkedUpdate(tbl, 'id')
@@ -454,7 +456,7 @@ class TableTestCase(unittest.TestCase):
 
         # Ensure data has been updated.
         assert tbl.find_one(id=1)['temp'] == tbl.find_one(id=3)['temp'] == 50
-        assert tbl.find_one(id=2)['location'] == tbl.find_one(id=3)['location'] == 'asdf'
+        assert tbl.find_one(id=2)['location'] == tbl.find_one(id=3)['location'] == 'asdf'  # noqa
 
     def test_upsert_many(self):
         # Also tests updating on records with different attributes
@@ -570,7 +572,7 @@ class Constructor(dict):
 class RowTypeTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db = connect('sqlite:///:memory:', row_type=Constructor)
+        self.db = connect(row_type=Constructor)
         self.tbl = self.db['weather']
         for row in TEST_DATA:
             self.tbl.insert(row)
