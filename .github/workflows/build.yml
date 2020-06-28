@@ -44,17 +44,17 @@ jobs:
         pip install -e ".[dev]"
     - name: Run SQLite tests
       env:
-        DATABASE_URI: 'sqlite:///:memory:'
+        DATABASE_URL: 'sqlite:///:memory:'
       run: |
         make test
     - name: Run PostgreSQL tests
       env:
-        DATABASE_URI: 'postgresql+psycopg2://postgres:postgres@postgres:${{ job.services.postgres.ports[5432] }}/dataset'
+        DATABASE_URL: 'postgresql+psycopg2://postgres:postgres@postgres:${{ job.services.postgres.ports[5432] }}/dataset'
       run: |
         make test
     - name: Run MariaDB tests
       env:
-        DATABASE_URI: 'mysql+pymysql://mariadb:mariadb@mariadb:${{ job.services.mariadb.ports[3306] }}/dataset?charset=utf8'
+        DATABASE_URL: 'mysql+pymysql://mariadb:mariadb@mariadb:${{ job.services.mariadb.ports[3306] }}/dataset?charset=utf8'
       run: |
         make test
     - name: Run flake8 to lint
