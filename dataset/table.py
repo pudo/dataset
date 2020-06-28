@@ -529,6 +529,7 @@ class Table(object):
                 self._threading_warn()
                 self.table.drop(self.db.executable, checkfirst=True)
                 self._table = None
+                self.db._tables.pop(self.name, None)
                 self._flush_metadata()
 
     def has_index(self, columns):
