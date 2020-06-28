@@ -1,16 +1,17 @@
 import logging
 import warnings
 import threading
+from banal import ensure_list
 
+from sqlalchemy import func, select, false
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import bindparam, ClauseElement
 from sqlalchemy.schema import Column, Index
-from sqlalchemy import func, select, false
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.exc import NoSuchTableError
 
 from dataset.types import Types
-from dataset.util import index_name, ensure_tuple
+from dataset.util import index_name
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
 from dataset.util import normalize_table_name, pad_chunk_columns
 from dataset.util import normalize_column_name, normalize_column_key
@@ -216,8 +217,7 @@ class Table(object):
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
         """
-        # Convert keys to a list if not a list or tuple.
-        keys = keys if type(keys) in (list, tuple) else [keys]
+        keys = ensure_list(keys)
 
         chunk = []
         columns = []
@@ -270,8 +270,7 @@ class Table(object):
         See :py:meth:`upsert() <dataset.Table.upsert>` and
         :py:meth:`insert_many() <dataset.Table.insert_many>`.
         """
-        # Convert keys to a list if not a list or tuple.
-        keys = keys if type(keys) in (list, tuple) else [keys]
+        keys = ensure_list(keys)
 
         to_insert = []
         to_update = []
@@ -442,7 +441,7 @@ class Table(object):
 
     def _args_to_order_by(self, order_by):
         orderings = []
-        for ordering in ensure_tuple(order_by):
+        for ordering in ensure_list(order_by):
             if ordering is None:
                 continue
             column = ordering.lstrip('-')
@@ -456,8 +455,7 @@ class Table(object):
         return orderings
 
     def _keys_to_args(self, row, keys):
-        keys = ensure_tuple(keys)
-        keys = [self._get_column_name(k) for k in keys]
+        keys = [self._get_column_name(k) for k in ensure_list(keys)]
         row = row.copy()
         args = {k: row.pop(k, None) for k in keys}
         return args, row
@@ -557,7 +555,7 @@ class Table(object):
 
             table.create_index(['name', 'country'])
         """
-        columns = [self._get_column_name(c) for c in ensure_tuple(columns)]
+        columns = [self._get_column_name(c) for c in ensure_list(columns)]
         with self.db.lock:
             if not self.exists:
                 raise DatasetException("Table has not been created yet.")
