@@ -9,7 +9,7 @@ class _Chunker(object):
         self.queue = []
         self.table = table
         self.chunksize = chunksize
-        if callback is None or not callable(callback):
+        if callback is not None and not callable(callback):
             raise InvalidCallback
         self.callback = callback
 
