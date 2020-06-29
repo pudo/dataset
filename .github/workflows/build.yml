@@ -47,11 +47,11 @@ jobs:
         DATABASE_URL: 'sqlite:///:memory:'
       run: |
         make test
-    - name: Run PostgreSQL tests
-      env:
-        DATABASE_URL: 'postgresql+psycopg2://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset'
-      run: |
-        make test
+    # - name: Run PostgreSQL tests
+    #   env:
+    #     DATABASE_URL: 'postgresql+psycopg2://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset'
+    #   run: |
+    #     make test
     - name: Run MariaDB tests
       env:
         DATABASE_URL: 'mysql+pymysql://mariadb:mariadb@127.0.0.1:${{ job.services.mariadb.ports[3306] }}/dataset?charset=utf8'
