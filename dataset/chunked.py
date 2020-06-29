@@ -1,4 +1,3 @@
-import itertools
 
 
 class InvalidCallback(ValueError):
@@ -10,12 +9,12 @@ class _Chunker(object):
         self.queue = []
         self.table = table
         self.chunksize = chunksize
-        if callback and not callable(callback):
+        if callback is None or not callable(callback):
             raise InvalidCallback
         self.callback = callback
 
     def flush(self):
-        self.queue.clear()
+        self.queue = []
 
     def _queue_add(self, item):
         self.queue.append(item)
@@ -41,17 +40,12 @@ class ChunkedInsert(_Chunker):
     """
 
     def __init__(self, table, chunksize=1000, callback=None):
-        self.fields = set()
         super().__init__(table, chunksize, callback)
 
     def insert(self, item):
-        self.fields.update(item.keys())
         super()._queue_add(item)
 
     def flush(self):
-        for item in self.queue:
-            for field in self.fields:
-                item[field] = item.get(field)
         if self.callback is not None:
             self.callback(self.queue)
         self.table.insert_many(self.queue)
@@ -79,7 +73,5 @@ class ChunkedUpdate(_Chunker):
     def flush(self):
         if self.callback is not None:
             self.callback(self.queue)
-        self.queue.sort(key=dict.keys)
-        for fields, items in itertools.groupby(self.queue, key=dict.keys):
-            self.table.update_many(list(items), self.keys)
+        self.table.update_many(self.queue, self.keys)
         super().flush()

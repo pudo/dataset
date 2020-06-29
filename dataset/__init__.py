@@ -36,8 +36,8 @@ def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
     the `ensure_schema` argument. It can also be overridden in a lot of the
     data manipulation methods using the `ensure` flag.
 
-    .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
-    .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
+    .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine  # noqa
+    .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle  # noqa
     """
     if url is None:
         url = os.environ.get('DATABASE_URL', 'sqlite://')
