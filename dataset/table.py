@@ -1,18 +1,19 @@
 import logging
 import warnings
 import threading
+from banal import ensure_list
 
+from sqlalchemy import func, select, false
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import bindparam, ClauseElement
+from sqlalchemy.dialects.postgresql import insert as upsert
 from sqlalchemy.schema import Column, Index
-from sqlalchemy import func, select, false
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.exc import NoSuchTableError
 
 from dataset.types import Types
-from dataset.util import index_name, ensure_tuple
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
-from dataset.util import normalize_table_name, pad_chunk_columns
+from dataset.util import normalize_table_name, index_name
 from dataset.util import normalize_column_name, normalize_column_key
 
 
@@ -153,28 +154,8 @@ class Table(object):
             rows = [dict(name='Dolly')] * 10000
             table.insert_many(rows)
         """
-        # Sync table before inputting rows.
-        sync_row = {}
-        for row in rows:
-            # Only get non-existing columns.
-            sync_keys = list(sync_row.keys())
-            for key in [k for k in row.keys() if k not in sync_keys]:
-                # Get a sample of the new column(s) from the row.
-                sync_row[key] = row[key]
-        self._sync_columns(sync_row, ensure, types=types)
-
-        # Get columns name list to be used for padding later.
-        columns = sync_row.keys()
-
-        chunk = []
-        for index, row in enumerate(rows):
-            chunk.append(row)
-
-            # Insert when chunk_size is fulfilled or this is the last row
-            if len(chunk) == chunk_size or index == len(rows) - 1:
-                chunk = pad_chunk_columns(chunk, columns)
-                self.table.insert().execute(chunk)
-                chunk = []
+        for chunk, _ in self._row_chunks(rows, chunk_size, ensure, types):
+            self.db.executable.execute(self.table.insert(), chunk)
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
         """Update a row in the table.
@@ -193,17 +174,13 @@ class Table(object):
         be created based on the settings of ``ensure`` and ``types``, matching
         the behavior of :py:meth:`insert() <dataset.Table.insert>`.
         """
-        row = self._sync_columns(row, ensure, types=types)
-        args, row = self._keys_to_args(row, keys)
-        clause = self._args_to_clause(args)
-        if not len(row):
+        rowcount = self.update_many([row], keys, ensure=ensure, types=types)
+        if rowcount is None and return_count:
+            row = self._sync_columns(row, ensure, types=types)
+            args, row = self._keys_to_args(row, keys)
+            clause = self._args_to_clause(args)
             return self.count(clause)
-        stmt = self.table.update(whereclause=clause, values=row)
-        rp = self.db.executable.execute(stmt)
-        if rp.supports_sane_rowcount():
-            return rp.rowcount
-        if return_count:
-            return self.count(clause)
+        return rowcount
 
     def update_many(self, rows, keys, chunk_size=1000, ensure=None,
                     types=None):
@@ -216,32 +193,25 @@ class Table(object):
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
         """
-        # Convert keys to a list if not a list or tuple.
-        keys = keys if type(keys) in (list, tuple) else [keys]
+        keys = [self._get_column_name(k) for k in ensure_list(keys)]
+        bindings = [(k, 'u_%s' % k) for k in keys]
+        rowcount = 0
+        for chunk, cols in self._row_chunks(rows, chunk_size, ensure, types):
+            for row in chunk:
+                # bindparam requires names to not conflict
+                # (cannot be "id" for id)
+                for key, alias in bindings:
+                    row[alias] = row.get(key, None)
 
-        chunk = []
-        columns = []
-        for index, row in enumerate(rows):
-            chunk.append(row)
-            for col in row.keys():
-                if col not in columns:
-                    columns.append(col)
-
-            # bindparam requires names to not conflict (cannot be "id" for id)
-            for key in keys:
-                row['_%s' % key] = row[key]
-
-            # Update when chunk_size is fulfilled or this is the last row
-            if len(chunk) == chunk_size or index == len(rows) - 1:
-                cl = [self.table.c[k] == bindparam('_%s' % k) for k in keys]
-                stmt = self.table.update(
-                    whereclause=and_(*cl),
-                    values={
-                        col: bindparam(col, required=False) for col in columns
-                    }
-                )
-                self.db.executable.execute(stmt, chunk)
-                chunk = []
+            cl = [self.table.c[k] == bindparam(a) for k, a in bindings]
+            values = {c: bindparam(c, required=False) for c in cols}
+            stmt = self.table.update(whereclause=and_(*cl), values=values)
+            rp = self.db.executable.execute(stmt, chunk)
+            if rp.supports_sane_rowcount():
+                rowcount += rp.rowcount
+            else:
+                rowcount = None
+        return rowcount
 
     def upsert(self, row, keys, ensure=None, types=None):
         """An UPSERT is a smart combination of insert and update.
@@ -253,13 +223,7 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
-        row = self._sync_columns(row, ensure, types=types)
-        if self._check_ensure(ensure):
-            self.create_index(keys)
-        row_count = self.update(row, keys, ensure=False, return_count=True)
-        if row_count == 0:
-            return self.insert(row, ensure=False)
-        return True
+        return self.upsert_many([row], keys, ensure=ensure, types=types)
 
     def upsert_many(self, rows, keys, chunk_size=1000, ensure=None,
                     types=None):
@@ -270,24 +234,21 @@ class Table(object):
         See :py:meth:`upsert() <dataset.Table.upsert>` and
         :py:meth:`insert_many() <dataset.Table.insert_many>`.
         """
-        # Convert keys to a list if not a list or tuple.
-        keys = keys if type(keys) in (list, tuple) else [keys]
+        if self.db.is_postgres:
+            return self._upsert_postgres(rows, keys, chunk_size, ensure, types)
+        for row in ensure_list(rows):
+            cnt = self.update(row, keys, ensure=ensure, return_count=True)
+            if cnt == 0:
+                self.insert(row, ensure=ensure)
 
-        to_insert = []
-        to_update = []
-        for row in rows:
-            if self.find_one(**{key: row.get(key) for key in keys}):
-                # Row exists - update it.
-                to_update.append(row)
-            else:
-                # Row doesn't exist - insert it.
-                to_insert.append(row)
-
-        # Insert non-existing rows.
-        self.insert_many(to_insert, chunk_size, ensure, types)
-
-        # Update existing rows.
-        self.update_many(to_update, keys, chunk_size, ensure, types)
+    def _upsert_postgres(self, rows, keys, chunk_size, ensure, types):
+        """Postgres ON CONFLICT UPDATE for INSERT statements."""
+        keys = [self._get_column_name(k) for k in ensure_list(keys)]
+        for chunk, cols in self._row_chunks(rows, chunk_size, ensure, types):
+            stmt = upsert(self.table).values(chunk)
+            set_ = {c: stmt.excluded[c] for c in cols if c not in keys}
+            stmt = stmt.on_conflict_do_update(index_elements=keys, set_=set_)
+            self.db.executable.execute(stmt)
 
     def delete(self, *clauses, **filters):
         """Delete rows from the table.
@@ -306,6 +267,30 @@ class Table(object):
         stmt = self.table.delete(whereclause=clause)
         rp = self.db.executable.execute(stmt)
         return rp.rowcount > 0
+
+    def _row_chunks(self, rows, chunk_size, ensure, types):
+        """Normalise a set of rows for a bulk operation, with table
+        adaptation."""
+        # Sync table before inputting rows.
+        sync_row = {}
+        for row in rows:
+            for key in row.keys():
+                if sync_row.get(key) is None:
+                    sync_row[key] = row[key]
+        self._sync_columns(sync_row, ensure, types=types)
+        columns = tuple(sync_row.keys())
+
+        chunk = []
+        for row in rows:
+            row = dict(row)
+            for column in sync_row.keys():
+                row.setdefault(column, None)
+            chunk.append(row)
+            if len(chunk) >= chunk_size:
+                yield chunk, columns
+                chunk = []
+        if len(chunk):
+            yield chunk, columns
 
     def _reflect_table(self):
         """Load the tables definition from the database."""
@@ -442,7 +427,7 @@ class Table(object):
 
     def _args_to_order_by(self, order_by):
         orderings = []
-        for ordering in ensure_tuple(order_by):
+        for ordering in ensure_list(order_by):
             if ordering is None:
                 continue
             column = ordering.lstrip('-')
@@ -456,8 +441,7 @@ class Table(object):
         return orderings
 
     def _keys_to_args(self, row, keys):
-        keys = ensure_tuple(keys)
-        keys = [self._get_column_name(k) for k in keys]
+        keys = [self._get_column_name(k) for k in ensure_list(keys)]
         row = row.copy()
         args = {k: row.pop(k, None) for k in keys}
         return args, row
@@ -557,7 +541,7 @@ class Table(object):
 
             table.create_index(['name', 'country'])
         """
-        columns = [self._get_column_name(c) for c in ensure_tuple(columns)]
+        columns = [self._get_column_name(c) for c in ensure_list(columns)]
         with self.db.lock:
             if not self.exists:
                 raise DatasetException("Table has not been created yet.")

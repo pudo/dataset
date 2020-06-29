@@ -47,7 +47,8 @@ class Database(object):
 
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
-        self.types = Types(self.engine.dialect.name)
+        self.is_postgres = self.engine.dialect.name == 'postgresql'
+        self.types = Types(is_postgres=self.is_postgres)
         self.url = url
         self.row_type = row_type
         self.ensure_schema = ensure_schema

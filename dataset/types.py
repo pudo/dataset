@@ -17,14 +17,8 @@ class Types(object):
     date = Date
     datetime = DateTime
 
-    def __init__(self, dialect=None):
-        self._dialect = dialect
-
-    @property
-    def json(self):
-        if self._dialect is not None and self._dialect == 'postgresql':
-            return JSONB
-        return JSON
+    def __init__(self, is_postgres=None):
+        self.json = JSONB if is_postgres else JSON
 
     def guess(self, sample):
         """Given a single sample, guess the column type for the field.

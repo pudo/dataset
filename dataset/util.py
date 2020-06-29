@@ -1,7 +1,6 @@
 from hashlib import sha1
 from urllib.parse import urlparse
 from collections import OrderedDict
-from collections.abc import Iterable
 from sqlalchemy.exc import ResourceClosedError
 
 QUERY_STEP = 1000
@@ -108,21 +107,3 @@ def index_name(table, columns):
     sig = '||'.join(columns)
     key = sha1(sig.encode('utf-8')).hexdigest()[:16]
     return 'ix_%s_%s' % (table, key)
-
-
-def ensure_tuple(obj):
-    """Try and make the given argument into a tuple."""
-    if obj is None:
-        return tuple()
-    if isinstance(obj, Iterable) and not isinstance(obj, (str, bytes)):
-        return tuple(obj)
-    return obj,
-
-
-def pad_chunk_columns(chunk, columns):
-    """Given a set of items to be inserted, make sure they all have the
-    same columns by padding columns with None if they are missing."""
-    for record in chunk:
-        for column in columns:
-            record.setdefault(column, None)
-    return chunk
