@@ -8,6 +8,7 @@ from sqlalchemy.types import TypeEngine
 
 class Types(object):
     """A holder class for easy access to SQLAlchemy type names."""
+
     integer = Integer
     string = Unicode
     text = UnicodeText
