@@ -14,58 +14,58 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: dataset
         ports:
-        - 5432/tcp
+          - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      mariadb:
-        image: mariadb
+      mysql:
+        image: mysql
         env:
-          MYSQL_USER: mariadb
-          MYSQL_PASSWORD: mariadb
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysql
           MYSQL_DATABASE: dataset
-          MYSQL_ROOT_PASSWORD: mariadb
+          MYSQL_ROOT_PASSWORD: mysql
         ports:
-        - 3306/tcp
+          - 3306/tcp
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Show ref
-      run: |
-        echo "$GITHUB_REF"
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
-    - name: Install dependencies
-      env:
-        DEBIAN_FRONTEND: noninteractive
-      run: |
-        sudo apt-get -qq update
-        pip install -e ".[dev]"
-    - name: Run SQLite tests
-      env:
-        DATABASE_URL: 'sqlite:///:memory:'
-      run: |
-        make test
-    - name: Run PostgreSQL tests
-      env:
-        DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset'
-      run: |
-        make test
-    - name: Run MariaDB tests
-      env:
-        DATABASE_URL: 'mysql+pymysql://mariadb:mariadb@127.0.0.1:${{ job.services.mariadb.ports[3306] }}/dataset?charset=utf8'
-      run: |
-        make test
-    - name: Run flake8 to lint
-      run: |
-        flake8 --ignore=E501,E123,E124,E126,E127,E128 dataset
-    - name: Build a distribution
-      run: |
-        python setup.py sdist bdist_wheel
-    - name: Publish a Python distribution to PyPI
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+      - uses: actions/checkout@v1
+      - name: Show ref
+        run: |
+          echo "$GITHUB_REF"
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get -qq update
+          pip install -e ".[dev]"
+      - name: Run SQLite tests
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+        run: |
+          make test
+      - name: Run PostgreSQL tests
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset"
+        run: |
+          make test
+      - name: Run mysql tests
+        env:
+          DATABASE_URL: "mysql+pymysql://mysql:mysql@127.0.0.1:${{ job.services.mysql.ports[3306] }}/dataset?charset=utf8"
+        run: |
+          make test
+      - name: Run flake8 to lint
+        run: |
+          flake8 --ignore=E501,E123,E124,E126,E127,E128 dataset
+      - name: Build a distribution
+        run: |
+          python setup.py sdist bdist_wheel
+      - name: Publish a Python distribution to PyPI
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
