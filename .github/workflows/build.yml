@@ -49,7 +49,7 @@ jobs:
         make test
     - name: Run PostgreSQL tests
       env:
-        DATABASE_URL: 'postgresql+psycopg2://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset'
+        DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset'
       run: |
         make test
     - name: Run MariaDB tests

@@ -153,6 +153,7 @@ class TableTestCase(unittest.TestCase):
     def setUp(self):
         self.db = connect()
         self.tbl = self.db["weather"]
+        self.tbl.delete()
         for row in TEST_DATA:
             self.tbl.insert(row)
 
@@ -253,15 +254,9 @@ class TableTestCase(unittest.TestCase):
 
     def test_cased_column_names(self):
         tbl = self.db["cased_column_names"]
-        tbl.insert(
-            {"place": "Berlin",}
-        )
-        tbl.insert(
-            {"Place": "Berlin",}
-        )
-        tbl.insert(
-            {"PLACE ": "Berlin",}
-        )
+        tbl.insert({"place": "Berlin"})
+        tbl.insert({"Place": "Berlin"})
+        tbl.insert({"PLACE ": "Berlin"})
         assert len(tbl.columns) == 2, tbl.columns
         assert len(list(tbl.find(Place="Berlin"))) == 3
         assert len(list(tbl.find(place="Berlin"))) == 3
@@ -391,14 +386,14 @@ class TableTestCase(unittest.TestCase):
     def test_insert_many(self):
         data = TEST_DATA * 100
         self.tbl.insert_many(data, chunk_size=13)
-        assert len(self.tbl) == len(data) + 6
+        assert len(self.tbl) == len(data)
 
     def test_chunked_insert(self):
         data = TEST_DATA * 100
         with chunked.ChunkedInsert(self.tbl) as chunk_tbl:
             for item in data:
                 chunk_tbl.insert(item)
-        assert len(self.tbl) == len(data) + 6
+        assert len(self.tbl) == len(data) + 6, (len(self.tbl), len(data))
 
     def test_chunked_insert_callback(self):
         data = TEST_DATA * 100
