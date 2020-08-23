@@ -1,9 +1,11 @@
 from datetime import datetime, date
 
 from sqlalchemy import Integer, UnicodeText, Float, BigInteger
-from sqlalchemy import Boolean, Date, DateTime, Unicode, JSON
+from sqlalchemy import String, Boolean, Date, DateTime, Unicode, JSON
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.types import TypeEngine
+from sqlalchemy.types import TypeEngine, _Binary
+
+MYSQL_LENGTH_TYPES = (String, _Binary)
 
 
 class Types(object):

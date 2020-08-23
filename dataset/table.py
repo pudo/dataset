@@ -10,7 +10,7 @@ from sqlalchemy.schema import Column, Index
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.exc import NoSuchTableError
 
-from dataset.types import Types
+from dataset.types import Types, MYSQL_LENGTH_TYPES
 from dataset.util import index_name
 from dataset.util import DatasetException, ResultIter, QUERY_STEP
 from dataset.util import normalize_table_name, pad_chunk_columns
@@ -357,6 +357,7 @@ class Table(object):
                     if not column.name == self._primary_id:
                         self._table.append_column(column)
                 self._table.create(self.db.executable, checkfirst=True)
+                self._columns = None
         elif len(columns):
             with self.db.lock:
                 self._reflect_table()
@@ -564,6 +565,17 @@ class Table(object):
                 self._threading_warn()
                 name = name or index_name(self.name, columns)
                 columns = [self.table.c[c] for c in columns]
+
+                # MySQL crashes out if you try to index very long text fields,
+                # apparently. This defines (a somewhat random) prefix that
+                # will be captured by the index, after which I assume the engine
+                # conducts a more linear scan:
+                mysql_length = {}
+                for col in columns:
+                    if isinstance(col.type, MYSQL_LENGTH_TYPES):
+                        mysql_length[col.name] = 10
+                kw["mysql_length"] = mysql_length
+
                 idx = Index(name, *columns, **kw)
                 idx.create(self.db.executable)
 
