@@ -2,7 +2,7 @@ import os
 import unittest
 from datetime import datetime
 from collections import OrderedDict
-from sqlalchemy import FLOAT, TEXT, BIGINT
+from sqlalchemy import TEXT, BIGINT
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, ArgumentError
 
 from dataset import connect, chunked
@@ -153,9 +153,11 @@ class TableTestCase(unittest.TestCase):
     def setUp(self):
         self.db = connect()
         self.tbl = self.db["weather"]
-        self.tbl.delete()
         for row in TEST_DATA:
             self.tbl.insert(row)
+
+    def tearDown(self):
+        self.tbl.drop()
 
     def test_insert(self):
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
@@ -386,7 +388,7 @@ class TableTestCase(unittest.TestCase):
     def test_insert_many(self):
         data = TEST_DATA * 100
         self.tbl.insert_many(data, chunk_size=13)
-        assert len(self.tbl) == len(data)
+        assert len(self.tbl) == len(data) + 6, (len(self.tbl), len(data))
 
     def test_chunked_insert(self):
         data = TEST_DATA * 100
@@ -499,16 +501,18 @@ class TableTestCase(unittest.TestCase):
 
     def test_create_column(self):
         tbl = self.tbl
-        tbl.create_column("foo", FLOAT)
+        flt = self.db.types.float
+        tbl.create_column("foo", flt)
         assert "foo" in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c["foo"].type, FLOAT), tbl.table.c["foo"].type
+        assert isinstance(tbl.table.c["foo"].type, flt), tbl.table.c["foo"].type
         assert "foo" in tbl.columns, tbl.columns
 
     def test_ensure_column(self):
         tbl = self.tbl
+        flt = self.db.types.float
         tbl.create_column_by_example("foo", 0.1)
         assert "foo" in tbl.table.c, tbl.table.c
-        assert isinstance(tbl.table.c["foo"].type, FLOAT), tbl.table.c["bar"].type
+        assert isinstance(tbl.table.c["foo"].type, flt), tbl.table.c["bar"].type
         tbl.create_column_by_example("bar", 1)
         assert "bar" in tbl.table.c, tbl.table.c
         assert isinstance(tbl.table.c["bar"].type, BIGINT), tbl.table.c["bar"].type
