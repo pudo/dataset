@@ -77,10 +77,6 @@ class Table(object):
                     self._columns[key] = name
             return self._columns
 
-    def _flush_metadata(self):
-        with self.db.lock:
-            self._columns = None
-
     @property
     def columns(self):
         """Get a listing of all columns that exist in the table."""
@@ -312,7 +308,7 @@ class Table(object):
     def _reflect_table(self):
         """Load the tables definition from the database."""
         with self.db.lock:
-            self._flush_metadata()
+            self._columns = None
             try:
                 self._table = SQLATable(
                     self.name, self.db.metadata, schema=self.db.schema, autoload=True
@@ -331,7 +327,6 @@ class Table(object):
 
     def _sync_table(self, columns):
         """Lazy load, create or adapt the table structure in the database."""
-        self._flush_metadata()
         if self._table is None:
             # Load an existing table from the database.
             self._reflect_table()
