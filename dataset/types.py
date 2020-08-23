@@ -1,13 +1,16 @@
 from datetime import datetime, date
 
 from sqlalchemy import Integer, UnicodeText, Float, BigInteger
-from sqlalchemy import Boolean, Date, DateTime, Unicode, JSON
+from sqlalchemy import String, Boolean, Date, DateTime, Unicode, JSON
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.types import TypeEngine
+from sqlalchemy.types import TypeEngine, _Binary
+
+MYSQL_LENGTH_TYPES = (String, _Binary)
 
 
 class Types(object):
     """A holder class for easy access to SQLAlchemy type names."""
+
     integer = Integer
     string = Unicode
     text = UnicodeText
@@ -17,14 +20,8 @@ class Types(object):
     date = Date
     datetime = DateTime
 
-    def __init__(self, dialect=None):
-        self._dialect = dialect
-
-    @property
-    def json(self):
-        if self._dialect is not None and self._dialect == 'postgresql':
-            return JSONB
-        return JSON
+    def __init__(self, is_postgres=None):
+        self.json = JSONB if is_postgres else JSON
 
     def guess(self, sample):
         """Given a single sample, guess the column type for the field.

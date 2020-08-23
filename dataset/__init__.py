@@ -5,17 +5,24 @@ from dataset.table import Table
 from dataset.util import row_type
 
 # shut up useless SA warning:
+warnings.filterwarnings("ignore", "Unicode type received non-unicode bind param value.")
 warnings.filterwarnings(
-    'ignore', 'Unicode type received non-unicode bind param value.')
-warnings.filterwarnings(
-    'ignore', 'Skipping unsupported ALTER for creation of implicit constraint')
+    "ignore", "Skipping unsupported ALTER for creation of implicit constraint"
+)
 
-__all__ = ['Database', 'Table', 'freeze', 'connect']
-__version__ = '1.3.2'
+__all__ = ["Database", "Table", "freeze", "connect"]
+__version__ = "1.3.2"
 
 
-def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
-            reflect_views=True, ensure_schema=True, row_type=row_type):
+def connect(
+    url=None,
+    schema=None,
+    reflect_metadata=True,
+    engine_kwargs=None,
+    reflect_views=True,
+    ensure_schema=True,
+    row_type=row_type,
+):
     """ Opens a new connection to a database.
 
     *url* can be any valid `SQLAlchemy engine URL`_.  If *url* is not defined
@@ -40,8 +47,14 @@ def connect(url=None, schema=None, reflect_metadata=True, engine_kwargs=None,
     .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
     """
     if url is None:
-        url = os.environ.get('DATABASE_URL', 'sqlite://')
+        url = os.environ.get("DATABASE_URL", "sqlite://")
 
-    return Database(url, schema=schema, reflect_metadata=reflect_metadata,
-                    engine_kwargs=engine_kwargs, reflect_views=reflect_views,
-                    ensure_schema=ensure_schema, row_type=row_type)
+    return Database(
+        url,
+        schema=schema,
+        reflect_metadata=reflect_metadata,
+        engine_kwargs=engine_kwargs,
+        reflect_views=reflect_views,
+        ensure_schema=ensure_schema,
+        row_type=row_type,
+    )

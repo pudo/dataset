@@ -1,7 +1,6 @@
 from hashlib import sha1
 from urllib.parse import urlparse
 from collections import OrderedDict
-from collections.abc import Iterable
 from sqlalchemy.exc import ResourceClosedError
 
 QUERY_STEP = 1000
@@ -63,17 +62,17 @@ class ResultIter(object):
 def normalize_column_name(name):
     """Check if a string is a reasonable thing to use as a column name."""
     if not isinstance(name, str):
-        raise ValueError('%r is not a valid column name.' % name)
+        raise ValueError("%r is not a valid column name." % name)
 
     # limit to 63 characters
     name = name.strip()[:63]
     # column names can be 63 *bytes* max in postgresql
     if isinstance(name, str):
-        while len(name.encode('utf-8')) >= 64:
-            name = name[:len(name) - 1]
+        while len(name.encode("utf-8")) >= 64:
+            name = name[: len(name) - 1]
 
-    if not len(name) or '.' in name or '-' in name:
-        raise ValueError('%r is not a valid column name.' % name)
+    if not len(name) or "." in name or "-" in name:
+        raise ValueError("%r is not a valid column name." % name)
     return name
 
 
@@ -81,7 +80,7 @@ def normalize_column_key(name):
     """Return a comparable column name."""
     if name is None or not isinstance(name, str):
         return None
-    return name.upper().strip().replace(' ', '')
+    return name.upper().strip().replace(" ", "")
 
 
 def normalize_table_name(name):
@@ -98,25 +97,16 @@ def safe_url(url):
     """Remove password from printed connection URLs."""
     parsed = urlparse(url)
     if parsed.password is not None:
-        pwd = ':%s@' % parsed.password
-        url = url.replace(pwd, ':*****@')
+        pwd = ":%s@" % parsed.password
+        url = url.replace(pwd, ":*****@")
     return url
 
 
 def index_name(table, columns):
     """Generate an artificial index name."""
-    sig = '||'.join(columns)
-    key = sha1(sig.encode('utf-8')).hexdigest()[:16]
-    return 'ix_%s_%s' % (table, key)
-
-
-def ensure_tuple(obj):
-    """Try and make the given argument into a tuple."""
-    if obj is None:
-        return tuple()
-    if isinstance(obj, Iterable) and not isinstance(obj, (str, bytes)):
-        return tuple(obj)
-    return obj,
+    sig = "||".join(columns)
+    key = sha1(sig.encode("utf-8")).hexdigest()[:16]
+    return "ix_%s_%s" % (table, key)
 
 
 def pad_chunk_columns(chunk, columns):

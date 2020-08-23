@@ -22,9 +22,16 @@ log = logging.getLogger(__name__)
 class Database(object):
     """A database object represents a SQL database with multiple tables."""
 
-    def __init__(self, url, schema=None, reflect_metadata=True,
-                 engine_kwargs=None, reflect_views=True,
-                 ensure_schema=True, row_type=row_type):
+    def __init__(
+        self,
+        url,
+        schema=None,
+        reflect_metadata=True,
+        engine_kwargs=None,
+        reflect_views=True,
+        ensure_schema=True,
+        row_type=row_type,
+    ):
         """Configure and connect to the database."""
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -41,13 +48,14 @@ class Database(object):
         if len(parsed_url.query):
             query = parse_qs(parsed_url.query)
             if schema is None:
-                schema_qs = query.get('schema', query.get('searchpath', []))
+                schema_qs = query.get("schema", query.get("searchpath", []))
                 if len(schema_qs):
                     schema = schema_qs.pop()
 
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
-        self.types = Types(self.engine.dialect.name)
+        self.is_postgres = self.engine.dialect.name == "postgresql"
+        self.types = Types(is_postgres=self.is_postgres)
         self.url = url
         self.row_type = row_type
         self.ensure_schema = ensure_schema
@@ -56,7 +64,7 @@ class Database(object):
     @property
     def executable(self):
         """Connection against which statements will be executed."""
-        if not hasattr(self.local, 'conn'):
+        if not hasattr(self.local, "conn"):
             self.local.conn = self.engine.connect()
         return self.local.conn
 
@@ -79,7 +87,7 @@ class Database(object):
     @property
     def in_transaction(self):
         """Check if this database is in a transactional context."""
-        if not hasattr(self.local, 'tx'):
+        if not hasattr(self.local, "tx"):
             return False
         return len(self.local.tx) > 0
 
@@ -93,7 +101,7 @@ class Database(object):
 
         No data will be written until the transaction has been committed.
         """
-        if not hasattr(self.local, 'tx'):
+        if not hasattr(self.local, "tx"):
             self.local.tx = []
         self.local.tx.append(self.executable.begin())
 
@@ -102,7 +110,7 @@ class Database(object):
 
         Make all statements executed since the transaction was begun permanent.
         """
-        if hasattr(self.local, 'tx') and self.local.tx:
+        if hasattr(self.local, "tx") and self.local.tx:
             tx = self.local.tx.pop()
             tx.commit()
             self._flush_tables()
@@ -112,7 +120,7 @@ class Database(object):
 
         Discard all statements executed since the transaction was begun.
         """
-        if hasattr(self.local, 'tx') and self.local.tx:
+        if hasattr(self.local, "tx") and self.local.tx:
             tx = self.local.tx.pop()
             tx.rollback()
             self._flush_tables()
@@ -189,15 +197,19 @@ class Database(object):
             table5 = db.create_table('population5',
                                      primary_id=False)
         """
-        assert not isinstance(primary_type, str), \
-            'Text-based primary_type support is dropped, use db.types.'
+        assert not isinstance(
+            primary_type, str
+        ), "Text-based primary_type support is dropped, use db.types."
         table_name = normalize_table_name(table_name)
         with self.lock:
             if table_name not in self._tables:
-                self._tables[table_name] = Table(self, table_name,
-                                                 primary_id=primary_id,
-                                                 primary_type=primary_type,
-                                                 auto_create=True)
+                self._tables[table_name] = Table(
+                    self,
+                    table_name,
+                    primary_id=primary_id,
+                    primary_type=primary_type,
+                    auto_create=True,
+                )
             return self._tables.get(table_name)
 
     def load_table(self, table_name):
@@ -264,7 +276,7 @@ class Database(object):
         """
         if isinstance(query, str):
             query = text(query)
-        _step = kwargs.pop('_step', QUERY_STEP)
+        _step = kwargs.pop("_step", QUERY_STEP)
         if _step is False or _step == 0:
             _step = None
         rp = self.executable.execute(query, *args, **kwargs)
@@ -272,4 +284,4 @@ class Database(object):
 
     def __repr__(self):
         """Text representation contains the URL."""
-        return '<Database(%s)>' % safe_url(self.url)
+        return "<Database(%s)>" % safe_url(self.url)
