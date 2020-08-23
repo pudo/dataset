@@ -38,6 +38,7 @@ setup(
             "coverage",
             "psycopg2-binary",
             "PyMySQL",
+            "cryptography",
         ]
     },
     tests_require=["nose"],
