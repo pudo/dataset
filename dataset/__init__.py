@@ -10,7 +10,7 @@ warnings.filterwarnings(
     "ignore", "Skipping unsupported ALTER for creation of implicit constraint"
 )
 
-__all__ = ["Database", "Table", "freeze", "connect"]
+__all__ = ["Database", "Table", "connect"]
 __version__ = "1.3.2"
 
 
