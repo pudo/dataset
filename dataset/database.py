@@ -61,6 +61,9 @@ class Database(object):
         self.ensure_schema = ensure_schema
         self._tables = {}
 
+    def set_schema(self, schema):
+        self.schema = schema
+
     @property
     def executable(self):
         """Connection against which statements will be executed."""
