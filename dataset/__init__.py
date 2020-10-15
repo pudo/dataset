@@ -65,13 +65,23 @@ def get_or_create(url: str, schema: dict) -> Database:
     A helper function to succinctly open a database, and create explicitly-typed columns if needed.
 
     Sample usage:
-        db = get_or_create('sqlite:///my_website.sqlite3', schema={
+        db = dataset.get_or_create('sqlite:///my_website.sqlite3', schema={
             'users': {
                 'primary': ('username', 'string'),
                 'columns': [('age', 'integer'), ('tagline', 'text'), ('url', 'text')],
                 'index': ['url', ['username', 'age']]
             }
         })
+
+    Instead of:
+        db = dataset.connect('sqlite:///my_website.sqlite3')
+        if 'users' not in db:
+            table = db.create_table(users, primary_id='username', primary_type=db.types.string)
+            table.create_column('age', db.types.integer)
+            table.create_column('tagline', db.types.text)
+            table.create_column('url', db.types.text)
+            table.create_index([url])
+            table.create_index(['username', 'age'])
     """
     db = connect(url)
 
