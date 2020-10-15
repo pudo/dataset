@@ -68,8 +68,8 @@ def get_or_create(url: str, schema: dict) -> Database:
         db = dataset.get_or_create('sqlite:///my_website.sqlite3', schema={
             'users': {
                 'primary': ('username', 'string'),
-                'columns': [('age', 'integer'), ('tagline', 'text'), ('url', 'text')],
-                'index': ['url', ['username', 'age']]
+                'columns': [('age', 'integer'), ('upvotes', 'integer'), ('tagline', 'text'), ('bio', 'text'), ('url', 'text')],
+                'index': ['url', ['username', 'upvotes'], ['username', 'age']]
             }
         })
 
@@ -78,9 +78,12 @@ def get_or_create(url: str, schema: dict) -> Database:
         if 'users' not in db:
             table = db.create_table(users, primary_id='username', primary_type=db.types.string)
             table.create_column('age', db.types.integer)
+            table.create_column('upvotes', db.types.integer)
             table.create_column('tagline', db.types.text)
+            table.create_column('bio', db.types.text)
             table.create_column('url', db.types.text)
             table.create_index([url])
+            table.create_index(['username', 'upvotes'])
             table.create_index(['username', 'age'])
     """
     db = connect(url)
