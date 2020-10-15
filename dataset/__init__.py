@@ -58,3 +58,44 @@ def connect(
         ensure_schema=ensure_schema,
         row_type=row_type,
     )
+
+
+def get_or_create(url: str, schema: dict) -> Database:
+    """
+    A helper function to succinctly open a database, and create explicitly-typed columns if needed.
+
+    Sample usage:
+        db = get_or_create('sqlite:///my_website.sqlite3', schema={
+            'users': {
+                'primary': ('username', 'string'),
+                'columns': [('age', 'integer'), ('tagline', 'text'), ('url', 'text')],
+                'index': ['url', ['username', 'age']]
+            }
+        })
+    """
+    db = connect(url)
+
+    def get_type(type_):
+        return getattr(db.types, type_)
+
+    for table_name in schema.keys():
+        if table_name not in db:
+            # Create table
+            ct = schema[table_name]
+            primary_id = None
+            primary_type = None
+            if 'primary' in ct:
+                primary_id, primary_type = ct['primary']
+                primary_type = get_type(primary_type)
+            assert 'columns' in ct
+            current_table = db.create_table(table_name, primary_id=primary_id, primary_type=primary_type)
+            for col in ct['columns']:
+                col_name, col_type = col
+                current_table.create_column(col_name, get_type(col_type))
+            if 'index' in ct:
+                for cc in ct['index']:
+                    if not isinstance(cc, list):
+                        current_table.create_index([cc])
+                    else:
+                        current_table.create_index(cc)
+    return db
