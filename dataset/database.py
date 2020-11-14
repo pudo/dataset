@@ -7,6 +7,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.schema import MetaData
 from sqlalchemy.util import safe_reraise
 from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy import event
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -31,6 +32,7 @@ class Database(object):
         reflect_views=True,
         ensure_schema=True,
         row_type=row_type,
+        sqlite_wal_mode=True,
     ):
         """Configure and connect to the database."""
         if engine_kwargs is None:
@@ -54,6 +56,17 @@ class Database(object):
 
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
+
+        def _enable_sqlite_wal_mode(dbapi_con, con_record):
+            # reference:
+            # https://stackoverflow.com/questions/9671490/how-to-set-sqlite-pragma-statements-with-sqlalchemy
+            # https://stackoverflow.com/a/7831210/1890086
+            dbapi_con.execute("PRAGMA journal_mode=WAL")
+
+        if parsed_url.scheme.lower() == 'sqlite' and parsed_url.path != '' and sqlite_wal_mode:
+            # we only enable WAL mode for sqlite databases that are not in-memory
+            event.listen(self.engine, 'connect', _enable_sqlite_wal_mode)
+
         self.is_postgres = self.engine.dialect.name == "postgresql"
         self.types = Types(is_postgres=self.is_postgres)
         self.url = url

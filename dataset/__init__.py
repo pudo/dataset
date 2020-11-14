@@ -22,6 +22,7 @@ def connect(
     reflect_views=True,
     ensure_schema=True,
     row_type=row_type,
+    sqlite_wal_mode=True,
 ):
     """ Opens a new connection to a database.
 
@@ -57,4 +58,5 @@ def connect(
         reflect_views=reflect_views,
         ensure_schema=ensure_schema,
         row_type=row_type,
+        sqlite_wal_mode=sqlite_wal_mode,
     )
