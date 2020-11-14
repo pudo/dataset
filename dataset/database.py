@@ -56,6 +56,8 @@ class Database(object):
 
         self.schema = schema
         self.engine = create_engine(url, **engine_kwargs)
+        self.is_postgres = self.engine.dialect.name == "postgresql"
+        self.is_sqlite = self.engine.dialect.name == "sqlite"
 
         def _enable_sqlite_wal_mode(dbapi_con, con_record):
             # reference:
@@ -63,11 +65,10 @@ class Database(object):
             # https://stackoverflow.com/a/7831210/1890086
             dbapi_con.execute("PRAGMA journal_mode=WAL")
 
-        if parsed_url.scheme.lower() == 'sqlite' and parsed_url.path != '' and sqlite_wal_mode:
+        if self.is_sqlite and parsed_url.path != "" and sqlite_wal_mode:
             # we only enable WAL mode for sqlite databases that are not in-memory
-            event.listen(self.engine, 'connect', _enable_sqlite_wal_mode)
+            event.listen(self.engine, "connect", _enable_sqlite_wal_mode)
 
-        self.is_postgres = self.engine.dialect.name == "postgresql"
         self.types = Types(is_postgres=self.is_postgres)
         self.url = url
         self.row_type = row_type
