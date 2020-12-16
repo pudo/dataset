@@ -415,9 +415,9 @@ class Table(object):
             return self.table.c[column] == value
         if op in ("!=", "<>", "not"):
             return self.table.c[column] != value
-        if op in ("in"):
+        if op in ("in",):
             return self.table.c[column].in_(value)
-        if op in ("notin"):
+        if op in ("notin",):
             return self.table.c[column].notin_(value)
         if op in ("between", ".."):
             start, end = value
