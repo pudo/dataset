@@ -398,8 +398,7 @@ class Table(object):
         return ensure
 
     def _generate_clause(self, column, op, value):
-        if op in ("notlike",):
-            return self.table.c[column].notlike(value)
+        cur_column = self.table.c[column]
         if op in ("like",):
             return self.table.c[column].like(value)
         if op in ("ilike",):
@@ -428,8 +427,11 @@ class Table(object):
         if op in ("endswith",):
             return self.table.c[column].like(value + "%")
         # return the line below can eliminate the need for much of the code above
-        # by allowing users to directly tap the underlying sqlalchemy operators
-        return getattr(self.table.c[column], op)(value)
+        # by allowing users to directly tap the underlying sqlalchemy operators without having to implement each one
+        # in an if statement. This will add support for operators including: notlike, concat, notilike, etc
+        if hasattr(cur_column, op):
+            return getattr(cur_column, op)(value)
+        return false()
 
     def _args_to_clause(self, args, clauses=()):
         clauses = list(clauses)
