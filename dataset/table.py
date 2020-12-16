@@ -398,6 +398,8 @@ class Table(object):
         return ensure
 
     def _generate_clause(self, column, op, value):
+        if op in ("notlike",):
+            return self.table.c[column].notlike(value)
         if op in ("like",):
             return self.table.c[column].like(value)
         if op in ("ilike",):
@@ -416,6 +418,8 @@ class Table(object):
             return self.table.c[column] != value
         if op in ("in"):
             return self.table.c[column].in_(value)
+        if op in ("notin"):
+            return self.table.c[column].notin_(value)
         if op in ("between", ".."):
             start, end = value
             return self.table.c[column].between(start, end)
@@ -423,7 +427,9 @@ class Table(object):
             return self.table.c[column].like("%" + value)
         if op in ("endswith",):
             return self.table.c[column].like(value + "%")
-        return false()
+        # return the line below can eliminate the need for much of the code above
+        # by allowing users to directly tap the underlying sqlalchemy operators
+        return getattr(self.table.c[column], op)(value)
 
     def _args_to_clause(self, args, clauses=()):
         clauses = list(clauses)
