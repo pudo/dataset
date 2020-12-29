@@ -184,7 +184,9 @@ class Database(object):
         except ValueError:
             return False
 
-    def create_table(self, table_name, primary_id=None, primary_type=None):
+    def create_table(
+        self, table_name, primary_id=None, primary_type=None, primary_increment=None
+    ):
         """Create a new table.
 
         Either loads a table or creates it if it doesn't exist yet. You can
@@ -192,7 +194,8 @@ class Database(object):
         be created. The default is to create an auto-incrementing integer,
         ``id``. You can also set the primary key to be a string or big integer.
         The caller will be responsible for the uniqueness of ``primary_id`` if
-        it is defined as a text type.
+        it is defined as a text type. You can disable auto-increment behaviour
+        for numeric primary keys by setting `primary_increment` to `False`.
 
         Returns a :py:class:`Table <dataset.Table>` instance.
         ::
@@ -223,6 +226,7 @@ class Database(object):
                     table_name,
                     primary_id=primary_id,
                     primary_type=primary_type,
+                    primary_increment=primary_increment,
                     auto_create=True,
                 )
             return self._tables.get(table_name)

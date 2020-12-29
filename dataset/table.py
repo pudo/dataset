@@ -31,6 +31,7 @@ class Table(object):
         table_name,
         primary_id=None,
         primary_type=None,
+        primary_increment=None,
         auto_create=False,
     ):
         """Initialise the table from database schema."""
@@ -43,6 +44,9 @@ class Table(object):
             primary_id if primary_id is not None else self.PRIMARY_DEFAULT
         )
         self._primary_type = primary_type if primary_type is not None else Types.integer
+        if primary_increment is None:
+            primary_increment = self._primary_type in (Types.integer, Types.bigint)
+        self._primary_increment = primary_increment
         self._auto_create = auto_create
 
     @property
@@ -330,14 +334,11 @@ class Table(object):
                 if self._primary_id is not False:
                     # This can go wrong on DBMS like MySQL and SQLite where
                     # tables cannot have no columns.
-                    primary_id = self._primary_id
-                    primary_type = self._primary_type
-                    increment = primary_type in [Types.integer, Types.bigint]
                     column = Column(
-                        primary_id,
-                        primary_type,
+                        self._primary_id,
+                        self._primary_type,
                         primary_key=True,
-                        autoincrement=increment,
+                        autoincrement=self._primary_increment,
                     )
                     self._table.append_column(column)
                 for column in columns:

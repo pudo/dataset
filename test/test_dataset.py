@@ -542,7 +542,7 @@ class TableTestCase(unittest.TestCase):
 
 
 class Constructor(dict):
-    """ Very simple low-functionality extension to ``dict`` to
+    """Very simple low-functionality extension to ``dict`` to
     provide attribute access to dictionary contents"""
 
     def __getattr__(self, name):
