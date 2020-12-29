@@ -264,28 +264,15 @@ class Table(object):
     def upsert_many(self, rows, keys, chunk_size=1000, ensure=None, types=None):
         """
         Sorts multiple input rows into upserts and inserts. Inserts are passed
-        to insert_many and upserts are updated.
+        to insert and upserts are updated.
 
         See :py:meth:`upsert() <dataset.Table.upsert>` and
         :py:meth:`insert_many() <dataset.Table.insert_many>`.
         """
-        keys = ensure_list(keys)
-
-        to_insert = []
-        to_update = []
+        # Removing a bulk implementation in 5e09aba401. Doing this one by one
+        # is incredibly slow, but doesn't run into issues with column creation.
         for row in rows:
-            if self.find_one(**{key: row.get(key) for key in keys}):
-                # Row exists - update it.
-                to_update.append(row)
-            else:
-                # Row doesn't exist - insert it.
-                to_insert.append(row)
-
-        # Insert non-existing rows.
-        self.insert_many(to_insert, chunk_size, ensure, types)
-
-        # Update existing rows.
-        self.update_many(to_update, keys, chunk_size, ensure, types)
+            self.upsert(row, keys, ensure=ensure, types=types)
 
     def delete(self, *clauses, **filters):
         """Delete rows from the table.
@@ -414,7 +401,7 @@ class Table(object):
             return self.table.c[column] == value
         if op in ("!=", "<>", "not"):
             return self.table.c[column] != value
-        if op in ("in"):
+        if op in ("in",):
             return self.table.c[column].in_(value)
         if op in ("between", ".."):
             start, end = value
