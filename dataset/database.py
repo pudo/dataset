@@ -125,7 +125,10 @@ class Database(object):
         if hasattr(self.local, "tx") and self.local.tx:
             tx = self.local.tx.pop()
             tx.commit()
-            self._flush_tables()
+            # Removed in 2020-12, I'm a bit worried this means that some DDL
+            # operations in transactions won't cause metadata to refresh any
+            # more:
+            # self._flush_tables()
 
     def rollback(self):
         """Roll back the current transaction.
