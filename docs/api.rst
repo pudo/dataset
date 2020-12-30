@@ -33,11 +33,7 @@ Table
 Data Export
 -----------
 
-
   **Note:** Data exporting has been extracted into a stand-alone package, datafreeze. See the relevant repository here_.
 
 .. _here: https://github.com/pudo/datafreeze
 
-|
-
-.. autofunction:: datafreeze.freeze

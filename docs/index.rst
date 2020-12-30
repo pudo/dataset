@@ -62,6 +62,7 @@ Contents
    install
    quickstart
    api
+   queries
 
 Contributors
 ------------

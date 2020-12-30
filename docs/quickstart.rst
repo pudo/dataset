@@ -142,20 +142,13 @@ We can search for specific entries using :py:meth:`find() <dataset.Table.find>` 
    winners = table.find(id=[1, 3, 7])
 
    # Find by comparison operator
-   elderly_users = table.find(age={'>=': 70})
-   possible_customers = table.find(age={'between': [21, 80]})
+   elderly_users = table.find((age, '>=', 70))
+   possible_customers = table.find((age, 'between', [21, 80]))
 
    # Use the underlying SQLAlchemy directly
    elderly_users = table.find(table.table.columns.age >= 70)
 
-Possible comparison operators::
-
-  gt, >
-  lt, <
-  gte, >=
-  lte, <=
-  !=, <>, not
-  between, ..
+See :ref:`advanced_filters` for details on complex filters.
 
 Using  :py:meth:`distinct() <dataset.Table.distinct>` we can grab a set of rows
 with unique values in one or more columns::
@@ -192,3 +185,30 @@ programmatic construction of more complex queries::
    table = db['user'].table
    statement = table.select(table.c.name.like('%John%'))
    result = db.query(statement)
+
+Limitations of dataset
+----------------------
+
+The goal of ``dataset`` is to make basic database operations simpler, by expressing
+some relatively basic operations in a Pythonic way. The downside of this approach
+is that as your application grows more complex, you may begin to need access to
+more advanced operations and be forced to switch to using SQLAlchemy proper, 
+without the dataset layer (instead, you may want to play with SQLAlchemy's ORM).
+
+When that moment comes, take the hit. SQLAlchemy is an amazing piece of Python
+code, and it will provide you with idiomatic access to all of SQL's functions.
+
+Some of the specific aspects of SQL that are not exposed in ``dataset``, and are 
+considered out of scope for the project, include:
+
+* Foreign key relationships between tables, and expressing one-to-many and
+  many-to-many relationships in idiomatic Python.
+* Python-wrapped ``JOIN`` queries.
+* Creating databases, or managing DBMS software.
+* Support for Python 2.x
+
+There's also some functionality that might be cool to support in the future, but
+that requires signficant engineering:
+
+* Async operations
+* Database-native ``UPSERT`` semantics

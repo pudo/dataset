@@ -486,9 +486,12 @@ class Table(object):
         self.create_column(name, type_)
 
     def drop_column(self, name):
-        """Drop the column ``name``.
+        """
+        Drop the column ``name``.
         ::
+
             table.drop_column('created_at')
+
         """
         if self.db.engine.dialect.name == "sqlite":
             raise RuntimeError("SQLite does not support dropping columns.")
@@ -589,9 +592,12 @@ class Table(object):
             # return all rows sorted by multiple columns (descending by year)
             results = table.find(order_by=['country', '-year'])
 
-        To perform complex queries with advanced filters or to perform
-        aggregation, use :py:meth:`db.query() <dataset.Database.query>`
-        instead.
+        You can also submit filters based on criteria other than equality,
+        see :ref:`advanced_filters` for details.
+
+        To run more complex queries with JOINs, or to perform GROUP BY-style
+        aggregation, you can also use :py:meth:`db.query() <dataset.Database.query>`
+        to run raw SQL queries instead.
         """
         if not self.exists:
             return iter([])
