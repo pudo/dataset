@@ -8,15 +8,20 @@ Advanced filters
 and :py:meth:`db.query() <dataset.Database.query>`. The table find helper method provides 
 limited, but simple filtering options::
 
-    results = table.find((column, operator, value))
+    results = table.find(column={operator: value})
     # e.g.:
-    results = table.find(('name', 'like', '%mole rat%'))
+    results = table.find(name={'like': '%mole rat%'})
 
 A special form is using keyword searches on specific columns::
 
     results = table.find(value=5)
     # equal to:
-    results = table.find((value, '=', 5))
+    results = table.find(value={'=': 5})
+
+    # Lists, tuples and sets are turned into `IN` queries:
+    results = table.find(category=('foo', 'bar'))
+    # equal to:
+    results = table.find(value={'in': ('foo', 'bar')})
 
 The following comparison operators are supported:
 
@@ -37,6 +42,18 @@ endswith       String ends with
 
 Querying for a specific value on a column that does not exist on the table
 will return no results.
+
+You can also pass additional SQLAlchemy clauses into the :py:meth:`table.find() <dataset.Table.find>` method
+by falling back onto the SQLAlchemy core objects wrapped by `dataset`::
+
+    # Get the column `city` from the dataset table:
+    column = table.table.columns.city
+    # Define a SQLAlchemy clause:
+    clause = column.ilike('amsterda%')
+    # Query using the clause:
+    results = table.find(clause)
+
+This can also be used to define combined OR clauses if needed (e.g. `city = 'Bla' OR country = 'Foo'`).
 
 Queries using raw SQL
 ---------------------
