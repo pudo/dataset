@@ -34,7 +34,9 @@ gte, >=        Greater or equal
 lte, <=        Less or equal
 !=, <>, not    Not equal to a single value
 in             Value is in the given sequence
+notin          Value is not in the given sequence
 like, ilike    Text search, ILIKE is case-insensitive. Use ``%`` as a wildcard
+notlike        Like text search, except check if pattern does not exist
 between, ..    Value is between two values in the given tuple
 startswith     String starts with
 endswith       String ends with
