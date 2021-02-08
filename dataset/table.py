@@ -390,6 +390,10 @@ class Table(object):
             return self.table.c[column].like(value)
         if op in ("ilike",):
             return self.table.c[column].ilike(value)
+        if op in ("notlike",):
+            return self.table.c[column].notlike(value)
+        if op in ("notilike",):
+            return self.table.c[column].notilike(value)
         if op in (">", "gt"):
             return self.table.c[column] > value
         if op in ("<", "lt"):
@@ -404,6 +408,8 @@ class Table(object):
             return self.table.c[column] != value
         if op in ("in",):
             return self.table.c[column].in_(value)
+        if op in ("notin",):
+            return self.table.c[column].notin_(value)
         if op in ("between", ".."):
             start, end = value
             return self.table.c[column].between(start, end)
