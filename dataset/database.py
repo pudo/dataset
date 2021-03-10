@@ -44,6 +44,7 @@ class Database(object):
 
         self.lock = threading.RLock()
         self.local = threading.local()
+        self.connections = {}
 
         if len(parsed_url.query):
             query = parse_qs(parsed_url.query)
@@ -76,9 +77,11 @@ class Database(object):
     @property
     def executable(self):
         """Connection against which statements will be executed."""
-        if not hasattr(self.local, "conn"):
-            self.local.conn = self.engine.connect()
-        return self.local.conn
+        with self.lock:
+            tid = threading.get_ident()
+            if not tid in self.connections:
+                self.connections[tid] = self.engine.connect()
+            return self.connections[tid]
 
     @property
     def op(self):
@@ -158,6 +161,10 @@ class Database(object):
 
     def close(self):
         """Close database connections. Makes this object unusable."""
+        with self.lock:
+            for conn in self.connections.values():
+                conn.close()
+            self.connections.clear()
         self.engine.dispose()
         self._tables = {}
         self.engine = None
