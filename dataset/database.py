@@ -158,6 +158,8 @@ class Database(object):
 
     def close(self):
         """Close database connections. Makes this object unusable."""
+        if hasattr(self.local, "conn"):
+          self.local.conn.close()        
         self.engine.dispose()
         self._tables = {}
         self.engine = None
