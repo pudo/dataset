@@ -79,7 +79,7 @@ class Database(object):
         """Connection against which statements will be executed."""
         with self.lock:
             tid = threading.get_ident()
-            if not tid in self.connections:
+            if tid not in self.connections:
                 self.connections[tid] = self.engine.connect()
             return self.connections[tid]
 
