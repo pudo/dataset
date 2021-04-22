@@ -19,29 +19,30 @@ def convert_row(row_type, row):
 
 def iter_result_proxy(rp, step=None):
     """Iterate over the ResultProxy."""
-    try:
-        while True:
-            if step is None:
-                chunk = rp.fetchall()
-            else:
-                chunk = rp.fetchmany(size=step)
-            if not chunk:
-                break
-            for row in chunk:
-                yield row
-    except ResourceClosedError:
-        return
+    while True:
+        if step is None:
+            chunk = rp.fetchall()
+        else:
+            chunk = rp.fetchmany(size=step)
+        if not chunk:
+            break
+        for row in chunk:
+            yield row
 
 
 class ResultIter(object):
-    """ SQLAlchemy ResultProxies are not iterable to get a
-    list of dictionaries. This is to wrap them. """
+    """SQLAlchemy ResultProxies are not iterable to get a
+    list of dictionaries. This is to wrap them."""
 
     def __init__(self, result_proxy, row_type=row_type, step=None):
         self.row_type = row_type
         self.result_proxy = result_proxy
-        self.keys = list(result_proxy.keys())
-        self._iter = iter_result_proxy(result_proxy, step=step)
+        try:
+            self.keys = list(result_proxy.keys())
+            self._iter = iter_result_proxy(result_proxy, step=step)
+        except ResourceClosedError:
+            self.keys = []
+            self._iter = iter([])
 
     def __next__(self):
         try:
