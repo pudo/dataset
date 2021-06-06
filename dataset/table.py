@@ -3,7 +3,7 @@ import warnings
 import threading
 from banal import ensure_list
 
-from sqlalchemy import func, select, false
+from sqlalchemy import func, select, false, UniqueConstraint
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import bindparam, ClauseElement
 from sqlalchemy.schema import Column, Index
@@ -121,10 +121,12 @@ class Table(object):
             return res.inserted_primary_key[0]
         return True
 
-    def insert_ignore(self, row, keys, ensure=None, types=None):
+    def insert_ignore(self, row, keys=None, ensure=None, types=None):
         """Add a ``row`` dict into the table if the row does not exist.
 
         If rows with matching ``keys`` exist no change is made.
+        If ``keys`` are not passed, keys will be
+        replaced by columns with unique constraints of table.
 
         Setting ``ensure`` results in automatically creating missing columns,
         i.e., keys of the row are not table columns.
@@ -139,6 +141,7 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.insert_ignore(data, ['id'])
         """
+        keys = keys or self.get_unique_columns()
         row = self._sync_columns(row, ensure, types=types)
         if self._check_ensure(ensure):
             self.create_index(keys)
@@ -184,7 +187,7 @@ class Table(object):
                 self.table.insert().execute(chunk)
                 chunk = []
 
-    def update(self, row, keys, ensure=None, types=None, return_count=False):
+    def update(self, row, keys=None, ensure=None, types=None, return_count=False):
         """Update a row in the table.
 
         The update is managed via the set of column names stated in ``keys``:
@@ -200,7 +203,11 @@ class Table(object):
         If keys in ``row`` update columns not present in the table, they will
         be created based on the settings of ``ensure`` and ``types``, matching
         the behavior of :py:meth:`insert() <dataset.Table.insert>`.
+
+        If ``keys`` are not passed, keys will be
+        replaced by columns with unique constraints of table.
         """
+        keys = keys or self.get_unique_columns()
         row = self._sync_columns(row, ensure, types=types)
         args, row = self._keys_to_args(row, keys)
         clause = self._args_to_clause(args)
@@ -213,7 +220,7 @@ class Table(object):
         if return_count:
             return self.count(clause)
 
-    def update_many(self, rows, keys, chunk_size=1000, ensure=None, types=None):
+    def update_many(self, rows, keys=None, chunk_size=1000, ensure=None, types=None):
         """Update many rows in the table at a time.
 
         This is significantly faster than updating them one by one. Per default
@@ -222,7 +229,10 @@ class Table(object):
 
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
+        If ``keys`` are not passed, keys will be
+        replaced by columns with unique constraints of table.
         """
+        keys = keys or self.get_unique_columns()
         keys = ensure_list(keys)
 
         chunk = []
@@ -247,16 +257,19 @@ class Table(object):
                 self.db.executable.execute(stmt, chunk)
                 chunk = []
 
-    def upsert(self, row, keys, ensure=None, types=None):
+    def upsert(self, row, keys=None, ensure=None, types=None):
         """An UPSERT is a smart combination of insert and update.
 
         If rows with matching ``keys`` exist they will be updated, otherwise a
         new row is inserted in the table.
+        If ``keys`` are not passed, keys will be
+        replaced by columns with unique constraints of table.
         ::
 
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
+        keys = keys or self.get_unique_columns()
         row = self._sync_columns(row, ensure, types=types)
         if self._check_ensure(ensure):
             self.create_index(keys)
@@ -265,7 +278,7 @@ class Table(object):
             return self.insert(row, ensure=False)
         return True
 
-    def upsert_many(self, rows, keys, chunk_size=1000, ensure=None, types=None):
+    def upsert_many(self, rows, keys=None, chunk_size=1000, ensure=None, types=None):
         """
         Sorts multiple input rows into upserts and inserts. Inserts are passed
         to insert and upserts are updated.
@@ -295,6 +308,14 @@ class Table(object):
         stmt = self.table.delete(whereclause=clause)
         rp = self.db.executable.execute(stmt)
         return rp.rowcount > 0
+
+    def get_unique_columns(self):
+        return list({
+            column.name
+            for constraint in self._table.constraints
+            if isinstance(constraint, UniqueConstraint)
+            for column in constraint.columns
+        })
 
     def _reflect_table(self):
         """Load the tables definition from the database."""
