@@ -573,7 +573,7 @@ class TableTestCase(unittest.TestCase):
 
     def test_unique_columns(self):
         data, unique_columns = self._get_data_for_table_with_unique_columns()
-        assert len(set(self.tbl_uniq_columns.get_unique_columns()) & set(unique_columns)) == len(unique_columns)
+        assert len(set(self.tbl_uniq_columns.unique_columns) & set(unique_columns)) == len(unique_columns)
 
 
 class Constructor(dict):

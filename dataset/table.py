@@ -3,7 +3,7 @@ import warnings
 import threading
 from banal import ensure_list
 
-from sqlalchemy import func, select, false, UniqueConstraint
+from sqlalchemy import func, select, false
 from sqlalchemy.sql import and_, expression
 from sqlalchemy.sql.expression import bindparam, ClauseElement
 from sqlalchemy.schema import Column, Index
@@ -141,7 +141,11 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.insert_ignore(data, ['id'])
         """
-        keys = keys or self.get_unique_columns()
+        if not keys and not self.unique_columns:
+            log.warning("Insert ignore can not be executed. Table does not have unique columns")
+            return
+
+        keys = keys or self.unique_columns
         row = self._sync_columns(row, ensure, types=types)
         if self._check_ensure(ensure):
             self.create_index(keys)
@@ -207,7 +211,11 @@ class Table(object):
         If ``keys`` are not passed, keys will be
         replaced by columns with unique constraints of table.
         """
-        keys = keys or self.get_unique_columns()
+        if not keys and not self.unique_columns:
+            log.warning("Update can not be executed. Table does not have unique columns")
+            return
+
+        keys = keys or self.unique_columns
         row = self._sync_columns(row, ensure, types=types)
         args, row = self._keys_to_args(row, keys)
         clause = self._args_to_clause(args)
@@ -232,7 +240,11 @@ class Table(object):
         If ``keys`` are not passed, keys will be
         replaced by columns with unique constraints of table.
         """
-        keys = keys or self.get_unique_columns()
+        if not keys and not self.unique_columns:
+            log.warning("Update can not be executed. Table does not have unique columns")
+            return
+
+        keys = keys or self.unique_columns
         keys = ensure_list(keys)
 
         chunk = []
@@ -269,7 +281,11 @@ class Table(object):
             data = dict(id=10, title='I am a banana!')
             table.upsert(data, ['id'])
         """
-        keys = keys or self.get_unique_columns()
+        if not keys and not self.unique_columns:
+            log.warning("Upsert can not be executed. Table does not have unique columns")
+            return
+
+        keys = keys or self.unique_columns
         row = self._sync_columns(row, ensure, types=types)
         if self._check_ensure(ensure):
             self.create_index(keys)
@@ -309,12 +325,13 @@ class Table(object):
         rp = self.db.executable.execute(stmt)
         return rp.rowcount > 0
 
-    def get_unique_columns(self):
+    @property
+    def unique_columns(self):
+        """Get table unique columns"""
+        u_constraints = self.db.inspect.get_unique_constraints(self.name, schema=self.db.schema)
         return list({
-            column.name
-            for constraint in self._table.constraints
-            if isinstance(constraint, UniqueConstraint)
-            for column in constraint.columns
+            column for constraint in u_constraints
+            for column in constraint['column_names']
         })
 
     def _reflect_table(self):
