@@ -2,11 +2,10 @@ import logging
 import threading
 from urllib.parse import parse_qs, urlparse
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.sql import text
 from sqlalchemy.schema import MetaData
 from sqlalchemy.util import safe_reraise
-from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy import event
 
 from alembic.migration import MigrationContext
@@ -92,7 +91,7 @@ class Database(object):
     @property
     def inspect(self):
         """Get a SQLAlchemy inspector."""
-        return Inspector.from_engine(self.executable)
+        return inspect(self.executable)
 
     @property
     def metadata(self):
