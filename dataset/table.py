@@ -228,14 +228,13 @@ class Table(object):
         chunk = []
         columns = []
         for index, row in enumerate(rows):
-            chunk.append(row)
-            for col in row.keys():
-                if col not in columns:
-                    columns.append(col)
+            columns.extend(col for col in row.keys() if (col not in columns) and (col not in keys))
 
             # bindparam requires names to not conflict (cannot be "id" for id)
             for key in keys:
                 row["_%s" % key] = row[key]
+                row.pop(key)
+            chunk.append(row)
 
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
