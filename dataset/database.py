@@ -109,6 +109,7 @@ class Database(object):
 
     @property
     def server_version_info(self):
+        """Return database version number"""
         if self._server_version_info is None:
             tables = self.tables  # connect DB
             self._server_version_info = self.engine.dialect.server_version_info
@@ -116,6 +117,7 @@ class Database(object):
 
     @property
     def is_support_json(self):
+        """Check if this database version support JSON column"""
         if self._is_support_json is None:
             support_versions = {"mysql": 5.7, "postgresql": 9.2, "sqlite": 3.9, "mssql": 13.0, "oracle": 12.1}
             db_name = self.engine.dialect.name
