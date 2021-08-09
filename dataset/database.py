@@ -56,6 +56,8 @@ class Database(object):
         self.engine = create_engine(url, **engine_kwargs)
         self.is_postgres = self.engine.dialect.name == "postgresql"
         self.is_sqlite = self.engine.dialect.name == "sqlite"
+        self._server_version_info = None
+        self._is_support_json = None
 
         def _enable_sqlite_wal_mode(dbapi_con, con_record):
             # reference:
@@ -104,6 +106,25 @@ class Database(object):
         if not hasattr(self.local, "tx"):
             return False
         return len(self.local.tx) > 0
+
+    @property
+    def server_version_info(self):
+        if self._server_version_info is None:
+            tables = self.tables  # connect DB
+            self._server_version_info = self.engine.dialect.server_version_info
+        return self._server_version_info
+
+    @property
+    def is_support_json(self):
+        if self._is_support_json is None:
+            support_versions = {"mysql": 5.7, "postgresql": 9.2, "sqlite": 3.9, "mssql": 13.0, "oracle": 12.1}
+            db_name = self.engine.dialect.name
+            version = float(str(self.server_version_info[0]) + "." + str(self.server_version_info[1]))
+            if support_versions.get(db_name) and version >= support_versions[db_name]:
+                self._is_support_json = True
+            else:
+                self._is_support_json = False
+        return self._is_support_json
 
     def _flush_tables(self):
         """Clear the table metadata after transaction rollbacks."""
