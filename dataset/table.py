@@ -639,6 +639,7 @@ class Table(object):
 
             # Notice: selected key type depends on giving value type,
             #         like if given integer but stored type is float will be automatically transformed to integer.
+            # Support operations: >(gt), <(lt), >=(gte), <=(lte), =(==,is), !=(<>, not), between("..")
             # id json_column
             # 0  {"key":-0.5}
             # 1  {"key":0.5}
@@ -651,13 +652,13 @@ class Table(object):
             # 1  [0,0.5,1]
             # 2  [0]
             # find rows by index
-            results = table.find(_json={'json_column':{1:{'>=': 0.0, '<':1.0}}})
+            results = table.find(_json={'json_column':{1:{'>=': 0.0, '<':1.0}}}) # id = [1]
 
             # id json_column
             # 0  {"key1":{"key2":-1}}
             # 1  {"key1":{"key2":0.5}}
             # find rows by path
-            results = table.find(_json={'json_column':{('key1','key2'):{'>=': 0.0, '<':1.0}}})
+            results = table.find(_json={'json_column':{('key1','key2'):{'between':[0.0,1.0]}}}) # id = [1]
 
         You can also submit filters based on criteria other than equality,
         see :ref:`advanced_filters` for details.
