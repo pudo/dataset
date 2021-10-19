@@ -157,6 +157,7 @@ class Database(object):
                     self.rollback()
         else:
             self.rollback()
+        self.close()
 
     def close(self):
         """Close database connections. Makes this object unusable."""
