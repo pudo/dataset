@@ -33,7 +33,7 @@ setup(
     extras_require={
         "dev": [
             "pip",
-            "nose",
+            "pytest",
             "wheel",
             "flake8",
             "coverage",
@@ -42,7 +42,7 @@ setup(
             "cryptography",
         ]
     },
-    tests_require=["nose"],
+    tests_require=["pytest"],
     test_suite="test",
     entry_points={},
 )

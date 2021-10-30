@@ -228,7 +228,9 @@ class Table(object):
         chunk = []
         columns = []
         for index, row in enumerate(rows):
-            columns.extend(col for col in row.keys() if (col not in columns) and (col not in keys))
+            columns.extend(
+                col for col in row.keys() if (col not in columns) and (col not in keys)
+            )
 
             # bindparam requires names to not conflict (cannot be "id" for id)
             for key in keys:
@@ -240,7 +242,7 @@ class Table(object):
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 cl = [self.table.c[k] == bindparam("_%s" % k) for k in keys]
                 stmt = self.table.update(
-                    whereclause=and_(*cl),
+                    whereclause=and_(True, *cl),
                     values={col: bindparam(col, required=False) for col in columns},
                 )
                 self.db.executable.execute(stmt, chunk)
@@ -431,7 +433,7 @@ class Table(object):
                     clauses.append(self._generate_clause(column, op, op_value))
             else:
                 clauses.append(self._generate_clause(column, "=", value))
-        return and_(*clauses)
+        return and_(True, *clauses)
 
     def _args_to_order_by(self, order_by):
         orderings = []

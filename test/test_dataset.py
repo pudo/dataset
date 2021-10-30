@@ -35,7 +35,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test_create_table(self):
         table = self.db["foo"]
-        assert table.table.exists()
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 1, table.table.columns
         assert "id" in table.table.c, table.table.c
 
@@ -51,7 +51,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_custom_id1(self):
         pid = "string_id"
         table = self.db.create_table("foo2", pid, self.db.types.string(255))
-        assert table.table.exists()
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
         table.insert({pid: "foobar"})
@@ -60,7 +60,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_custom_id2(self):
         pid = "string_id"
         table = self.db.create_table("foo3", pid, self.db.types.string(50))
-        assert table.table.exists()
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
@@ -70,7 +70,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_custom_id3(self):
         pid = "int_id"
         table = self.db.create_table("foo4", primary_id=pid)
-        assert table.table.exists()
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
