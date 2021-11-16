@@ -97,7 +97,7 @@ class Database(object):
         if not params:
             return 'sqlite:///' + path
         params['uri'] = 'true'
-        return 'sqlite:///' + path + urlencode(params)
+        return 'sqlite:///file:' + path + '?' + urlencode(params)
 
     @property
     def executable(self):
