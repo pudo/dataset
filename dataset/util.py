@@ -31,7 +31,14 @@ def iter_result_proxy(rp, step=None):
 
 
 def make_sqlite_url(
-        path, cache=None, timeout=None, mode=None, check_same_thread=True, immutable=False, nolock=False):
+    path,
+    cache=None,
+    timeout=None,
+    mode=None,
+    check_same_thread=True,
+    immutable=False,
+    nolock=False,
+):
     # NOTE: this PR
     # https://gerrit.sqlalchemy.org/c/sqlalchemy/sqlalchemy/+/1474/
     # added support for URIs in SQLite
@@ -41,24 +48,24 @@ def make_sqlite_url(
     # https://www.sqlite.org/uri.html
     params = {}
     if cache:
-        assert cache in ('shared', 'private')
-        params['cache'] = cache
+        assert cache in ("shared", "private")
+        params["cache"] = cache
     if timeout:
         # Note: if timeout is None, it uses the default timeout
-        params['timeout'] = timeout
+        params["timeout"] = timeout
     if mode:
-        assert mode in ('ro', 'rw', 'rwc')
-        params['mode'] = mode
+        assert mode in ("ro", "rw", "rwc")
+        params["mode"] = mode
     if nolock:
-        params['nolock'] = 1
+        params["nolock"] = 1
     if immutable:
-        params['immutable'] = 1
+        params["immutable"] = 1
     if not check_same_thread:
-        params['check_same_thread'] = 'false'
+        params["check_same_thread"] = "false"
     if not params:
-        return 'sqlite:///' + path
-    params['uri'] = 'true'
-    return 'sqlite:///file:' + path + '?' + urlencode(params)
+        return "sqlite:///" + path
+    params["uri"] = "true"
+    return "sqlite:///file:" + path + "?" + urlencode(params)
 
 
 class ResultIter(object):
