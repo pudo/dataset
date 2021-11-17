@@ -1,6 +1,6 @@
 import logging
 import threading
-from urllib.parse import parse_qs, urlparse, urlencode
+from urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.sql import text
@@ -72,32 +72,6 @@ class Database(object):
         self.row_type = row_type
         self.ensure_schema = ensure_schema
         self._tables = {}
-
-    @classmethod
-    def sqlite_url(cls, path, timeout=None, read_only=False, check_same_thread=True, immutable=False, nolock=False):
-        # NOTE: this PR
-        # https://gerrit.sqlalchemy.org/c/sqlalchemy/sqlalchemy/+/1474/
-        # added support for URIs in SQLite
-        # The full list of supported URIs is a combination of:
-        # https://docs.python.org/3/library/sqlite3.html#sqlite3.connect
-        # and
-        # https://www.sqlite.org/uri.html
-        params = {}
-        if timeout:
-            # Note: if timeout is None, it uses the default timeout
-            params['timeout'] = timeout
-        if read_only:
-            params['mode'] = 'ro'
-        if nolock:
-            params['nolock'] = 1
-        if immutable:
-            params['immutable'] = 1
-        if not check_same_thread:
-            params['check_same_thread'] = 'false'
-        if not params:
-            return 'sqlite:///' + path
-        params['uri'] = 'true'
-        return 'sqlite:///file:' + path + '?' + urlencode(params)
 
     @property
     def executable(self):

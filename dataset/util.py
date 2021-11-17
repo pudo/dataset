@@ -1,5 +1,5 @@
 from hashlib import sha1
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 from collections import OrderedDict
 from sqlalchemy.exc import ResourceClosedError
 
@@ -28,6 +28,37 @@ def iter_result_proxy(rp, step=None):
             break
         for row in chunk:
             yield row
+
+
+def make_sqlite_url(
+        path, cache=None, timeout=None, mode=None, check_same_thread=True, immutable=False, nolock=False):
+    # NOTE: this PR
+    # https://gerrit.sqlalchemy.org/c/sqlalchemy/sqlalchemy/+/1474/
+    # added support for URIs in SQLite
+    # The full list of supported URIs is a combination of:
+    # https://docs.python.org/3/library/sqlite3.html#sqlite3.connect
+    # and
+    # https://www.sqlite.org/uri.html
+    params = {}
+    if cache:
+        assert cache in ('shared', 'private')
+        params['cache'] = cache
+    if timeout:
+        # Note: if timeout is None, it uses the default timeout
+        params['timeout'] = timeout
+    if mode:
+        assert mode in ('ro', 'rw', 'rwc')
+        params['mode'] = mode
+    if nolock:
+        params['nolock'] = 1
+    if immutable:
+        params['immutable'] = 1
+    if not check_same_thread:
+        params['check_same_thread'] = 'false'
+    if not params:
+        return 'sqlite:///' + path
+    params['uri'] = 'true'
+    return 'sqlite:///file:' + path + '?' + urlencode(params)
 
 
 class ResultIter(object):
