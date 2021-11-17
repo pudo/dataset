@@ -45,9 +45,9 @@ copyright = u"2013-2021, Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer"
 # built documents.
 #
 # The short X.Y version.
-version = "1.5.0"
+version = "1.5.1"
 # The full version, including alpha/beta/rc tags.
-release = "1.5.0"
+release = "1.5.1"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
