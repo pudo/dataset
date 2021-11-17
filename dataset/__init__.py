@@ -57,5 +57,5 @@ def connect(
         ensure_schema=ensure_schema,
         row_type=row_type,
         sqlite_wal_mode=sqlite_wal_mode,
-        sqlite_pragmas=sqlite_pragmas,
+        on_connect_statements=sqlite_pragmas,
     )

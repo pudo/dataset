@@ -30,7 +30,7 @@ class Database(object):
         ensure_schema=True,
         row_type=row_type,
         sqlite_wal_mode=True,
-        sqlite_pragmas=None,
+        on_connect_statements=None,
     ):
         """Configure and connect to the database."""
         if engine_kwargs is None:
@@ -57,21 +57,21 @@ class Database(object):
         self.engine = create_engine(url, **engine_kwargs)
         self.is_postgres = self.engine.dialect.name == "postgresql"
         self.is_sqlite = self.engine.dialect.name == "sqlite"
-        if sqlite_pragmas is None:
-            sqlite_pragmas = []
-        def _run_sqlite_pragmas(dbapi_con, con_record):
+        if on_connect_statements is None:
+            on_connect_statements = []
+        def _run_on_connect_statements(dbapi_con, con_record):
             # reference:
             # https://stackoverflow.com/questions/9671490/how-to-set-sqlite-pragma-statements-with-sqlalchemy
             # https://stackoverflow.com/a/7831210/1890086
-            for pragma in sqlite_pragmas:
-                dbapi_con.execute(pragma)
+            for statement in on_connect_statements:
+                dbapi_con.execute(statement)
 
         if self.is_sqlite and parsed_url.path != "" and sqlite_wal_mode:
             # we only enable WAL mode for sqlite databases that are not in-memory
-            sqlite_pragmas.append("PRAGMA journal_mode=WAL")
+            on_connect_statements.append("PRAGMA journal_mode=WAL")
 
-        if sqlite_pragmas:
-            event.listen(self.engine, "connect", _run_sqlite_pragmas)
+        if on_connect_statements:
+            event.listen(self.engine, "connect", _run_on_connect_statements)
 
         self.types = Types(is_postgres=self.is_postgres)
         self.url = url
