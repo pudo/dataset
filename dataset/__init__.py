@@ -21,6 +21,7 @@ def connect(
     ensure_schema=True,
     row_type=row_type,
     sqlite_wal_mode=True,
+    sqlite_pragmas=None,
 ):
     """Opens a new connection to a database.
 
@@ -39,6 +40,10 @@ def connect(
     the `ensure_schema` argument. It can also be overridden in a lot of the
     data manipulation methods using the `ensure` flag.
 
+    If you want to run custom SQLite pragmas on database connect, you can add them to sqlite_pragmas
+    You can view a full list of PRAGMAs here:
+    https://www.sqlite.org/pragma.html
+
     .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
     .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
     """
@@ -52,4 +57,5 @@ def connect(
         ensure_schema=ensure_schema,
         row_type=row_type,
         sqlite_wal_mode=sqlite_wal_mode,
+        sqlite_pragmas=sqlite_pragmas,
     )
