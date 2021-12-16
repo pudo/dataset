@@ -529,7 +529,7 @@ class Table(object):
         """Check if an index exists to cover the given ``columns``."""
         if not self.exists:
             return False
-        columns = set([self._get_column_name(c) for c in columns])
+        columns = set([self._get_column_name(c) for c in ensure_list(columns)])
         if columns in self._indexes:
             return True
         for column in columns:
@@ -537,7 +537,13 @@ class Table(object):
                 return False
         indexes = self.db.inspect.get_indexes(self.name, schema=self.db.schema)
         for index in indexes:
-            if columns == set(index.get("column_names", [])):
+            idx_columns = index.get("column_names", [])
+            if len(columns.intersection(idx_columns)) == len(columns):
+                self._indexes.append(columns)
+                return True
+        if self.table.primary_key is not None:
+            pk_columns = [c.name for c in self.table.primary_key.columns]
+            if len(columns.intersection(pk_columns)) == len(columns):
                 self._indexes.append(columns)
                 return True
         return False
