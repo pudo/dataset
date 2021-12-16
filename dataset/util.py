@@ -6,15 +6,27 @@ from sqlalchemy.exc import ResourceClosedError
 QUERY_STEP = 1000
 row_type = OrderedDict
 
+try:
+    # SQLAlchemy > 1.4.0, new row model.
+    from sqlalchemy.engine import Row  # noqa
+
+    def convert_row(row_type, row):
+        if row is None:
+            return None
+        return row_type(row._mapping.items())
+
+
+except ImportError:
+    # SQLAlchemy < 1.4.0, no _mapping.
+
+    def convert_row(row_type, row):
+        if row is None:
+            return None
+        return row_type(row.items())
+
 
 class DatasetException(Exception):
     pass
-
-
-def convert_row(row_type, row):
-    if row is None:
-        return None
-    return row_type(row._mapping.items())
 
 
 def iter_result_proxy(rp, step=None):
