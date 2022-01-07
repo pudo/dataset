@@ -265,7 +265,13 @@ class Database(object):
                 self._tables[table_name] = Table(self, table_name)
             return self._tables.get(table_name)
 
-    def get_table(self, table_name, primary_id=None, primary_type=None):
+    def get_table(
+        self,
+        table_name,
+        primary_id=None,
+        primary_type=None,
+        primary_increment=None,
+    ):
         """Load or create a table.
 
         This is now the same as ``create_table``.
@@ -277,7 +283,9 @@ class Database(object):
         """
         if not self.ensure_schema:
             return self.load_table(table_name)
-        return self.create_table(table_name, primary_id, primary_type)
+        return self.create_table(
+            table_name, primary_id, primary_type, primary_increment
+        )
 
     def __getitem__(self, table_name):
         """Get a given table."""
