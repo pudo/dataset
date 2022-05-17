@@ -353,6 +353,26 @@ class TableTestCase(unittest.TestCase):
         ds = list(self.tbl.find(place={"ilike": "%LwAy"}))
         assert len(ds) == 3, ds
 
+    def test_find_dsl_dunder_op(self):
+        ds = list(self.tbl.find(place__like="%lw%"))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(temperature__gt=5))
+        assert len(ds) == 2, ds
+        ds = list(self.tbl.find(temperature__gte=5))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(temperature__lt=0))
+        assert len(ds) == 1, ds
+        ds = list(self.tbl.find(temperature__lte=0))
+        assert len(ds) == 2, ds
+        ds = list(self.tbl.find(temperature__not=-1))
+        assert len(ds) == 5, ds
+        ds = list(self.tbl.find(temperature__between=[5, 8]))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(place="G€lway"))
+        assert len(ds) == 3, ds
+        ds = list(self.tbl.find(place__ilike="%LwAy"))
+        assert len(ds) == 3, ds
+
     def test_offset(self):
         ds = list(self.tbl.find(place=TEST_CITY_1, _offset=1))
         assert len(ds) == 2, ds
