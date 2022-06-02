@@ -306,7 +306,7 @@ class Database(object):
 
         Further positional and keyword arguments will be used for parameter
         binding. To include a positional argument in your query, use question
-        marks in the query (i.e. ``SELECT * FROM tbl WHERE a = ?```). For
+        marks in the query (i.e. ``SELECT * FROM tbl WHERE a = ?``). For
         keyword arguments, use a bind parameter (i.e. ``SELECT * FROM tbl
         WHERE a = :foo``).
         ::
