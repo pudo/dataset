@@ -62,7 +62,7 @@ Queries using raw SQL
 
 To run more complex queries with JOINs, or to perform GROUP BY-style
 aggregation, you can also use :py:meth:`db.query() <dataset.Database.query>`
-to run raw SQL queries instead. This also supports paramterisation to avoid
+to run raw SQL queries instead. This also supports parameterisation to avoid
 SQL injections.
 
 Finally, you should consider falling back to SQLAlchemy_ core to construct
