@@ -717,7 +717,7 @@ class Table(object):
     def __iter__(self):
         """Return all rows of the table as simple dictionaries.
 
-        Allows for iterating over all rows in the table without explicetly
+        Allows for iterating over all rows in the table without explicitly
         calling :py:meth:`find() <dataset.Table.find>`.
         ::
 

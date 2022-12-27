@@ -208,7 +208,7 @@ considered out of scope for the project, include:
 * Support for Python 2.x
 
 There's also some functionality that might be cool to support in the future, but
-that requires signficant engineering:
+that requires significant engineering:
 
 * Async operations
 * Database-native ``UPSERT`` semantics
