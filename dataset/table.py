@@ -116,7 +116,7 @@ class Table(object):
         Returns the inserted row's primary key.
         """
         row = self._sync_columns(row, ensure, types=types)
-        res = self.db.executable.execute(self.table.insert(row))
+        res = self.db.executable.execute(self.table.insert(), row)
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
         return True
@@ -181,7 +181,8 @@ class Table(object):
             # Insert when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 chunk = pad_chunk_columns(chunk, columns)
-                self.table.insert().execute(chunk)
+                with self.db.engine.begin() as conn:
+                    conn.execute(self.table.insert(), chunk)
                 chunk = []
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
@@ -206,7 +207,7 @@ class Table(object):
         clause = self._args_to_clause(args)
         if not len(row):
             return self.count(clause)
-        stmt = self.table.update(whereclause=clause, values=row)
+        stmt = self.table.update().where(clause).values(row)
         rp = self.db.executable.execute(stmt)
         if rp.supports_sane_rowcount():
             return rp.rowcount
@@ -241,10 +242,9 @@ class Table(object):
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 cl = [self.table.c[k] == bindparam("_%s" % k) for k in keys]
-                stmt = self.table.update(
-                    whereclause=and_(True, *cl),
-                    values={col: bindparam(col, required=False) for col in columns},
-                )
+                stmt = self.table.update()\
+                                 .where(and_(True, *cl))\
+                                 .values({col: bindparam(col, required=False) for col in columns})
                 self.db.executable.execute(stmt, chunk)
                 chunk = []
 
@@ -293,7 +293,7 @@ class Table(object):
         if not self.exists:
             return False
         clause = self._args_to_clause(filters, clauses=clauses)
-        stmt = self.table.delete(whereclause=clause)
+        stmt = self.table.delete().where(clause)
         rp = self.db.executable.execute(stmt)
         return rp.rowcount > 0
 
@@ -303,7 +303,7 @@ class Table(object):
             self._columns = None
             try:
                 self._table = SQLATable(
-                    self.name, self.db.metadata, schema=self.db.schema, autoload=True
+                    self.name, self.db.metadata, schema=self.db.schema, autoload_with=self.db.engine,
                 )
             except NoSuchTableError:
                 self._table = None
@@ -625,7 +625,7 @@ class Table(object):
 
         order_by = self._args_to_order_by(order_by)
         args = self._args_to_clause(kwargs, clauses=_clauses)
-        query = self.table.select(whereclause=args, limit=_limit, offset=_offset)
+        query = self.table.select().where(args).limit(_limit).offset(_offset)
         if len(order_by):
             query = query.order_by(*order_by)
 
@@ -666,7 +666,7 @@ class Table(object):
             return 0
 
         args = self._args_to_clause(kwargs, clauses=_clauses)
-        query = select([func.count()], whereclause=args)
+        query = select(func.count()).where(args)
         query = query.select_from(self.table)
         rp = self.db.executable.execute(query)
         return rp.fetchone()[0]
@@ -703,12 +703,10 @@ class Table(object):
         if not len(columns):
             return iter([])
 
-        q = expression.select(
-            columns,
-            distinct=True,
-            whereclause=clause,
-            order_by=[c.asc() for c in columns],
-        )
+        q = expression.select(*columns)\
+                      .distinct(True)\
+                      .where(clause)\
+                      .order_by(*(c.asc() for c in columns))
         return self.db.query(q)
 
     # Legacy methods for running find queries.

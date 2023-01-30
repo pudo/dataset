@@ -106,7 +106,7 @@ class Database(object):
     @property
     def metadata(self):
         """Return a SQLAlchemy schema cache object."""
-        return MetaData(schema=self.schema, bind=self.executable)
+        return MetaData(schema=self.schema)
 
     @property
     def in_transaction(self):
