@@ -14,7 +14,10 @@ class DatabaseTestCase(unittest.TestCase):
     def setUp(self):
         self.db = connect()
         self.tbl = self.db["weather"]
+        assert not self.db.has_table("weather")
         self.tbl.insert_many(TEST_DATA)
+        # table is only created after insert statement
+        assert self.db.has_table("weather")
 
     def tearDown(self):
         for table in self.db.tables:
@@ -83,7 +86,6 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_shorthand1(self):
         pid = "int_id"
         table = self.db.get_table("foo5", pid)
-        assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
@@ -98,7 +100,6 @@ class DatabaseTestCase(unittest.TestCase):
         table = self.db.get_table(
             "foo6", primary_id=pid, primary_type=self.db.types.string(255)
         )
-        assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
