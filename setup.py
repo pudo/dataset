@@ -29,7 +29,11 @@ setup(
     namespace_packages=[],
     include_package_data=False,
     zip_safe=False,
-    install_requires=["sqlalchemy >= 1.3.2", "alembic >= 0.6.2", "banal >= 1.0.1"],
+    install_requires=[
+        "sqlalchemy >= 1.3.2, < 2.0.0",
+        "alembic >= 0.6.2",
+        "banal >= 1.0.1",
+    ],
     extras_require={
         "dev": [
             "pip",
