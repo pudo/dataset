@@ -83,7 +83,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_shorthand1(self):
         pid = "int_id"
         table = self.db.get_table("foo5", pid)
-        assert table.table.exists
+        assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
@@ -98,7 +98,7 @@ class DatabaseTestCase(unittest.TestCase):
         table = self.db.get_table(
             "foo6", primary_id=pid, primary_type=self.db.types.string(255)
         )
-        assert table.table.exists
+        assert table.table.exists()
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
