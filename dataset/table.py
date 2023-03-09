@@ -117,6 +117,11 @@ class Table(object):
         """
         row = self._sync_columns(row, ensure, types=types)
         res = self.db.executable.execute(self.table.insert(), row)
+        # SQLAlchemy 2.0.0b1 removes auto commit
+        if hasattr(self.db.local, "tx") and self.db.local.tx:
+            pass
+        else:
+            self.db.executable.commit()
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
         return True
