@@ -313,7 +313,7 @@ class Table(object):
                     self.name,
                     self.db.metadata,
                     schema=self.db.schema,
-                    autoload_with=self.db.engine,
+                    autoload_with=self.db.executable,
                 )
             except NoSuchTableError:
                 self._table = None
