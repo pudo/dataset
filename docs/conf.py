@@ -37,8 +37,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"dataset"
-copyright = u"2013-2021, Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer"
+project = "dataset"
+copyright = "2013-2021, Friedrich Lindenberg, Gregor Aisch, Stefan Wehrmeyer"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
