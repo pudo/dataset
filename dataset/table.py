@@ -247,9 +247,11 @@ class Table(object):
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 cl = [self.table.c[k] == bindparam("_%s" % k) for k in keys]
-                stmt = self.table.update()\
-                                 .where(and_(True, *cl))\
-                                 .values({col: bindparam(col, required=False) for col in columns})
+                stmt = (
+                    self.table.update()
+                    .where(and_(True, *cl))
+                    .values({col: bindparam(col, required=False) for col in columns})
+                )
                 self.db.executable.execute(stmt, chunk)
                 chunk = []
 
@@ -308,7 +310,10 @@ class Table(object):
             self._columns = None
             try:
                 self._table = SQLATable(
-                    self.name, self.db.metadata, schema=self.db.schema, autoload_with=self.db.engine,
+                    self.name,
+                    self.db.metadata,
+                    schema=self.db.schema,
+                    autoload_with=self.db.engine,
                 )
             except NoSuchTableError:
                 self._table = None
@@ -358,7 +363,7 @@ class Table(object):
                 self._threading_warn()
                 for column in columns:
                     if not self.has_column(column.name):
-                        self.db.op.add_column(self.name, column, self.db.schema)
+                        self.db.op.add_column(self.name, column, schema=self.db.schema)
                 self._reflect_table()
 
     def _sync_columns(self, row, ensure, types=None):
@@ -708,10 +713,12 @@ class Table(object):
         if not len(columns):
             return iter([])
 
-        q = expression.select(*columns)\
-                      .distinct(True)\
-                      .where(clause)\
-                      .order_by(*(c.asc() for c in columns))
+        q = (
+            expression.select(*columns)
+            .where(clause)
+            .group_by(*columns)
+            .order_by(*(c.asc() for c in columns))
+        )
         return self.db.query(q)
 
     # Legacy methods for running find queries.
