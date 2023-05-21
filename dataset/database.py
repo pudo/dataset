@@ -44,7 +44,6 @@ class Database(object):
 
         self.lock = threading.RLock()
         self.local = threading.local()
-        self.connections = {}
 
         if len(parsed_url.query):
             query = parse_qs(parsed_url.query)
@@ -54,9 +53,10 @@ class Database(object):
                     schema = schema_qs.pop()
 
         self.schema = schema
-        self.engine = create_engine(url, **engine_kwargs)
-        self.is_postgres = self.engine.dialect.name == "postgresql"
-        self.is_sqlite = self.engine.dialect.name == "sqlite"
+        self._engine = create_engine(url, **engine_kwargs)
+        self.is_postgres = self._engine.dialect.name == "postgresql"
+        self.is_sqlite = self._engine.dialect.name == "sqlite"
+        self.is_mysql = "mysql" in self._engine.dialect.dbapi.__name__
         if on_connect_statements is None:
             on_connect_statements = []
 
@@ -72,7 +72,7 @@ class Database(object):
             on_connect_statements.append("PRAGMA journal_mode=WAL")
 
         if len(on_connect_statements):
-            event.listen(self.engine, "connect", _run_on_connect)
+            event.listen(self._engine, "connect", _run_on_connect)
 
         self.types = Types(is_postgres=self.is_postgres)
         self.url = url
@@ -81,24 +81,25 @@ class Database(object):
         self._tables = {}
 
     @property
-    def executable(self):
+    def conn(self):
         """Connection against which statements will be executed."""
-        with self.lock:
-            tid = threading.get_ident()
-            if tid not in self.connections:
-                self.connections[tid] = self.engine.connect()
-            return self.connections[tid]
+        try:
+            return self.local.conn
+        except AttributeError:
+            self.local.conn = self._engine.connect()
+            self.local.conn.begin()
+            return self.local.conn
 
     @property
     def op(self):
         """Get an alembic operations context."""
-        ctx = MigrationContext.configure(self.executable)
+        ctx = MigrationContext.configure(self.conn)
         return Operations(ctx)
 
     @property
     def inspect(self):
         """Get a SQLAlchemy inspector."""
-        return inspect(self.executable)
+        return inspect(self.conn)
 
     def has_table(self, name):
         return self.inspect.has_table(name, schema=self.schema)
@@ -111,9 +112,7 @@ class Database(object):
     @property
     def in_transaction(self):
         """Check if this database is in a transactional context."""
-        if not hasattr(self.local, "tx"):
-            return False
-        return len(self.local.tx) > 0
+        return self.conn.in_transaction()
 
     def _flush_tables(self):
         """Clear the table metadata after transaction rollbacks."""
@@ -125,34 +124,22 @@ class Database(object):
 
         No data will be written until the transaction has been committed.
         """
-        if not hasattr(self.local, "tx"):
-            self.local.tx = []
-        if self.executable.in_transaction():
-            self.executable.commit()
-        self.local.tx.append(self.executable.begin())
+        if not self.in_transaction:
+            self.conn.begin()
 
     def commit(self):
         """Commit the current transaction.
 
         Make all statements executed since the transaction was begun permanent.
         """
-        if hasattr(self.local, "tx") and self.local.tx:
-            tx = self.local.tx.pop()
-            tx.commit()
-            # Removed in 2020-12, I'm a bit worried this means that some DDL
-            # operations in transactions won't cause metadata to refresh any
-            # more:
-            # self._flush_tables()
+        self.conn.commit()
 
     def rollback(self):
         """Roll back the current transaction.
 
         Discard all statements executed since the transaction was begun.
         """
-        if hasattr(self.local, "tx") and self.local.tx:
-            tx = self.local.tx.pop()
-            tx.rollback()
-            self._flush_tables()
+        self.conn.rollback()
 
     def __enter__(self):
         """Start a transaction."""
@@ -172,13 +159,10 @@ class Database(object):
 
     def close(self):
         """Close database connections. Makes this object unusable."""
-        with self.lock:
-            for conn in self.connections.values():
-                conn.close()
-            self.connections.clear()
-        self.engine.dispose()
+        self.local = threading.local()
+        self._engine.dispose()
         self._tables = {}
-        self.engine = None
+        self._engine = None
 
     @property
     def tables(self):
@@ -324,7 +308,7 @@ class Database(object):
         _step = kwargs.pop("_step", QUERY_STEP)
         if _step is False or _step == 0:
             _step = None
-        rp = self.executable.execute(query, *args, **kwargs)
+        rp = self.conn.execute(query, *args, **kwargs)
         return ResultIter(rp, row_type=self.row_type, step=_step)
 
     def __repr__(self):

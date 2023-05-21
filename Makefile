@@ -3,7 +3,7 @@ all: clean test dists
 
 .PHONY: test
 test:
-	pytest
+	pytest -v
 
 dists:
 	python setup.py sdist
