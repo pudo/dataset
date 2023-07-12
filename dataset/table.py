@@ -353,7 +353,7 @@ class Table(object):
                 self._threading_warn()
                 for column in columns:
                     if not self.has_column(column.name):
-                        self.db.op.add_column(self.name, column, self.db.schema)
+                        self.db.op.add_column(self.name, column, schema=self.db.schema)
                 self._reflect_table()
 
     def _sync_columns(self, row, ensure, types=None):
