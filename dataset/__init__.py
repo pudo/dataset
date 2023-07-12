@@ -11,7 +11,7 @@ warnings.filterwarnings(
 )
 
 __all__ = ["Database", "Table", "connect"]
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 
 
 def connect(
