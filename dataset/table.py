@@ -116,7 +116,9 @@ class Table(object):
         Returns the inserted row's primary key.
         """
         row = self._sync_columns(row, ensure, types=types)
-        res = self.db.executable.execute(self.table.insert(row))
+        res = self.db.conn.execute(self.table.insert(), row)
+        # if not self.db.in_transaction:
+        #     self.db.conn.commit()
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
         return True
@@ -181,7 +183,7 @@ class Table(object):
             # Insert when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 chunk = pad_chunk_columns(chunk, columns)
-                self.table.insert().execute(chunk)
+                self.db.conn.execute(self.table.insert(), chunk)
                 chunk = []
 
     def update(self, row, keys, ensure=None, types=None, return_count=False):
@@ -206,8 +208,8 @@ class Table(object):
         clause = self._args_to_clause(args)
         if not len(row):
             return self.count(clause)
-        stmt = self.table.update(whereclause=clause, values=row)
-        rp = self.db.executable.execute(stmt)
+        stmt = self.table.update().where(clause).values(row)
+        rp = self.db.conn.execute(stmt)
         if rp.supports_sane_rowcount():
             return rp.rowcount
         if return_count:
@@ -241,11 +243,12 @@ class Table(object):
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 cl = [self.table.c[k] == bindparam("_%s" % k) for k in keys]
-                stmt = self.table.update(
-                    whereclause=and_(True, *cl),
-                    values={col: bindparam(col, required=False) for col in columns},
+                stmt = (
+                    self.table.update()
+                    .where(and_(True, *cl))
+                    .values({col: bindparam(col, required=False) for col in columns})
                 )
-                self.db.executable.execute(stmt, chunk)
+                self.db.conn.execute(stmt, chunk)
                 chunk = []
 
     def upsert(self, row, keys, ensure=None, types=None):
@@ -293,8 +296,8 @@ class Table(object):
         if not self.exists:
             return False
         clause = self._args_to_clause(filters, clauses=clauses)
-        stmt = self.table.delete(whereclause=clause)
-        rp = self.db.executable.execute(stmt)
+        stmt = self.table.delete().where(clause)
+        rp = self.db.conn.execute(stmt)
         return rp.rowcount > 0
 
     def _reflect_table(self):
@@ -303,7 +306,10 @@ class Table(object):
             self._columns = None
             try:
                 self._table = SQLATable(
-                    self.name, self.db.metadata, schema=self.db.schema, autoload=True
+                    self.name,
+                    self.db.metadata,
+                    schema=self.db.schema,
+                    autoload_with=self.db.conn,
                 )
             except NoSuchTableError:
                 self._table = None
@@ -345,7 +351,7 @@ class Table(object):
                 for column in columns:
                     if not column.name == self._primary_id:
                         self._table.append_column(column)
-                self._table.create(self.db.executable, checkfirst=True)
+                self._table.create(self.db.conn, checkfirst=True)
                 self._columns = None
         elif len(columns):
             with self.db.lock:
@@ -378,6 +384,7 @@ class Table(object):
                     _type = self.db.types.guess(value)
                 sync_columns[name] = Column(name, _type)
                 out[name] = value
+
         self._sync_table(sync_columns.values())
         return out
 
@@ -500,7 +507,7 @@ class Table(object):
             table.drop_column('created_at')
 
         """
-        if self.db.engine.dialect.name == "sqlite":
+        if self.db.is_sqlite:
             raise RuntimeError("SQLite does not support dropping columns.")
         name = self._get_column_name(name)
         with self.db.lock:
@@ -520,7 +527,7 @@ class Table(object):
         with self.db.lock:
             if self.exists:
                 self._threading_warn()
-                self.table.drop(self.db.executable, checkfirst=True)
+                self.table.drop(self.db.conn, checkfirst=True)
                 self._table = None
                 self._columns = None
                 self.db._tables.pop(self.name, None)
@@ -581,7 +588,7 @@ class Table(object):
                 kw["mysql_length"] = mysql_length
 
                 idx = Index(name, *columns, **kw)
-                idx.create(self.db.executable)
+                idx.create(self.db.conn)
 
     def find(self, *_clauses, **kwargs):
         """Perform a simple search on the table.
@@ -625,14 +632,13 @@ class Table(object):
 
         order_by = self._args_to_order_by(order_by)
         args = self._args_to_clause(kwargs, clauses=_clauses)
-        query = self.table.select(whereclause=args, limit=_limit, offset=_offset)
+        query = self.table.select().where(args).limit(_limit).offset(_offset)
         if len(order_by):
             query = query.order_by(*order_by)
 
-        conn = self.db.executable
+        conn = self.db.conn
         if _streamed:
-            conn = self.db.engine.connect()
-            conn = conn.execution_options(stream_results=True)
+            conn = self.db._engine.connect().execution_options(stream_results=True)
 
         return ResultIter(conn.execute(query), row_type=self.db.row_type, step=_step)
 
@@ -666,9 +672,9 @@ class Table(object):
             return 0
 
         args = self._args_to_clause(kwargs, clauses=_clauses)
-        query = select([func.count()], whereclause=args)
+        query = select(func.count()).where(args)
         query = query.select_from(self.table)
-        rp = self.db.executable.execute(query)
+        rp = self.db.conn.execute(query)
         return rp.fetchone()[0]
 
     def __len__(self):
@@ -703,11 +709,11 @@ class Table(object):
         if not len(columns):
             return iter([])
 
-        q = expression.select(
-            columns,
-            distinct=True,
-            whereclause=clause,
-            order_by=[c.asc() for c in columns],
+        q = (
+            expression.select(*columns)
+            .where(clause)
+            .group_by(*columns)
+            .order_by(*(c.asc() for c in columns))
         )
         return self.db.query(q)
 

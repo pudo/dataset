@@ -80,6 +80,6 @@ class ChunkedUpdate(_Chunker):
         if self.callback is not None:
             self.callback(self.queue)
         self.queue.sort(key=dict.keys)
-        for fields, items in itertools.groupby(self.queue, key=dict.keys):
+        for _, items in itertools.groupby(self.queue, key=dict.keys):
             self.table.update_many(list(items), self.keys)
         super().flush()

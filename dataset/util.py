@@ -6,23 +6,11 @@ from sqlalchemy.exc import ResourceClosedError
 QUERY_STEP = 1000
 row_type = OrderedDict
 
-try:
-    # SQLAlchemy > 1.4.0, new row model.
-    from sqlalchemy.engine import Row  # noqa
 
-    def convert_row(row_type, row):
-        if row is None:
-            return None
-        return row_type(row._mapping.items())
-
-
-except ImportError:
-    # SQLAlchemy < 1.4.0, no _mapping.
-
-    def convert_row(row_type, row):
-        if row is None:
-            return None
-        return row_type(row.items())
+def convert_row(row_type, row):
+    if row is None:
+        return None
+    return row_type(zip(row._fields, row))
 
 
 class DatasetException(Exception):
@@ -84,12 +72,12 @@ class ResultIter(object):
     """SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them."""
 
-    def __init__(self, result_proxy, row_type=row_type, step=None):
+    def __init__(self, cursor, row_type=row_type, step=None):
         self.row_type = row_type
-        self.result_proxy = result_proxy
+        self.cursor = cursor
         try:
-            self.keys = list(result_proxy.keys())
-            self._iter = iter_result_proxy(result_proxy, step=step)
+            self.keys = list(cursor.keys())
+            self._iter = iter_result_proxy(cursor, step=step)
         except ResourceClosedError:
             self.keys = []
             self._iter = iter([])
@@ -107,7 +95,7 @@ class ResultIter(object):
         return self
 
     def close(self):
-        self.result_proxy.close()
+        self.cursor.close()
 
 
 def normalize_column_name(name):

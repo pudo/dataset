@@ -30,8 +30,8 @@ setup(
     include_package_data=False,
     zip_safe=False,
     install_requires=[
-        "sqlalchemy >= 1.3.2, < 2.0.0",
-        "alembic >= 0.6.2",
+        "sqlalchemy >= 2.0.15, < 3.0.0",
+        "alembic >= 1.11.1",
         "banal >= 1.0.1",
     ],
     extras_require={
