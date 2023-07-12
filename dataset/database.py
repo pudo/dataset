@@ -106,7 +106,7 @@ class Database(object):
     @property
     def metadata(self):
         """Return a SQLAlchemy schema cache object."""
-        return MetaData(schema=self.schema, bind=self.executable)
+        return MetaData(schema=self.schema)
 
     @property
     def in_transaction(self):
@@ -127,6 +127,8 @@ class Database(object):
         """
         if not hasattr(self.local, "tx"):
             self.local.tx = []
+        if self.executable.in_transaction():
+            self.executable.commit()
         self.local.tx.append(self.executable.begin())
 
     def commit(self):
