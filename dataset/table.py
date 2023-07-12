@@ -509,7 +509,7 @@ class Table(object):
                 return
 
             self._threading_warn()
-            self.db.op.drop_column(self.table.name, name, self.table.schema)
+            self.db.op.drop_column(self.table.name, name, schema=self.table.schema)
             self._reflect_table()
 
     def drop(self):
