@@ -5,7 +5,7 @@ Advanced filters
 ================
 
 ``dataset`` provides two methods for running queries: :py:meth:`table.find() <dataset.Table.find>`
-and :py:meth:`db.query() <dataset.Database.query>`. The table find helper method provides 
+and :py:meth:`db.query() <dataset.Database.query>`. The table find helper method provides
 limited, but simple filtering options::
 
     results = table.find(column={operator: value})
@@ -22,6 +22,12 @@ A special form is using keyword searches on specific columns::
     results = table.find(category=('foo', 'bar'))
     # equal to:
     results = table.find(value={'in': ('foo', 'bar')})
+
+To AND-combine multiple operators on the same column, you may specify
+the operator using the `column__operator=value` format::
+
+    # height >= 20 AND height <= 50
+    table.find({'height__gte': 20, 'height__lte: 50'}
 
 The following comparison operators are supported:
 

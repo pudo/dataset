@@ -424,7 +424,11 @@ class Table(object):
         clauses = list(clauses)
         for column, value in args.items():
             column = self._get_column_name(column)
-            if not self.has_column(column):
+            if '__' in column:
+                # enable Django-style column__<op>=value syntax
+                column, op = column.split('__', 1)
+                clauses.append(self._generate_clause(column, op, value))
+            elif not self.has_column(column):
                 clauses.append(false())
             elif isinstance(value, (list, tuple, set)):
                 clauses.append(self._generate_clause(column, "in", value))
