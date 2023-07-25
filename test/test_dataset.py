@@ -198,6 +198,10 @@ class TableTestCase(unittest.TestCase):
                     "language": "German",
                     "population": 3292365,
                 },
+                "largest_cities": [
+                    "Berlin",
+                    "Hamburg",
+                ]
             }
         )
         assert len(self.tbl) == len(TEST_DATA) + 1, len(self.tbl)

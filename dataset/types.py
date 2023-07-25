@@ -43,4 +43,6 @@ class Types(object):
             return self.date
         elif isinstance(sample, dict):
             return self.json
+        elif isinstance(sample, list):
+            return self.json
         return self.text
