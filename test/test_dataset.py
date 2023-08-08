@@ -384,6 +384,10 @@ class TableTestCase(unittest.TestCase):
         assert len(x) == 3, x
         x = list(self.tbl.distinct("temperature", place=["B€rkeley", "G€lway"]))
         assert len(x) == 6, x
+        x = list(self.tbl.distinct("temperature", _limit=3, place=["B€rkeley", "G€lway"]))
+        assert len(x) == 3, x
+        x = list(self.tbl.distinct("temperature", _limit=6, _offset=1, place=["B€rkeley", "G€lway"]))
+        assert len(x) == 5, x
 
     def test_insert_many(self):
         data = TEST_DATA * 100
