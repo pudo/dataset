@@ -156,8 +156,31 @@ class TableTestCase(unittest.TestCase):
         for row in TEST_DATA:
             self.tbl.insert(row)
 
+        self.tbl_uniq_columns = self._init_table_with_unique_columns()
+
+    def _init_table_with_unique_columns(self):
+        table = self.db.create_table('uniq_table')
+        table.create_column('key1', self.db.types.string(255), unique=True, nullable=False)
+
+        if "sqlite" not in self.db.engine.dialect.dbapi.__name__:
+            # we can't execute create_column for sqlite multiple times
+            table.create_column('key2', self.db.types.float, unique=False)
+            table.create_column('key3', self.db.types.integer, unique=True)
+
+        return table
+
+    def _get_data_for_table_with_unique_columns(self):
+        data = dict(key1='I am banana')
+        unique_columns = ['key1']
+        if "sqlite" not in self.db.engine.dialect.dbapi.__name__:
+            data.update(key2=3.1456, key3=42)
+            unique_columns.append('key3')
+
+        return data, unique_columns
+
     def tearDown(self):
         self.tbl.drop()
+        self.tbl_uniq_columns.drop()
 
     def test_insert(self):
         assert len(self.tbl) == len(TEST_DATA), len(self.tbl)
@@ -235,6 +258,14 @@ class TableTestCase(unittest.TestCase):
         table = self.db["banana_with_id"]
         data = dict(id=10, title="I am a banana!")
         table.upsert(data, ["id"])
+        assert len(table) == 1, len(table)
+
+    def test_upsert_with_default_unique_columns(self):
+        data, unique_columns = self._get_data_for_table_with_unique_columns()
+        table = self.tbl_uniq_columns
+        table.upsert(data)
+        assert len(table) == 1, len(table)
+        table.upsert(data, unique_columns)
         assert len(table) == 1, len(table)
 
     def test_update_while_iter(self):
@@ -539,6 +570,10 @@ class TableTestCase(unittest.TestCase):
     def test_empty_query(self):
         empty = list(self.tbl.find(place="not in data"))
         assert len(empty) == 0, empty
+
+    def test_unique_columns(self):
+        data, unique_columns = self._get_data_for_table_with_unique_columns()
+        assert len(set(self.tbl_uniq_columns.unique_columns) & set(unique_columns)) == len(unique_columns)
 
 
 class Constructor(dict):
