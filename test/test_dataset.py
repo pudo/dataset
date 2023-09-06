@@ -1,4 +1,5 @@
 import os
+import threading
 import unittest
 from datetime import datetime
 from collections import OrderedDict
@@ -596,6 +597,44 @@ class RowTypeTestCase(unittest.TestCase):
             c += 1
             assert isinstance(row, Constructor), row
         assert c == len(self.tbl)
+
+
+class DatabasePoolTestCase(unittest.TestCase):
+    def test_pool(self):
+        target_num = 30
+        table_name = "test_pool"
+
+        def insert_data():
+            with db as tx:
+                tx[table_name].insert(dict(name='John Doe', age=46, country='China'))
+        for _ in range(10):
+            engine_kwargs = {"echo": False, "pool_size": target_num, "max_overflow": 0, "connect_args": {'connect_timeout': 2}}
+            config_str = 'postgresql://postgres:123456@127.0.0.1:5432/postgres'
+            db = None
+            try:
+                db = connect(config_str, engine_kwargs=engine_kwargs)
+                with db as tx:
+                    if table_name in tx:
+                        tx[table_name].drop()
+                    tx[table_name].insert(dict(name='John Doe', age=46, country='China'))
+                threads = [threading.Thread(target=insert_data) for _ in range(target_num)]
+                [thread.start() for thread in threads]
+                [thread.join() for thread in threads]
+                t = db[table_name].count()
+                with db as tx:
+                    if table_name in tx:
+                        tx[table_name].drop()
+                assert t == target_num + 1, t
+            except SQLAlchemyError as e:
+                if "timeout expired" in str(e) or "Connection refused" in str(e):
+                    break
+                else:
+                    raise
+            except Exception:
+                raise
+            finally:
+                if db:
+                    db.close()
 
 
 if __name__ == "__main__":
