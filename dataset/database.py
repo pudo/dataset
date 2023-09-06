@@ -158,15 +158,23 @@ class Database(object):
         return self
 
     def __exit__(self, error_type, error_value, traceback):
-        """End a transaction by committing or rolling back."""
-        if error_type is None:
-            try:
-                self.commit()
-            except Exception:
-                with safe_reraise():
-                    self.rollback()
-        else:
-            self.rollback()
+        """End a transaction by committing or rolling back. Close local connection"""
+        try:
+            if error_type is None:
+                try:
+                    self.commit()
+                except Exception:
+                    with safe_reraise():
+                        self.rollback()
+            else:
+                self.rollback()
+        except Exception:
+            raise
+        finally:
+            with self.lock:
+                tx_conn = self.connections.pop(threading.get_ident(), None)
+                if tx_conn is not None:
+                    tx_conn.close()
 
     def close(self):
         """Close database connections. Makes this object unusable."""
