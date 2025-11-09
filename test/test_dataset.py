@@ -45,7 +45,7 @@ class DatabaseTestCase(unittest.TestCase):
         if "sqlite" in self.db.engine.dialect.dbapi.__name__:
             return
         table = self.db.create_table("foo_no_id", primary_id=False)
-        assert table.table.exists()
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 0, table.table.columns
 
     def test_create_table_custom_id1(self):
@@ -83,7 +83,7 @@ class DatabaseTestCase(unittest.TestCase):
     def test_create_table_shorthand1(self):
         pid = "int_id"
         table = self.db.get_table("foo5", pid)
-        assert table.table.exists
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
@@ -98,7 +98,7 @@ class DatabaseTestCase(unittest.TestCase):
         table = self.db.get_table(
             "foo6", primary_id=pid, primary_type=self.db.types.string(255)
         )
-        assert table.table.exists
+        assert self.db.has_table(table.table.name)
         assert len(table.table.columns) == 1, table.table.columns
         assert pid in table.table.c, table.table.c
 
@@ -384,9 +384,15 @@ class TableTestCase(unittest.TestCase):
         assert len(x) == 3, x
         x = list(self.tbl.distinct("temperature", place=["B€rkeley", "G€lway"]))
         assert len(x) == 6, x
-        x = list(self.tbl.distinct("temperature", _limit=3, place=["B€rkeley", "G€lway"]))
+        x = list(
+            self.tbl.distinct("temperature", _limit=3, place=["B€rkeley", "G€lway"])
+        )
         assert len(x) == 3, x
-        x = list(self.tbl.distinct("temperature", _limit=6, _offset=1, place=["B€rkeley", "G€lway"]))
+        x = list(
+            self.tbl.distinct(
+                "temperature", _limit=6, _offset=1, place=["B€rkeley", "G€lway"]
+            )
+        )
         assert len(x) == 5, x
 
     def test_insert_many(self):

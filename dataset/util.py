@@ -15,7 +15,6 @@ try:
             return None
         return row_type(row._mapping.items())
 
-
 except ImportError:
     # SQLAlchemy < 1.4.0, no _mapping.
 

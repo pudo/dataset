@@ -106,14 +106,12 @@ class Database(object):
     @property
     def metadata(self):
         """Return a SQLAlchemy schema cache object."""
-        return MetaData(schema=self.schema, bind=self.executable)
+        return MetaData(schema=self.schema)
 
     @property
     def in_transaction(self):
         """Check if this database is in a transactional context."""
-        if not hasattr(self.local, "tx"):
-            return False
-        return len(self.local.tx) > 0
+        return self.executable.in_transaction()
 
     def _flush_tables(self):
         """Clear the table metadata after transaction rollbacks."""
@@ -127,7 +125,10 @@ class Database(object):
         """
         if not hasattr(self.local, "tx"):
             self.local.tx = []
-        self.local.tx.append(self.executable.begin())
+        if self.in_transaction:
+            self.local.tx.append(self.executable.begin_nested())
+        else:
+            self.local.tx.append(self.executable.begin())
 
     def commit(self):
         """Commit the current transaction.
