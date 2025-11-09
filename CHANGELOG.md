@@ -1,5 +1,13 @@
 # dataset ChangeLog
 
+
+## Version 1.7.0 - 2025-11-09
+
+Improved database interactions for faster and more reliable data operations. Updated dependencies and tests to support these changes.
+
+**Changes:** 5 files, 68 lines
+**Languages:** Python (68 lines)
+
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
