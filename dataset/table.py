@@ -675,7 +675,7 @@ class Table(object):
         """Return the number of rows in the table."""
         return self.count()
 
-    def distinct(self, *args, **_filter):
+    def distinct(self, *args, **kwargs):
         """Return all the unique (distinct) values for the given ``columns``.
         ::
 
@@ -699,7 +699,9 @@ class Table(object):
                     raise DatasetException("No such column: %s" % column)
                 columns.append(self.table.c[column])
 
-        clause = self._args_to_clause(_filter, clauses=clauses)
+        _limit = kwargs.pop("_limit", None)
+        _offset = kwargs.pop("_offset", 0)
+        clause = self._args_to_clause(kwargs, clauses=clauses)
         if not len(columns):
             return iter([])
 
@@ -707,6 +709,8 @@ class Table(object):
             columns,
             distinct=True,
             whereclause=clause,
+            limit=_limit,
+            offset=_offset,
             order_by=[c.asc() for c in columns],
         )
         return self.db.query(q)
