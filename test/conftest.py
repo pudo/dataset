@@ -21,6 +21,7 @@ TEST_DATA = [
 def db():
     db = dataset.connect()
     yield db
+    db.executable.rollback()
     for table in db.tables:
         db[table].drop()
     db.close()
