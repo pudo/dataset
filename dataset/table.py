@@ -642,12 +642,18 @@ class Table(object):
         if len(order_by):
             query = query.order_by(*order_by)
 
+        stream_conn = None
         conn = self.db.executable
         if _streamed:
-            conn = self.db.engine.connect()
-            conn = conn.execution_options(stream_results=True)
+            stream_conn = self.db.engine.connect()
+            conn = stream_conn.execution_options(stream_results=True)
 
-        return ResultIter(conn.execute(query), row_type=self.db.row_type, step=_step)
+        return ResultIter(
+            conn.execute(query),
+            row_type=self.db.row_type,
+            step=_step,
+            connection=stream_conn,
+        )
 
     def find_one(self, *args, **kwargs):
         """Get a single result from the table.

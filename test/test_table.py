@@ -72,6 +72,7 @@ def test_upsert(table):
 
 def test_upsert_single_column(db):
     table = db["banana_single_col"]
+    table.drop()
     table.upsert({"color": "Yellow"}, ["color"])
     assert len(table) == 1, len(table)
     table.upsert({"color": "Yellow"}, ["color"])
@@ -90,6 +91,7 @@ def test_upsert_all_key(table):
 
 def test_upsert_id(db):
     table = db["banana_with_id"]
+    table.drop()
     data = dict(id=10, title="I am a banana!")
     table.upsert(data, ["id"])
     assert len(table) == 1, len(table)
@@ -116,6 +118,7 @@ def test_weird_column_names(table):
 
 def test_cased_column_names(db):
     tbl = db["cased_column_names"]
+    tbl.drop()
     tbl.insert({"place": "Berlin"})
     tbl.insert({"Place": "Berlin"})
     tbl.insert({"PLACE ": "Berlin"})
@@ -284,6 +287,7 @@ def test_chunked_insert_callback(table):
 
 def test_update_many(db):
     tbl = db["update_many_test"]
+    tbl.drop()
     tbl.insert_many([dict(temp=10), dict(temp=20), dict(temp=30)])
     tbl.update_many([dict(id=1, temp=50), dict(id=3, temp=50)], "id")
 
@@ -293,6 +297,7 @@ def test_update_many(db):
 
 def test_chunked_update(db):
     tbl = db["update_many_test"]
+    tbl.drop()
     tbl.insert_many(
         [
             dict(temp=10, location="asdf"),
@@ -315,6 +320,7 @@ def test_chunked_update(db):
 def test_upsert_many(db):
     # Also tests updating on records with different attributes
     tbl = db["upsert_many_test"]
+    tbl.drop()
 
     W = 100
     tbl.upsert_many([dict(age=10), dict(weight=W)], "id")

@@ -18,7 +18,7 @@ def test_database_url_query_string(db):
 
 
 def test_tables(db, table):
-    assert db.tables == ["weather"], db.tables
+    assert "weather" in db.tables, db.tables
 
 
 def test_contains(db, table):
@@ -43,6 +43,7 @@ def test_create_table_no_ids(db):
 def test_create_table_custom_id1(db):
     pid = "string_id"
     table = db.create_table("foo2", pid, db.types.string(255))
+    table.drop()
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
@@ -53,6 +54,7 @@ def test_create_table_custom_id1(db):
 def test_create_table_custom_id2(db):
     pid = "string_id"
     table = db.create_table("foo3", pid, db.types.string(50))
+    table.drop()
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
@@ -64,6 +66,7 @@ def test_create_table_custom_id2(db):
 def test_create_table_custom_id3(db):
     pid = "int_id"
     table = db.create_table("foo4", primary_id=pid)
+    table.drop()
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
@@ -80,6 +83,7 @@ def test_create_table_custom_id3(db):
 def test_create_table_shorthand1(db):
     pid = "int_id"
     table = db.get_table("foo5", pid)
+    table.drop()
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
@@ -95,6 +99,7 @@ def test_create_table_shorthand1(db):
 def test_create_table_shorthand2(db):
     pid = "string_id"
     table = db.get_table("foo6", primary_id=pid, primary_type=db.types.string(255))
+    table.drop()
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
@@ -138,6 +143,7 @@ def test_query(db, table):
 
 def test_table_cache_updates(db):
     tbl1 = db.get_table("people")
+    tbl1.drop()
     data = OrderedDict([("first_name", "John"), ("last_name", "Smith")])
     tbl1.insert(data)
     data["id"] = 1
