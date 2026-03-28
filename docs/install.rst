@@ -15,8 +15,8 @@ To install it manually simply download the repository from Github:
 
    $ git clone git://github.com/pudo/dataset.git
    $ cd dataset/
-   $ python setup.py install
+   $ pip install -e .
 
 Depending on the type of database backend, you may also need to install a
-database specific driver package. For MySQL, this is ``MySQLdb``, for Postgres
+database specific driver package. For MySQL, this is ``PyMySQL``, for Postgres
 its ``psycopg2``. SQLite support is integrated into Python.

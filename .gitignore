@@ -1,17 +1,21 @@
 *.pyc
+*.pyo
 *.egg-info
 *.egg
 .eggs/
 dist/*
+build/*
 .tox/*
 .vscode/*
-build/*
 .DS_Store
 .watchr
 .coverage
 htmlcov/
+__pycache__/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
 
-*.pyo
 env3/*
 env/*
 Test.yaml

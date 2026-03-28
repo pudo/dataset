@@ -36,19 +36,16 @@ jobs:
           --health-retries=3
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Show ref
         run: |
           echo "$GITHUB_REF"
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Install dependencies
-        env:
-          DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt-get -qq update
           pip install -e ".[dev]"
       - name: Run SQLite tests
         env:
@@ -76,15 +73,15 @@ jobs:
           DATABASE_URL: "mysql+pymysql://mysql:mysql@127.0.0.1:${{ job.services.mysql.ports[3306] }}/dataset?charset=utf8"
         run: |
           make test
-      - name: Run flake8 to lint
+      - name: Run ruff to lint
         run: |
-          flake8 --ignore=E501,E123,E124,E126,E127,E128 dataset
+          ruff check dataset test
       - name: Build a distribution
         run: |
-          python setup.py sdist bdist_wheel
+          python -m build
       - name: Publish a Python distribution to PyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}

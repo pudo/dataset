@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dataset"
+dynamic = ["version"]
+description = "Toolkit for Python-based database access."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Friedrich Lindenberg", email = "friedrich.lindenberg@gmail.com"},
+    {name = "Gregor Aisch"},
+    {name = "Stefan Wehrmeyer"},
+]
+keywords = ["sql", "sqlalchemy", "etl", "loading", "utility"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "sqlalchemy>=1.4.0,<3.0.0",
+    "alembic>=0.6.2",
+    "banal>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "build",
+    "twine",
+    "ruff",
+    "psycopg2-binary",
+    "PyMySQL",
+    "cryptography",
+]
+
+[project.urls]
+Homepage = "https://github.com/pudo/dataset"
+Repository = "https://github.com/pudo/dataset"
+Documentation = "https://dataset.readthedocs.io/"
+
+[tool.hatch.version]
+path = "dataset/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dataset"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+# Replicate flake8 configuration
+# Note: E123, E124, E126, E127, E128 are formatting rules not checked by ruff
+select = ["E", "F", "W"]
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "E722",  # Do not use bare 'except'
+    "E741",  # Ambiguous variable name
+]
+
+[tool.ruff.format]
+# Ruff formatting configuration
+# Note: Formatting is configured but not yet applied to preserve history
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

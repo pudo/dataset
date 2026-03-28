@@ -5,9 +5,20 @@ all: clean test dists
 test:
 	pytest
 
+.PHONY: lint
+lint:
+	ruff check dataset test
+
+.PHONY: format
+format:
+	ruff format dataset test
+
+.PHONY: format-check
+format-check:
+	ruff format --check dataset test
+
 dists:
-	python setup.py sdist
-	python setup.py bdist_wheel
+	python -m build
 
 release: dists
 	pip install -q twine
@@ -20,3 +31,4 @@ clean:
 	find . -name '*.egg' -exec rm -f {} +
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
+	find . -name '__pycache__' -exec rm -fr {} +
