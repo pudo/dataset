@@ -46,7 +46,7 @@ def test_create_table_custom_id1(db):
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
-    table.upsert({pid: "foobar"}, [pid])
+    table.insert({pid: "foobar"})
     assert table.find_one(string_id="foobar")[pid] == "foobar"
 
 
@@ -57,7 +57,7 @@ def test_create_table_custom_id2(db):
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.upsert({pid: "foobar"}, [pid])
+    table.insert({pid: "foobar"})
     assert table.find_one(string_id="foobar")[pid] == "foobar"
 
 
@@ -68,8 +68,8 @@ def test_create_table_custom_id3(db):
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.upsert({pid: 123}, [pid])
-    table.upsert({pid: 124}, [pid])
+    table.insert({pid: 123})
+    table.insert({pid: 124})
     assert table.find_one(int_id=123)[pid] == 123
     assert table.find_one(int_id=124)[pid] == 124
     with pytest.raises(IntegrityError):
@@ -83,8 +83,8 @@ def test_create_table_shorthand1(db):
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.upsert({"int_id": 123}, [pid])
-    table.upsert({"int_id": 124}, [pid])
+    table.insert({"int_id": 123})
+    table.insert({"int_id": 124})
     assert table.find_one(int_id=123)["int_id"] == 123
     assert table.find_one(int_id=124)["int_id"] == 124
     with pytest.raises(IntegrityError):
@@ -98,7 +98,7 @@ def test_create_table_shorthand2(db):
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.upsert({"string_id": "foobar"}, [pid])
+    table.insert({"string_id": "foobar"})
     assert table.find_one(string_id="foobar")["string_id"] == "foobar"
 
 
@@ -138,9 +138,8 @@ def test_query(db, table):
 
 def test_table_cache_updates(db):
     tbl1 = db.get_table("people")
-    tbl1.delete()
     data = OrderedDict([("first_name", "John"), ("last_name", "Smith")])
-    row_id = tbl1.insert(data)
-    data["id"] = row_id
+    tbl1.insert(data)
+    data["id"] = 1
     tbl2 = db.get_table("people")
     assert dict(tbl2.all().next()) == dict(data), (tbl2.all().next(), data)

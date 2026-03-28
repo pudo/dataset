@@ -21,12 +21,13 @@ TEST_DATA = [
 def db():
     db = dataset.connect()
     yield db
+    for table in db.tables:
+        db[table].drop()
     db.close()
 
 
 @pytest.fixture(scope="function")
 def table(db):
     tbl = db["weather"]
-    tbl.delete()
     tbl.insert_many(TEST_DATA)
     yield tbl
