@@ -138,7 +138,13 @@ class Database(object):
         """
         if not hasattr(self.local, "tx"):
             self.local.tx = []
-        self.local.tx.append(True)
+        if not self.executable.in_transaction():
+            # No active transaction; start an explicit one (master semantics).
+            self.local.tx.append(self.executable.begin())
+        else:
+            # An autobegin transaction is already active (e.g., from a read);
+            # track the nesting depth without starting a second transaction.
+            self.local.tx.append(True)
 
     def commit(self):
         """Commit the current transaction.
@@ -146,9 +152,12 @@ class Database(object):
         Make all statements executed since the transaction was begun permanent.
         """
         if hasattr(self.local, "tx") and self.local.tx:
-            self.local.tx.pop()
+            tx = self.local.tx.pop()
             if not self.local.tx:
-                self.executable.commit()
+                if tx is not True:
+                    tx.commit()
+                else:
+                    self.executable.commit()
 
     def rollback(self):
         """Roll back the current transaction.
@@ -156,9 +165,12 @@ class Database(object):
         Discard all statements executed since the transaction was begun.
         """
         if hasattr(self.local, "tx") and self.local.tx:
-            self.local.tx.pop()
+            tx = self.local.tx.pop()
             if not self.local.tx:
-                self.executable.rollback()
+                if tx is not True:
+                    tx.rollback()
+                else:
+                    self.executable.rollback()
             self._flush_tables()
 
     def __enter__(self):

@@ -354,6 +354,7 @@ class Table(object):
                         self._table.append_column(column)
                 self._table.create(self.db.executable, checkfirst=True)
                 self._columns = None
+                self.db._auto_commit()
         elif len(columns):
             with self.db.lock:
                 self._reflect_table()
@@ -362,6 +363,7 @@ class Table(object):
                     if not self.has_column(column.name):
                         self.db.op.add_column(self.name, column, schema=self.db.schema)
                 self._reflect_table()
+                self.db._auto_commit()
 
     def _sync_columns(self, row, ensure, types=None):
         """Create missing columns (or the table) prior to writes.
