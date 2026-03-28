@@ -1,14 +1,24 @@
-from datetime import datetime, date
+from datetime import date, datetime
 
-from sqlalchemy import Integer, UnicodeText, Float, BigInteger
-from sqlalchemy import String, Boolean, Date, DateTime, Unicode, JSON
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    Integer,
+    String,
+    Unicode,
+    UnicodeText,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeEngine, _Binary
 
 MYSQL_LENGTH_TYPES = (String, _Binary)
 
 
-class Types(object):
+class Types:
     """A holder class for easy access to SQLAlchemy type names."""
 
     integer = Integer

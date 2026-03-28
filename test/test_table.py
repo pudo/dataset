@@ -1,11 +1,12 @@
-import pytest
 from datetime import datetime
-from sqlalchemy.types import BIGINT, TEXT
+
+import pytest
 from sqlalchemy.exc import ArgumentError
+from sqlalchemy.types import BIGINT, TEXT
 
 from dataset import chunked
 
-from .conftest import TEST_DATA, TEST_CITY_1
+from .conftest import TEST_CITY_1, TEST_DATA
 
 
 def test_insert(table):
@@ -31,7 +32,7 @@ def test_insert_ignore(table):
 
 
 def test_insert_ignore_all_key(table):
-    for i in range(0, 4):
+    for _i in range(0, 4):
         table.insert_ignore(
             {"date": datetime(2011, 1, 2), "temperature": -10, "place": "Berlin"},
             ["date", "temperature", "place"],
@@ -79,7 +80,7 @@ def test_upsert_single_column(db):
 
 def test_upsert_all_key(table):
     assert len(table) == len(TEST_DATA), len(table)
-    for i in range(0, 2):
+    for _i in range(0, 2):
         table.upsert(
             {"date": datetime(2011, 1, 2), "temperature": -10, "place": "Berlin"},
             ["date", "temperature", "place"],
@@ -89,7 +90,7 @@ def test_upsert_all_key(table):
 
 def test_upsert_id(db):
     table = db["banana_with_id"]
-    data = dict(id=10, title="I am a banana!")
+    data = {"id": 10, "title": "I am a banana!"}
     table.upsert(data, ["id"])
     assert len(table) == 1, len(table)
 
@@ -152,15 +153,15 @@ def test_delete(table):
 
 
 def test_repr(table):
-    assert (
-        repr(table) == "<Table(weather)>"
-    ), "the representation should be <Table(weather)>"
+    assert repr(table) == "<Table(weather)>", (
+        "the representation should be <Table(weather)>"
+    )
 
 
 def test_delete_nonexist_entry(table):
-    assert (
-        table.delete(place="Berlin") is False
-    ), "entry not exist, should fail to delete"
+    assert table.delete(place="Berlin") is False, (
+        "entry not exist, should fail to delete"
+    )
 
 
 def test_find_one(table):
@@ -268,23 +269,23 @@ def test_chunked_insert(table):
 
 def test_chunked_insert_callback(table):
     data = TEST_DATA * 100
-    N = 0
+    n_items = 0
 
     def callback(queue):
-        nonlocal N
-        N += len(queue)
+        nonlocal n_items
+        n_items += len(queue)
 
     with chunked.ChunkedInsert(table, callback=callback) as chunk_tbl:
         for item in data:
             chunk_tbl.insert(item)
-    assert len(data) == N
+    assert len(data) == n_items
     assert len(table) == len(data) + 6
 
 
 def test_update_many(db):
     tbl = db["update_many_test"]
-    tbl.insert_many([dict(temp=10), dict(temp=20), dict(temp=30)])
-    tbl.update_many([dict(id=1, temp=50), dict(id=3, temp=50)], "id")
+    tbl.insert_many([{"temp": 10}, {"temp": 20}, {"temp": 30}])
+    tbl.update_many([{"id": 1, "temp": 50}, {"id": 3, "temp": 50}], "id")
 
     # Ensure data has been updated.
     assert tbl.find_one(id=1)["temp"] == tbl.find_one(id=3)["temp"]
@@ -294,16 +295,16 @@ def test_chunked_update(db):
     tbl = db["update_many_test"]
     tbl.insert_many(
         [
-            dict(temp=10, location="asdf"),
-            dict(temp=20, location="qwer"),
-            dict(temp=30, location="asdf"),
+            {"temp": 10, "location": "asdf"},
+            {"temp": 20, "location": "qwer"},
+            {"temp": 30, "location": "asdf"},
         ]
     )
 
     chunked_tbl = chunked.ChunkedUpdate(tbl, ["id"])
-    chunked_tbl.update(dict(id=1, temp=50))
-    chunked_tbl.update(dict(id=2, location="asdf"))
-    chunked_tbl.update(dict(id=3, temp=50))
+    chunked_tbl.update({"id": 1, "temp": 50})
+    chunked_tbl.update({"id": 2, "location": "asdf"})
+    chunked_tbl.update({"id": 3, "temp": 50})
     chunked_tbl.flush()
 
     # Ensure data has been updated.
@@ -315,12 +316,12 @@ def test_upsert_many(db):
     # Also tests updating on records with different attributes
     tbl = db["upsert_many_test"]
 
-    W = 100
-    tbl.upsert_many([dict(age=10), dict(weight=W)], "id")
+    weight = 100
+    tbl.upsert_many([{"age": 10}, {"weight": weight}], "id")
     assert tbl.find_one(id=1)["age"] == 10
 
-    tbl.upsert_many([dict(id=1, age=70), dict(id=2, weight=W / 2)], "id")
-    assert tbl.find_one(id=2)["weight"] == W / 2
+    tbl.upsert_many([{"id": 1, "age": 70}, {"id": 2, "weight": weight / 2}], "id")
+    assert tbl.find_one(id=2)["weight"] == weight / 2
 
 
 def test_drop_operations(table):
@@ -360,7 +361,7 @@ def test_drop_column(table):
 
 def test_iter(table):
     c = 0
-    for row in table:
+    for _row in table:
         c += 1
     assert c == len(table)
 
@@ -373,7 +374,7 @@ def test_update(table):
     assert res, "update should return True"
     m = table.find_one(place=TEST_CITY_1, date=date)
     assert m["temperature"] == -10, (
-        "new temp. should be -10 but is %d" % m["temperature"]
+        f"new temp. should be -10 but is {m['temperature']}"
     )
 
 

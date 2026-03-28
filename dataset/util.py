@@ -1,6 +1,7 @@
-from hashlib import sha1
-from urllib.parse import urlparse, urlencode
 from collections import OrderedDict
+from hashlib import sha1
+from urllib.parse import urlencode, urlparse
+
 from sqlalchemy.exc import ResourceClosedError
 
 QUERY_STEP = 1000
@@ -25,21 +26,17 @@ except ImportError:
         return row_type(row.items())
 
 
-class DatasetException(Exception):
+class DatasetError(Exception):
     pass
 
 
 def iter_result_proxy(rp, step=None):
     """Iterate over the ResultProxy."""
     while True:
-        if step is None:
-            chunk = rp.fetchall()
-        else:
-            chunk = rp.fetchmany(size=step)
+        chunk = rp.fetchall() if step is None else rp.fetchmany(size=step)
         if not chunk:
             break
-        for row in chunk:
-            yield row
+        yield from chunk
 
 
 def make_sqlite_url(
@@ -80,7 +77,7 @@ def make_sqlite_url(
     return "sqlite:///file:" + path + "?" + urlencode(params)
 
 
-class ResultIter(object):
+class ResultIter:
     """SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them."""
 
@@ -117,7 +114,7 @@ class ResultIter(object):
 def normalize_column_name(name):
     """Check if a string is a reasonable thing to use as a column name."""
     if not isinstance(name, str):
-        raise ValueError("%r is not a valid column name." % name)
+        raise ValueError(f"{name!r} is not a valid column name.")
 
     # limit to 63 characters
     name = name.strip()[:63]
@@ -127,7 +124,7 @@ def normalize_column_name(name):
             name = name[: len(name) - 1]
 
     if not len(name) or "." in name or "-" in name:
-        raise ValueError("%r is not a valid column name." % name)
+        raise ValueError(f"{name!r} is not a valid column name.")
     return name
 
 
@@ -141,10 +138,10 @@ def normalize_column_key(name):
 def normalize_table_name(name):
     """Check if the table name is obviously invalid."""
     if not isinstance(name, str):
-        raise ValueError("Invalid table name: %r" % name)
+        raise ValueError(f"Invalid table name: {name!r}")
     name = name.strip()[:63]
     if not len(name):
-        raise ValueError("Invalid table name: %r" % name)
+        raise ValueError(f"Invalid table name: {name!r}")
     return name
 
 
@@ -152,7 +149,7 @@ def safe_url(url):
     """Remove password from printed connection URLs."""
     parsed = urlparse(url)
     if parsed.password is not None:
-        pwd = ":%s@" % parsed.password
+        pwd = f":{parsed.password}@"
         url = url.replace(pwd, ":*****@")
     return url
 
@@ -161,7 +158,7 @@ def index_name(table, columns):
     """Generate an artificial index name."""
     sig = "||".join(columns)
     key = sha1(sig.encode("utf-8")).hexdigest()[:16]
-    return "ix_%s_%s" % (table, key)
+    return f"ix_{table}_{key}"
 
 
 def pad_chunk_columns(chunk, columns):

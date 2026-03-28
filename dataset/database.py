@@ -2,23 +2,26 @@ import logging
 import threading
 from urllib.parse import parse_qs, urlparse
 
-from sqlalchemy import create_engine, inspect
-from sqlalchemy.sql import text
-from sqlalchemy.schema import MetaData
-from sqlalchemy import event
-
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
+from sqlalchemy import create_engine, event, inspect
+from sqlalchemy.schema import MetaData
+from sqlalchemy.sql import text
 
 from dataset.table import Table
-from dataset.util import ResultIter, row_type, safe_url, QUERY_STEP
-from dataset.util import normalize_table_name
 from dataset.types import Types
+from dataset.util import (
+    QUERY_STEP,
+    ResultIter,
+    normalize_table_name,
+    row_type,
+    safe_url,
+)
 
 log = logging.getLogger(__name__)
 
 
-class Database(object):
+class Database:
     """A database object represents a SQL database with multiple tables."""
 
     def __init__(
@@ -215,9 +218,7 @@ class Database(object):
             table_name = normalize_table_name(table_name)
             if table_name in self.tables:
                 return True
-            if table_name in self.views:
-                return True
-            return False
+            return table_name in self.views
         except ValueError:
             return False
 
@@ -252,9 +253,9 @@ class Database(object):
             table5 = db.create_table('population5',
                                      primary_id=False)
         """
-        assert not isinstance(
-            primary_type, str
-        ), "Text-based primary_type support is dropped, use db.types."
+        assert not isinstance(primary_type, str), (
+            "Text-based primary_type support is dropped, use db.types."
+        )
         table_name = normalize_table_name(table_name)
         with self.lock:
             if table_name not in self._tables:
@@ -349,4 +350,4 @@ class Database(object):
 
     def __repr__(self):
         """Text representation contains the URL."""
-        return "<Database(%s)>" % safe_url(self.url)
+        return f"<Database({safe_url(self.url)})>"

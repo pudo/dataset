@@ -1,8 +1,8 @@
-import pytest
 from datetime import datetime
 
-import dataset
+import pytest
 
+import dataset
 
 TEST_CITY_1 = "B€rkeley"
 TEST_CITY_2 = "G€lway"

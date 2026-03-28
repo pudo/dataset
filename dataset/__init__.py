@@ -1,5 +1,6 @@
 import os
 import warnings
+
 from dataset.database import Database
 from dataset.table import Table
 from dataset.util import row_type

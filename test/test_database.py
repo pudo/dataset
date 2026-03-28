@@ -1,6 +1,7 @@
-import pytest
-from datetime import datetime
 from collections import OrderedDict
+from datetime import datetime
+
+import pytest
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from dataset import connect
@@ -104,16 +105,15 @@ def test_create_table_shorthand2(db):
 
 def test_with(db, table):
     init_length = len(table)
-    with pytest.raises(ValueError):
-        with db:
-            table.insert(
-                {
-                    "date": datetime(2011, 1, 1),
-                    "temperature": 1,
-                    "place": "tmp_place",
-                }
-            )
-            raise ValueError()
+    with pytest.raises(ValueError), db:
+        table.insert(
+            {
+                "date": datetime(2011, 1, 1),
+                "temperature": 1,
+                "place": "tmp_place",
+            }
+        )
+        raise ValueError()
     assert len(table) == init_length
 
 

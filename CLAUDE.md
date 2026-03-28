@@ -108,27 +108,28 @@ DATABASE_URL="postgresql://..." pytest  # Test against specific DB
 
 ### Tools
 - **Build System:** Hatchling (modern PEP 621 compliant)
-- **Linting:** Ruff (replaces flake8, configured to match existing style)
-- **Formatting:** Ruff format (configured but not yet applied - see below)
+- **Linting & Formatting:** Ruff with default recommended rules
 - **Type Checking:** mypy (cache in `.mypy_cache/`)
 
 ### Ruff Configuration
-The project uses ruff for both linting and formatting:
+The project uses ruff's default rule sets including:
+
 ```bash
 make lint          # Check for linting issues
 make format-check  # Check formatting without applying
-make format        # Apply formatting (use with caution - creates large diff)
+make format        # Apply formatting
 ```
 
-**Note on formatting:** Ruff formatting is configured in `pyproject.toml` but has NOT been applied to the codebase yet. This is intentional to avoid a massive commit that obscures the history. When you're ready to apply formatting across the entire codebase, run `make format` and commit it separately.
+The codebase has been fully formatted and all linting rules pass.
 
 ### Best Practices
 1. **Keep it simple:** The library's strength is simplicity - don't over-engineer
 2. **Thread safety:** Always use locks for schema operations
 3. **Auto-commit:** Remember to call `db._auto_commit()` after writes outside transactions
 4. **Column normalization:** Use `_get_column_name()` for case-insensitive matching
-5. **Error handling:** Use `DatasetException` for dataset-specific errors
-6. **Linting:** Run `make lint` before committing
+5. **Error handling:** Use `DatasetError` for dataset-specific errors (renamed from DatasetException)
+6. **Exception naming:** Use `Error` suffix for exception classes (e.g., `InvalidCallbackError`)
+7. **Linting:** Run `make lint` before committing
 
 ## Common Development Tasks
 

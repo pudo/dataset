@@ -1,26 +1,31 @@
 import logging
-import warnings
 import threading
-from banal import ensure_list
+import warnings
 
-from sqlalchemy import func, select, false
-from sqlalchemy.sql import and_, expression
-from sqlalchemy.sql.expression import bindparam, ClauseElement
+from banal import ensure_list
+from sqlalchemy import false, func, select
+from sqlalchemy.exc import NoSuchTableError
 from sqlalchemy.schema import Column, Index
 from sqlalchemy.schema import Table as SQLATable
-from sqlalchemy.exc import NoSuchTableError
+from sqlalchemy.sql import and_, expression
+from sqlalchemy.sql.expression import ClauseElement, bindparam
 
-from dataset.types import Types, MYSQL_LENGTH_TYPES
-from dataset.util import index_name
-from dataset.util import DatasetException, ResultIter, QUERY_STEP
-from dataset.util import normalize_table_name, pad_chunk_columns
-from dataset.util import normalize_column_name, normalize_column_key
-
+from dataset.types import MYSQL_LENGTH_TYPES, Types
+from dataset.util import (
+    QUERY_STEP,
+    DatasetError,
+    ResultIter,
+    index_name,
+    normalize_column_key,
+    normalize_column_name,
+    normalize_table_name,
+    pad_chunk_columns,
+)
 
 log = logging.getLogger(__name__)
 
 
-class Table(object):
+class Table:
     """Represents a table in a database and exposes common operations."""
 
     PRIMARY_DEFAULT = "id"
@@ -167,7 +172,7 @@ class Table(object):
         for row in rows:
             # Only get non-existing columns.
             sync_keys = list(sync_row.keys())
-            for key in [k for k in row.keys() if k not in sync_keys]:
+            for key in [k for k in row if k not in sync_keys]:
                 # Get a sample of the new column(s) from the row.
                 sync_row[key] = row[key]
         self._sync_columns(sync_row, ensure, types=types)
@@ -232,20 +237,22 @@ class Table(object):
         columns = []
         for index, row in enumerate(rows):
             columns.extend(
-                col for col in row.keys() if (col not in columns) and (col not in keys)
+                col for col in row if (col not in columns) and (col not in keys)
             )
 
             # bindparam requires names to not conflict (cannot be "id" for id)
             for key in keys:
-                row["_%s" % key] = row[key]
+                row[f"_{key}"] = row[key]
                 row.pop(key)
             chunk.append(row)
 
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
-                cl = [self.table.c[k] == bindparam("_%s" % k) for k in keys]
-                stmt = self.table.update().where(and_(True, *cl)).values(
-                    {col: bindparam(col, required=False) for col in columns}
+                cl = [self.table.c[k] == bindparam(f"_{k}") for k in keys]
+                stmt = (
+                    self.table.update()
+                    .where(and_(True, *cl))
+                    .values({col: bindparam(col, required=False) for col in columns})
                 )
                 self.db.executable.execute(stmt, chunk)
                 self.db._auto_commit()
@@ -322,6 +329,7 @@ class Table(object):
                 "in a multi-threaded environment is likely to lead "
                 "to race conditions and synchronization issues.",
                 RuntimeWarning,
+                stacklevel=2,
             )
 
     def _sync_table(self, columns):
@@ -332,7 +340,7 @@ class Table(object):
         if self._table is None:
             # Create the table with an initial set of columns.
             if not self._auto_create:
-                raise DatasetException("Table does not exist: %s" % self.name)
+                raise DatasetError(f"Table does not exist: {self.name}")
             # Keep the lock scope small because this is run very often.
             with self.db.lock:
                 self._threading_warn()
@@ -350,7 +358,7 @@ class Table(object):
                     )
                     self._table.append_column(column)
                 for column in columns:
-                    if not column.name == self._primary_id:
+                    if column.name != self._primary_id:
                         self._table.append_column(column)
                 self._table.create(self.db.executable, checkfirst=True)
                 self._columns = None
@@ -482,7 +490,7 @@ class Table(object):
         """
         name = self._get_column_name(name)
         if self.has_column(name):
-            log.debug("Column exists: %s" % name)
+            log.debug(f"Column exists: {name}")
             return
         self._sync_table((Column(name, type, **kwargs),))
         self.db._auto_commit()
@@ -541,7 +549,7 @@ class Table(object):
         """Check if an index exists to cover the given ``columns``."""
         if not self.exists:
             return False
-        columns = set([self._get_column_name(c) for c in ensure_list(columns)])
+        columns = {self._get_column_name(c) for c in ensure_list(columns)}
         if columns in self._indexes:
             return True
         for column in columns:
@@ -571,7 +579,7 @@ class Table(object):
         columns = [self._get_column_name(c) for c in ensure_list(columns)]
         with self.db.lock:
             if not self.exists:
-                raise DatasetException("Table has not been created yet.")
+                raise DatasetError("Table has not been created yet.")
 
             for column in columns:
                 if not self.has_column(column):
@@ -715,7 +723,7 @@ class Table(object):
                 clauses.append(column)
             else:
                 if not self.has_column(column):
-                    raise DatasetException("No such column: %s" % column)
+                    raise DatasetError(f"No such column: {column}")
                 columns.append(self.table.c[column])
 
         _limit = kwargs.pop("_limit", None)
@@ -751,4 +759,4 @@ class Table(object):
 
     def __repr__(self):
         """Get table representation."""
-        return "<Table(%s)>" % self.table.name
+        return f"<Table({self.table.name})>"
