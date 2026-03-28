@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlparse
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.sql import text
 from sqlalchemy.schema import MetaData
-from sqlalchemy.util import safe_reraise
 from sqlalchemy import event
 
 from alembic.migration import MigrationContext
@@ -57,6 +56,7 @@ class Database(object):
         self.engine = create_engine(url, **engine_kwargs)
         self.is_postgres = self.engine.dialect.name == "postgresql"
         self.is_sqlite = self.engine.dialect.name == "sqlite"
+        self.is_mysql = "mysql" in self.engine.dialect.name
         if on_connect_statements is None:
             on_connect_statements = []
 
@@ -106,7 +106,7 @@ class Database(object):
     @property
     def metadata(self):
         """Return a SQLAlchemy schema cache object."""
-        return MetaData(schema=self.schema, bind=self.executable)
+        return MetaData(schema=self.schema)
 
     @property
     def in_transaction(self):
@@ -120,6 +120,17 @@ class Database(object):
         for table in self._tables.values():
             table._table = None
 
+    def _auto_commit(self):
+        """Commit pending changes when not in an explicit transaction.
+
+        In SQLAlchemy 2.x, connections use "autobegin" which starts a
+        transaction on first use. This method commits that transaction
+        after each write operation when the user has not started an
+        explicit transaction via ``begin()``/``with db:``.
+        """
+        if not self.in_transaction:
+            self.executable.commit()
+
     def begin(self):
         """Enter a transaction explicitly.
 
@@ -127,7 +138,13 @@ class Database(object):
         """
         if not hasattr(self.local, "tx"):
             self.local.tx = []
-        self.local.tx.append(self.executable.begin())
+        if not self.executable.in_transaction():
+            # No active transaction; start an explicit one (master semantics).
+            self.local.tx.append(self.executable.begin())
+        else:
+            # An autobegin transaction is already active (e.g., from a read);
+            # track the nesting depth without starting a second transaction.
+            self.local.tx.append(True)
 
     def commit(self):
         """Commit the current transaction.
@@ -136,11 +153,11 @@ class Database(object):
         """
         if hasattr(self.local, "tx") and self.local.tx:
             tx = self.local.tx.pop()
-            tx.commit()
-            # Removed in 2020-12, I'm a bit worried this means that some DDL
-            # operations in transactions won't cause metadata to refresh any
-            # more:
-            # self._flush_tables()
+            if not self.local.tx:
+                if tx is not True:
+                    tx.commit()
+                else:
+                    self.executable.commit()
 
     def rollback(self):
         """Roll back the current transaction.
@@ -149,7 +166,11 @@ class Database(object):
         """
         if hasattr(self.local, "tx") and self.local.tx:
             tx = self.local.tx.pop()
-            tx.rollback()
+            if not self.local.tx:
+                if tx is not True:
+                    tx.rollback()
+                else:
+                    self.executable.rollback()
             self._flush_tables()
 
     def __enter__(self):
@@ -163,8 +184,8 @@ class Database(object):
             try:
                 self.commit()
             except Exception:
-                with safe_reraise():
-                    self.rollback()
+                self.rollback()
+                raise
         else:
             self.rollback()
 
@@ -295,7 +316,7 @@ class Database(object):
         """Completion for table names with IPython."""
         return self.tables
 
-    def query(self, query, *args, **kwargs):
+    def query(self, query, **kwargs):
         """Run a statement on the database directly.
 
         Allows for the execution of arbitrary read/write queries. A query can
@@ -304,11 +325,9 @@ class Database(object):
         If a plain string is passed in, it will be converted to an expression
         automatically.
 
-        Further positional and keyword arguments will be used for parameter
-        binding. To include a positional argument in your query, use question
-        marks in the query (i.e. ``SELECT * FROM tbl WHERE a = ?``). For
-        keyword arguments, use a bind parameter (i.e. ``SELECT * FROM tbl
-        WHERE a = :foo``).
+        Keyword arguments will be used for parameter binding. Use a named bind
+        parameter in the query (i.e. ``SELECT * FROM tbl WHERE a = :foo``) and
+        pass the value as a keyword argument (i.e. ``foo='bar'``).
         ::
 
             statement = 'SELECT user, COUNT(*) c FROM photos GROUP BY user'
@@ -322,7 +341,10 @@ class Database(object):
         _step = kwargs.pop("_step", QUERY_STEP)
         if _step is False or _step == 0:
             _step = None
-        rp = self.executable.execute(query, *args, **kwargs)
+        if kwargs:
+            rp = self.executable.execute(query, kwargs)
+        else:
+            rp = self.executable.execute(query)
         return ResultIter(rp, row_type=self.row_type, step=_step)
 
     def __repr__(self):
