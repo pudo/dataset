@@ -43,36 +43,33 @@ def test_create_table_no_ids(db):
 def test_create_table_custom_id1(db):
     pid = "string_id"
     table = db.create_table("foo2", pid, db.types.string(255))
-    table.drop()
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
-    table.insert({pid: "foobar"})
+    table.upsert({pid: "foobar"}, [pid])
     assert table.find_one(string_id="foobar")[pid] == "foobar"
 
 
 def test_create_table_custom_id2(db):
     pid = "string_id"
     table = db.create_table("foo3", pid, db.types.string(50))
-    table.drop()
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.insert({pid: "foobar"})
+    table.upsert({pid: "foobar"}, [pid])
     assert table.find_one(string_id="foobar")[pid] == "foobar"
 
 
 def test_create_table_custom_id3(db):
     pid = "int_id"
     table = db.create_table("foo4", primary_id=pid)
-    table.drop()
     assert db.has_table(table.table.name)
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.insert({pid: 123})
-    table.insert({pid: 124})
+    table.upsert({pid: 123}, [pid])
+    table.upsert({pid: 124}, [pid])
     assert table.find_one(int_id=123)[pid] == 123
     assert table.find_one(int_id=124)[pid] == 124
     with pytest.raises(IntegrityError):
@@ -83,12 +80,11 @@ def test_create_table_custom_id3(db):
 def test_create_table_shorthand1(db):
     pid = "int_id"
     table = db.get_table("foo5", pid)
-    table.drop()
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.insert({"int_id": 123})
-    table.insert({"int_id": 124})
+    table.upsert({"int_id": 123}, [pid])
+    table.upsert({"int_id": 124}, [pid])
     assert table.find_one(int_id=123)["int_id"] == 123
     assert table.find_one(int_id=124)["int_id"] == 124
     with pytest.raises(IntegrityError):
@@ -99,11 +95,10 @@ def test_create_table_shorthand1(db):
 def test_create_table_shorthand2(db):
     pid = "string_id"
     table = db.get_table("foo6", primary_id=pid, primary_type=db.types.string(255))
-    table.drop()
     assert len(table.table.columns) == 1, table.table.columns
     assert pid in table.table.c, table.table.c
 
-    table.insert({"string_id": "foobar"})
+    table.upsert({"string_id": "foobar"}, [pid])
     assert table.find_one(string_id="foobar")["string_id"] == "foobar"
 
 
@@ -143,9 +138,9 @@ def test_query(db, table):
 
 def test_table_cache_updates(db):
     tbl1 = db.get_table("people")
-    tbl1.drop()
+    tbl1.delete()
     data = OrderedDict([("first_name", "John"), ("last_name", "Smith")])
-    tbl1.insert(data)
-    data["id"] = 1
+    row_id = tbl1.insert(data)
+    data["id"] = row_id
     tbl2 = db.get_table("people")
     assert dict(tbl2.all().next()) == dict(data), (tbl2.all().next(), data)

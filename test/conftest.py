@@ -27,6 +27,6 @@ def db():
 @pytest.fixture(scope="function")
 def table(db):
     tbl = db["weather"]
-    tbl.drop()
+    tbl.delete()
     tbl.insert_many(TEST_DATA)
     yield tbl

@@ -1,8 +1,7 @@
 import pytest
 from datetime import datetime
-from collections import OrderedDict
 from sqlalchemy.types import BIGINT, TEXT
-from sqlalchemy.exc import IntegrityError, ArgumentError
+from sqlalchemy.exc import ArgumentError
 
 from dataset import chunked
 
@@ -72,7 +71,7 @@ def test_upsert(table):
 
 def test_upsert_single_column(db):
     table = db["banana_single_col"]
-    table.drop()
+    table.delete()
     table.upsert({"color": "Yellow"}, ["color"])
     assert len(table) == 1, len(table)
     table.upsert({"color": "Yellow"}, ["color"])
@@ -91,7 +90,7 @@ def test_upsert_all_key(table):
 
 def test_upsert_id(db):
     table = db["banana_with_id"]
-    table.drop()
+    table.delete()
     data = dict(id=10, title="I am a banana!")
     table.upsert(data, ["id"])
     assert len(table) == 1, len(table)
@@ -118,7 +117,7 @@ def test_weird_column_names(table):
 
 def test_cased_column_names(db):
     tbl = db["cased_column_names"]
-    tbl.drop()
+    tbl.delete()
     tbl.insert({"place": "Berlin"})
     tbl.insert({"Place": "Berlin"})
     tbl.insert({"PLACE ": "Berlin"})
@@ -287,17 +286,19 @@ def test_chunked_insert_callback(table):
 
 def test_update_many(db):
     tbl = db["update_many_test"]
-    tbl.drop()
+    tbl.delete()
     tbl.insert_many([dict(temp=10), dict(temp=20), dict(temp=30)])
-    tbl.update_many([dict(id=1, temp=50), dict(id=3, temp=50)], "id")
+    rows = list(tbl.all(order_by=["id"]))
+    id1, id3 = rows[0]["id"], rows[2]["id"]
+    tbl.update_many([dict(id=id1, temp=50), dict(id=id3, temp=50)], "id")
 
     # Ensure data has been updated.
-    assert tbl.find_one(id=1)["temp"] == tbl.find_one(id=3)["temp"]
+    assert tbl.find_one(id=id1)["temp"] == tbl.find_one(id=id3)["temp"]
 
 
 def test_chunked_update(db):
     tbl = db["update_many_test"]
-    tbl.drop()
+    tbl.delete()
     tbl.insert_many(
         [
             dict(temp=10, location="asdf"),
@@ -305,29 +306,34 @@ def test_chunked_update(db):
             dict(temp=30, location="asdf"),
         ]
     )
+    rows = list(tbl.all(order_by=["id"]))
+    id1, id2, id3 = rows[0]["id"], rows[1]["id"], rows[2]["id"]
 
     chunked_tbl = chunked.ChunkedUpdate(tbl, ["id"])
-    chunked_tbl.update(dict(id=1, temp=50))
-    chunked_tbl.update(dict(id=2, location="asdf"))
-    chunked_tbl.update(dict(id=3, temp=50))
+    chunked_tbl.update(dict(id=id1, temp=50))
+    chunked_tbl.update(dict(id=id2, location="asdf"))
+    chunked_tbl.update(dict(id=id3, temp=50))
     chunked_tbl.flush()
 
     # Ensure data has been updated.
-    assert tbl.find_one(id=1)["temp"] == tbl.find_one(id=3)["temp"] == 50
-    assert tbl.find_one(id=2)["location"] == tbl.find_one(id=3)["location"] == "asdf"
+    assert tbl.find_one(id=id1)["temp"] == tbl.find_one(id=id3)["temp"] == 50
+    assert tbl.find_one(id=id2)["location"] == tbl.find_one(id=id3)["location"] == "asdf"
 
 
 def test_upsert_many(db):
     # Also tests updating on records with different attributes
     tbl = db["upsert_many_test"]
-    tbl.drop()
+    tbl.delete()
 
     W = 100
     tbl.upsert_many([dict(age=10), dict(weight=W)], "id")
-    assert tbl.find_one(id=1)["age"] == 10
+    row1 = tbl.find_one(age=10)
+    row2 = tbl.find_one(weight=W)
+    id1, id2 = row1["id"], row2["id"]
+    assert row1["age"] == 10
 
-    tbl.upsert_many([dict(id=1, age=70), dict(id=2, weight=W / 2)], "id")
-    assert tbl.find_one(id=2)["weight"] == W / 2
+    tbl.upsert_many([dict(id=id1, age=70), dict(id=id2, weight=W / 2)], "id")
+    assert tbl.find_one(id=id2)["weight"] == W / 2
 
 
 def test_drop_operations(table):
