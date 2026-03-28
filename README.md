@@ -1,5 +1,4 @@
-dataset: databases for lazy people
-==================================
+# dataset: databases for lazy people
 
 ![build](https://github.com/pudo/dataset/workflows/build/badge.svg)
 
