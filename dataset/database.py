@@ -56,6 +56,7 @@ class Database(object):
         self.engine = create_engine(url, **engine_kwargs)
         self.is_postgres = self.engine.dialect.name == "postgresql"
         self.is_sqlite = self.engine.dialect.name == "sqlite"
+        self.is_mysql = "mysql" in self.engine.dialect.name
         if on_connect_statements is None:
             on_connect_statements = []
 
