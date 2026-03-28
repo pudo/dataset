@@ -15,7 +15,11 @@ jobs:
           POSTGRES_DB: dataset
         ports:
           - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       mysql:
         image: mysql
         env:
@@ -25,7 +29,11 @@ jobs:
           MYSQL_ROOT_PASSWORD: mysql
         ports:
           - 3306/tcp
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=3
 
     steps:
       - uses: actions/checkout@v1
@@ -48,11 +56,22 @@ jobs:
         run: |
           make test
       - name: Run PostgreSQL tests
+        timeout-minutes: 10
         env:
           DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dataset"
+          # Abort any statement that waits more than 10 s for a lock, and detect
+          # deadlocks after 1 s – both ensure stuck tests fail fast with an error
+          # rather than hanging the entire CI run.
+          PGOPTIONS: "-c lock_timeout=10s -c deadlock_timeout=1s"
         run: |
           make test
+      - name: Configure MySQL lock timeout
+        run: |
+          mysql -h 127.0.0.1 -P ${{ job.services.mysql.ports[3306] }} \
+            -u root -pmysql \
+            -e "SET GLOBAL innodb_lock_wait_timeout=10;"
       - name: Run mysql tests
+        timeout-minutes: 10
         env:
           DATABASE_URL: "mysql+pymysql://mysql:mysql@127.0.0.1:${{ job.services.mysql.ports[3306] }}/dataset?charset=utf8"
         run: |
