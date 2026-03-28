@@ -3,6 +3,27 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
+* **1.7.0** (2026-03-28): Major modernization release
+  - **Build system**: Migrated from setuptools to modern pyproject.toml with Hatchling (PEP 621)
+  - **Linting**: Replaced flake8 with ruff for faster, more comprehensive linting
+  - **Formatting**: Added ruff format configuration (not yet applied to preserve history)
+  - **CI/CD**: Updated GitHub Actions to use modern action versions (checkout@v4, setup-python@v5)
+  - **SQLAlchemy 2.x**: Full support for SQLAlchemy 2.0+ with backward compatibility to 1.4.0
+  - **Transaction handling**: Fixed autobegin semantics and DDL lock contention for SQLAlchemy 2.x
+  - **Testing**: Switched from nose to pytest, improved test fixtures and cleanup
+  - **Database support**: Added lock timeout configurations for PostgreSQL and MySQL in CI
+  - **Python support**: Now requires Python 3.9+, tested on 3.9-3.13
+  - **Documentation**: Updated installation instructions, copyright year, and added comprehensive CLAUDE.md
+  - **Metadata**: Changed development status from Alpha to Production/Stable
+  - **License**: Renamed LICENSE.txt to LICENSE for standard convention
+  - **Dependencies**: Updated SQLAlchemy constraint to allow versions up to 3.0.0
+  - Contributors: @pudo, @investigativedata, @catileptic, @timgates42, @xqm32, @ammgws, @mijaba, @kapily
+* 1.6.2: Fix distinct() to respect _limit and _offset parameters (#424).
+* 1.6.1: Fix add_column method compatibility with Alembic 1.11+ (#423).
+* 1.6.0: Pin SQLAlchemy below 2.0.0 for compatibility.
+* 1.5.2: Consider primary key when checking for indexes (#382). Add missing arguments for query method (#391).
+* 1.5.1: Improve row conversion compatibility across SQLAlchemy 1.3 and 1.4.
+* 1.5.0: Add support for custom SQLite pragmas via `on_connect_statements` parameter. Switch from nose to pytest for testing.
 * 1.2.0: Add support for views, multiple comparison operators.
   Remove support for Python 2.
 * 1.1.0: Introduce `types` system to shortcut for SQLA types.
