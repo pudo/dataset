@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlparse
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
-from sqlalchemy import create_engine, event, inspect
+from sqlalchemy import Connection, Engine, create_engine, event, inspect
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql import text
 
@@ -46,7 +46,7 @@ class Database:
 
         self.lock = threading.RLock()
         self.local = threading.local()
-        self.connections = {}
+        self.connections: dict[int, Connection] = {}
 
         if len(parsed_url.query):
             query = parse_qs(parsed_url.query)
@@ -56,7 +56,8 @@ class Database:
                     schema = schema_qs.pop()
 
         self.schema = schema
-        self.engine = create_engine(url, **engine_kwargs)
+        self.engine: Engine | None = create_engine(url, **engine_kwargs)
+        assert self.engine is not None
         self.is_postgres = self.engine.dialect.name == "postgresql"
         self.is_sqlite = self.engine.dialect.name == "sqlite"
         self.is_mysql = "mysql" in self.engine.dialect.name
@@ -89,11 +90,13 @@ class Database:
         with self.lock:
             tid = threading.get_ident()
             if tid not in self.connections:
+                if self.engine is None:
+                    raise RuntimeError("Database is closed")
                 self.connections[tid] = self.engine.connect()
             return self.connections[tid]
 
     @property
-    def op(self):
+    def op(self) -> Operations:
         """Get an alembic operations context."""
         ctx = MigrationContext.configure(self.executable)
         return Operations(ctx)
@@ -103,27 +106,27 @@ class Database:
         """Get a SQLAlchemy inspector."""
         return inspect(self.executable)
 
-    def has_table(self, name):
+    def has_table(self, name: str) -> bool:
         return self.inspect.has_table(name, schema=self.schema)
 
     @property
-    def metadata(self):
+    def metadata(self) -> MetaData:
         """Return a SQLAlchemy schema cache object."""
         return MetaData(schema=self.schema)
 
     @property
-    def in_transaction(self):
+    def in_transaction(self) -> bool:
         """Check if this database is in a transactional context."""
         if not hasattr(self.local, "tx"):
             return False
         return len(self.local.tx) > 0
 
-    def _flush_tables(self):
+    def _flush_tables(self) -> None:
         """Clear the table metadata after transaction rollbacks."""
         for table in self._tables.values():
             table._table = None
 
-    def _auto_commit(self):
+    def _auto_commit(self) -> None:
         """Commit pending changes when not in an explicit transaction.
 
         In SQLAlchemy 2.x, connections use "autobegin" which starts a
@@ -134,7 +137,7 @@ class Database:
         if not self.in_transaction:
             self.executable.commit()
 
-    def begin(self):
+    def begin(self) -> None:
         """Enter a transaction explicitly.
 
         No data will be written until the transaction has been committed.
@@ -149,7 +152,7 @@ class Database:
             # track the nesting depth without starting a second transaction.
             self.local.tx.append(True)
 
-    def commit(self):
+    def commit(self) -> None:
         """Commit the current transaction.
 
         Make all statements executed since the transaction was begun permanent.
@@ -162,7 +165,7 @@ class Database:
                 else:
                     self.executable.commit()
 
-    def rollback(self):
+    def rollback(self) -> None:
         """Roll back the current transaction.
 
         Discard all statements executed since the transaction was begun.
@@ -176,7 +179,7 @@ class Database:
                     self.executable.rollback()
             self._flush_tables()
 
-    def __enter__(self):
+    def __enter__(self) -> "Database":
         """Start a transaction."""
         self.begin()
         return self
@@ -192,27 +195,28 @@ class Database:
         else:
             self.rollback()
 
-    def close(self):
+    def close(self) -> None:
         """Close database connections. Makes this object unusable."""
         with self.lock:
             for conn in self.connections.values():
                 conn.close()
             self.connections.clear()
-        self.engine.dispose()
+        if self.engine is not None:
+            self.engine.dispose()
         self._tables = {}
         self.engine = None
 
     @property
-    def tables(self):
+    def tables(self) -> list[str]:
         """Get a listing of all tables that exist in the database."""
         return self.inspect.get_table_names(schema=self.schema)
 
     @property
-    def views(self):
+    def views(self) -> list[str]:
         """Get a listing of all views that exist in the database."""
         return self.inspect.get_view_names(schema=self.schema)
 
-    def __contains__(self, table_name):
+    def __contains__(self, table_name: str) -> bool:
         """Check if the given table name exists in the database."""
         try:
             table_name = normalize_table_name(table_name)
@@ -223,8 +227,12 @@ class Database:
             return False
 
     def create_table(
-        self, table_name, primary_id=None, primary_type=None, primary_increment=None
-    ):
+        self,
+        table_name: str,
+        primary_id: str | None = None,
+        primary_type: Types | None = None,
+        primary_increment: bool | None = None,
+    ) -> Table:
         """Create a new table.
 
         Either loads a table or creates it if it doesn't exist yet. You can
@@ -267,9 +275,9 @@ class Database:
                     primary_increment=primary_increment,
                     auto_create=True,
                 )
-            return self._tables.get(table_name)
+            return self._tables[table_name]
 
-    def load_table(self, table_name):
+    def load_table(self, table_name: str) -> Table:
         """Load a table.
 
         This will fail if the tables does not already exist in the database. If
@@ -285,15 +293,15 @@ class Database:
         with self.lock:
             if table_name not in self._tables:
                 self._tables[table_name] = Table(self, table_name)
-            return self._tables.get(table_name)
+            return self._tables[table_name]
 
     def get_table(
         self,
-        table_name,
-        primary_id=None,
-        primary_type=None,
-        primary_increment=None,
-    ):
+        table_name: str,
+        primary_id: str | None = None,
+        primary_type: Types | None = None,
+        primary_increment: bool | None = None,
+    ) -> Table:
         """Load or create a table.
 
         This is now the same as ``create_table``.
@@ -309,11 +317,11 @@ class Database:
             table_name, primary_id, primary_type, primary_increment
         )
 
-    def __getitem__(self, table_name):
+    def __getitem__(self, table_name: str) -> Table:
         """Get a given table."""
         return self.get_table(table_name)
 
-    def _ipython_key_completions_(self):
+    def _ipython_key_completions_(self) -> list[str]:
         """Completion for table names with IPython."""
         return self.tables
 
@@ -348,6 +356,6 @@ class Database:
             rp = self.executable.execute(query)
         return ResultIter(rp, row_type=self.row_type, step=_step)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Text representation contains the URL."""
         return f"<Database({safe_url(self.url)})>"

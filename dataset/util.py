@@ -1,36 +1,49 @@
 from collections import OrderedDict
+from collections.abc import Mapping
+from datetime import date, datetime
+from decimal import Decimal
 from hashlib import sha1
+from typing import Any
 from urllib.parse import urlencode, urlparse
 
+from sqlalchemy import Connection, ResultProxy
+from sqlalchemy.engine import Row
 from sqlalchemy.exc import ResourceClosedError
 
 QUERY_STEP = 1000
 row_type = OrderedDict
 
-try:
-    # SQLAlchemy > 1.4.0, new row model.
-    from sqlalchemy.engine import Row  # noqa
+# Type definitions for SQL values and rows
+SQLWriteValue = (
+    None  # NULL
+    | bool  # BOOLEAN
+    | int  # INTEGER, BIGINT
+    | float  # FLOAT, REAL, DOUBLE
+    | str  # VARCHAR, TEXT, CHAR
+    | bytes  # BINARY, BLOB, BYTEA
+    | Decimal  # NUMERIC, DECIMAL
+    | date  # DATE
+    | datetime  # DATETIME, TIMESTAMP
+    | dict  # JSON, JSONB
+    | list  # JSON arrays
+)
 
-    def convert_row(row_type, row):
-        if row is None:
-            return None
-        return row_type(row._mapping.items())
+# Type alias for input rows (dict-like with SQL-compatible values)
+WriteRow = Mapping[str, SQLWriteValue]
+OutRow = Mapping[str, Any]
 
 
-except ImportError:
-    # SQLAlchemy < 1.4.0, no _mapping.
-
-    def convert_row(row_type, row):
-        if row is None:
-            return None
-        return row_type(row.items())
+def convert_row(row_type: type[OutRow], row: Row):  # pyright: ignore[reportRedeclaration]
+    if row is None:
+        return None
+    return row_type(row._mapping.items())  # type: ignore[attr-defined]
 
 
 class DatasetError(Exception):
     pass
 
 
-def iter_result_proxy(rp, step=None):
+def iter_result_proxy(rp: ResultProxy, step: int | None = None):
     """Iterate over the ResultProxy."""
     while True:
         chunk = rp.fetchall() if step is None else rp.fetchmany(size=step)
@@ -40,14 +53,14 @@ def iter_result_proxy(rp, step=None):
 
 
 def make_sqlite_url(
-    path,
-    cache=None,
-    timeout=None,
-    mode=None,
-    check_same_thread=True,
-    immutable=False,
-    nolock=False,
-):
+    path: str,
+    cache: str | None = None,
+    timeout: int | None = None,
+    mode: str | None = None,
+    check_same_thread: bool = True,
+    immutable: bool = False,
+    nolock: bool = False,
+) -> str:
     # NOTE: this PR
     # https://gerrit.sqlalchemy.org/c/sqlalchemy/sqlalchemy/+/1474/
     # added support for URIs in SQLite
@@ -81,16 +94,26 @@ class ResultIter:
     """SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them."""
 
-    def __init__(self, result_proxy, row_type=row_type, step=None, connection=None):
+    def __init__(
+        self,
+        result_proxy: ResultProxy | None,
+        row_type=row_type,
+        step: int | None = None,
+        connection: Connection | None = None,
+    ):
         self.row_type = row_type
         self.result_proxy = result_proxy
         self._conn = connection
-        try:
-            self.keys = list(result_proxy.keys())
-            self._iter = iter_result_proxy(result_proxy, step=step)
-        except ResourceClosedError:
+        if result_proxy is None:
             self.keys = []
             self._iter = iter([])
+        else:
+            try:
+                self.keys = list(result_proxy.keys())
+                self._iter = iter_result_proxy(result_proxy, step=step)
+            except ResourceClosedError:
+                self.keys = []
+                self._iter = iter([])
 
     def __next__(self):
         try:
@@ -105,13 +128,14 @@ class ResultIter:
         return self
 
     def close(self):
-        self.result_proxy.close()
+        if self.result_proxy is not None:
+            self.result_proxy.close()
         if self._conn is not None:
             self._conn.close()
             self._conn = None
 
 
-def normalize_column_name(name):
+def normalize_column_name(name: str) -> str:
     """Check if a string is a reasonable thing to use as a column name."""
     if not isinstance(name, str):
         raise ValueError(f"{name!r} is not a valid column name.")
@@ -128,14 +152,14 @@ def normalize_column_name(name):
     return name
 
 
-def normalize_column_key(name):
+def normalize_column_key(name: str | None) -> str | None:
     """Return a comparable column name."""
     if name is None or not isinstance(name, str):
         return None
     return name.upper().strip().replace(" ", "")
 
 
-def normalize_table_name(name):
+def normalize_table_name(name: str) -> str:
     """Check if the table name is obviously invalid."""
     if not isinstance(name, str):
         raise ValueError(f"Invalid table name: {name!r}")
@@ -145,7 +169,7 @@ def normalize_table_name(name):
     return name
 
 
-def safe_url(url):
+def safe_url(url: str) -> str:
     """Remove password from printed connection URLs."""
     parsed = urlparse(url)
     if parsed.password is not None:
@@ -154,14 +178,14 @@ def safe_url(url):
     return url
 
 
-def index_name(table, columns):
+def index_name(table: str, columns: list[str]) -> str:
     """Generate an artificial index name."""
     sig = "||".join(columns)
     key = sha1(sig.encode("utf-8")).hexdigest()[:16]
     return f"ix_{table}_{key}"
 
 
-def pad_chunk_columns(chunk, columns):
+def pad_chunk_columns(chunk: list[dict], columns: list[str]) -> list[dict]:
     """Given a set of items to be inserted, make sure they all have the
     same columns by padding columns with None if they are missing."""
     for record in chunk:
