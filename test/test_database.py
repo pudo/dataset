@@ -1,3 +1,5 @@
+import tempfile
+import threading
 from collections import OrderedDict
 from datetime import datetime
 
@@ -143,3 +145,34 @@ def test_table_cache_updates(db):
     data["id"] = 1
     tbl2 = db.get_table("people")
     assert dict(tbl2.all().next()) == dict(data), (tbl2.all().next(), data)
+
+
+def test_thread_connections_released():
+    """Connections should be released after a transaction ends (issue #425)."""
+    # Use a file-based SQLite database — in-memory SQLite uses
+    # SingletonThreadPool which doesn't support real multi-threading.
+    with tempfile.NamedTemporaryFile(suffix=".db") as f:
+        db = connect(f"sqlite:///{f.name}")
+        # Create the table on the main thread to avoid schema races.
+        db["thread_test"].insert({"value": 0})
+
+        def insert_in_thread() -> None:
+            with db:
+                db["thread_test"].insert({"value": 1})
+
+        threads = []
+        for _ in range(5):
+            t = threading.Thread(target=insert_in_thread)
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        # After all threads finish and their transactions commit,
+        # their connections should have been released. Only the main
+        # thread's connection (from the setup insert) may remain.
+        assert len(db.connections) <= 1, (
+            f"Expected at most 1 connection, got {len(db.connections)}"
+        )
+        db.close()

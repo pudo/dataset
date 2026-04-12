@@ -125,6 +125,14 @@ class Database:
             return False
         return len(self.local.tx) > 0
 
+    def _release_connection(self) -> None:
+        """Close and release the current thread's connection back to the pool."""
+        with self.lock:
+            tid = threading.get_ident()
+            conn = self.connections.pop(tid, None)
+            if conn is not None:
+                conn.close()
+
     def _flush_tables(self) -> None:
         """Clear the table metadata after transaction rollbacks."""
         for table in self._tables.values():
@@ -168,6 +176,7 @@ class Database:
                     tx.commit()
                 else:
                     self.executable.commit()
+                self._release_connection()
 
     def rollback(self) -> None:
         """Roll back the current transaction.
@@ -181,6 +190,7 @@ class Database:
                     tx.rollback()
                 else:
                     self.executable.rollback()
+                self._release_connection()
             self._flush_tables()
 
     def __enter__(self) -> "Database":
