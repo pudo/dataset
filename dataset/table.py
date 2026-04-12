@@ -527,11 +527,11 @@ class Table:
         if op in ("startswith",):
             if not isinstance(value, str):
                 raise QueryError("'startswith' filter requires a string")
-            return self.table.c[column].like(value + "%")
+            return self.table.c[column].startswith(value, autoescape=True)
         if op in ("endswith",):
             if not isinstance(value, str):
                 raise QueryError("'endswith' filter requires a string")
-            return self.table.c[column].like("%" + value)
+            return self.table.c[column].endswith(value, autoescape=True)
         return false()
 
     def _args_to_clause(

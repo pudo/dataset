@@ -218,6 +218,36 @@ def test_find_dsl(table):
     assert len(ds) == 3, ds
 
 
+def test_startswith_endswith(db):
+    t = db["prefix_test"]
+    t.insert({"org": "acme"})
+    t.insert({"org": "acme_labs"})
+    t.insert({"org": "other"})
+    t.insert({"org": "admin"})
+
+    # Basic startswith
+    rows = list(t.find(org={"startswith": "acme"}))
+    assert len(rows) == 2, rows
+
+    # Basic endswith
+    rows = list(t.find(org={"endswith": "labs"}))
+    assert len(rows) == 1, rows
+
+    # LIKE metacharacters must be escaped (CVE-style regression test)
+    rows = list(t.find(org={"startswith": "%"}))
+    assert len(rows) == 0, f"startswith % should match nothing, got {rows}"
+
+    rows = list(t.find(org={"startswith": "_"}))
+    assert len(rows) == 0, f"startswith _ should match nothing, got {rows}"
+
+    rows = list(t.find(org={"endswith": "%"}))
+    assert len(rows) == 0, f"endswith % should match nothing, got {rows}"
+
+    # Delete must not overmatch
+    t.delete(org={"startswith": "%"})
+    assert t.count() == 4, "delete with % startswith should not remove rows"
+
+
 def test_offset(table):
     ds = list(table.find(place=TEST_CITY_1, _offset=1))
     assert len(ds) == 2, ds
