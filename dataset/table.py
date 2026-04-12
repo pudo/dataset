@@ -2,7 +2,7 @@ import logging
 import threading
 import warnings
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from banal import ensure_list
 from sqlalchemy import false, func, select
@@ -44,7 +44,7 @@ class Table:
         self,
         database: "Database",
         table_name: str,
-        primary_id: str | None = None,
+        primary_id: str | Literal[False] | None = None,
         primary_type: Types | None = None,
         primary_increment: bool | None = None,
         auto_create: bool = False,
@@ -54,8 +54,8 @@ class Table:
         self.name = normalize_table_name(table_name)
         self._table: SQLATable | None = None
         self._columns: dict[str, str] | None = None
-        self._indexes: list[str] = []
-        self._primary_id = (
+        self._indexes: list[set[str]] = []
+        self._primary_id: str | Literal[False] = (
             primary_id if primary_id is not None else self.PRIMARY_DEFAULT
         )
         self._primary_type = primary_type if primary_type is not None else Types.integer
@@ -219,9 +219,9 @@ class Table:
         # Get columns name list to be used for padding later.
         columns = sync_row.keys()
 
-        chunk = []
+        chunk: list[MutableRow] = []
         for index, row in enumerate(rows):
-            chunk.append(row)
+            chunk.append(dict(row))
 
             # Insert when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
@@ -287,18 +287,19 @@ class Table:
         """
         keys = ensure_list(keys)
 
-        chunk = []
-        columns = []
+        chunk: list[MutableRow] = []
+        columns: list[str] = []
         for index, row in enumerate(rows):
             columns.extend(
                 col for col in row if (col not in columns) and (col not in keys)
             )
 
             # bindparam requires names to not conflict (cannot be "id" for id)
+            row_ = dict(row)
             for key in keys:
-                row[f"_{key}"] = row[key]
-                row.pop(key)
-            chunk.append(row)
+                row_[f"_{key}"] = row_[key]
+                row_.pop(key)
+            chunk.append(row_)
 
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
@@ -399,7 +400,7 @@ class Table:
                 stacklevel=2,
             )
 
-    def _sync_table(self, columns: Iterable[Column]) -> None:
+    def _sync_table(self, columns: Sequence[Column]) -> None:
         """Lazy load, create or adapt the table structure in the database.
 
         This method guarantees that self._table will be set to a non-None value
@@ -472,7 +473,7 @@ class Table:
                     _type = self.db.types.guess(value)
                 sync_columns[name] = Column(name, _type)
                 out[name] = value
-        self._sync_table(sync_columns.values())
+        self._sync_table(list(sync_columns.values()))
         return out
 
     def _check_ensure(self, ensure: bool | None) -> bool:

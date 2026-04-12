@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from datetime import date, datetime
 from decimal import Decimal
 from hashlib import sha1
@@ -11,7 +11,6 @@ from sqlalchemy.engine import Row
 from sqlalchemy.exc import ResourceClosedError
 
 QUERY_STEP = 1000
-row_type = OrderedDict
 
 # Type definitions for SQL values and rows
 SQLWriteValue = (
@@ -33,12 +32,15 @@ WriteRow = Mapping[str, SQLWriteValue]
 # Mutable row dict — used where rows are built up or mutated in place
 MutableRow = dict[str, SQLWriteValue]
 OutRow = Mapping[str, Any]
+RowFactory = Callable[[Iterable[tuple[str, Any]]], OutRow]
+
+row_factory: RowFactory = OrderedDict
 
 
-def convert_row(row_type: type[OutRow], row: Row) -> OutRow | None:  # pyright: ignore[reportRedeclaration]
+def convert_row(row_factory: RowFactory, row: Row) -> OutRow | None:  # pyright: ignore[reportRedeclaration]
     if row is None:
         return None
-    return row_type(row._mapping.items())  # type: ignore[attr-defined]
+    return row_factory(row._mapping.items())  # type: ignore[attr-defined]
 
 
 class DatasetError(Exception):
@@ -103,11 +105,11 @@ class ResultIter(Iterator[OutRow]):
     def __init__(
         self,
         result_proxy: ResultProxy | None,
-        row_type: type[OutRow] = row_type,
+        row_type: RowFactory = row_factory,
         step: int | None = None,
         connection: Connection | None = None,
     ):
-        self.row_type = row_type
+        self.row_type: RowFactory = row_type
         self.result_proxy = result_proxy
         self._conn = connection
         if result_proxy is None:
@@ -192,7 +194,7 @@ def index_name(table: str, columns: list[str]) -> str:
 
 
 def pad_chunk_columns(
-    chunk: list[MutableRow], columns: list[str]
+    chunk: list[MutableRow], columns: Iterable[str]
 ) -> list[MutableRow]:
     """Given a set of items to be inserted, make sure they all have the
     same columns by padding columns with None if they are missing."""

@@ -1,5 +1,6 @@
 import logging
 import threading
+from typing import Any, Literal
 from urllib.parse import parse_qs, urlparse
 
 from alembic.migration import MigrationContext
@@ -8,15 +9,16 @@ from sqlalchemy import Connection, Engine, create_engine, event, inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql import text
+from sqlalchemy.sql.expression import ClauseElement
 
 from dataset.table import Table
 from dataset.types import Types
 from dataset.util import (
     QUERY_STEP,
-    OutRow,
     ResultIter,
+    RowFactory,
     normalize_table_name,
-    row_type,
+    row_factory,
     safe_url,
 )
 
@@ -28,14 +30,14 @@ class Database:
 
     def __init__(
         self,
-        url,
-        schema=None,
-        engine_kwargs=None,
-        ensure_schema=True,
-        row_type: type[OutRow] = row_type,
-        sqlite_wal_mode=True,
-        on_connect_statements=None,
-    ):
+        url: str,
+        schema: str | None = None,
+        engine_kwargs: dict[str, Any] | None = None,
+        ensure_schema: bool = True,
+        row_type: RowFactory = row_factory,
+        sqlite_wal_mode: bool = True,
+        on_connect_statements: list[str] | None = None,
+    ) -> None:
         """Configure and connect to the database."""
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -66,7 +68,7 @@ class Database:
         if on_connect_statements is None:
             on_connect_statements = []
 
-        def _run_on_connect(dbapi_con, con_record):
+        def _run_on_connect(dbapi_con: Any, con_record: Any) -> None:
             # reference:
             # https://stackoverflow.com/questions/9671490/how-to-set-sqlite-pragma-statements-with-sqlalchemy
             # https://stackoverflow.com/a/7831210/1890086
@@ -82,7 +84,7 @@ class Database:
 
         self.types = Types(is_postgres=self.is_postgres)
         self.url = url
-        self.row_type: type[OutRow] = row_type
+        self.row_type: RowFactory = row_type
         self.ensure_schema = ensure_schema
         self._tables = {}
 
@@ -233,7 +235,7 @@ class Database:
     def create_table(
         self,
         table_name: str,
-        primary_id: str | None = None,
+        primary_id: str | Literal[False] | None = None,
         primary_type: Types | None = None,
         primary_increment: bool | None = None,
     ) -> Table:
@@ -302,7 +304,7 @@ class Database:
     def get_table(
         self,
         table_name: str,
-        primary_id: str | None = None,
+        primary_id: str | Literal[False] | None = None,
         primary_type: Types | None = None,
         primary_increment: bool | None = None,
     ) -> Table:
@@ -329,7 +331,7 @@ class Database:
         """Completion for table names with IPython."""
         return self.tables
 
-    def query(self, query, **kwargs) -> ResultIter:
+    def query(self, query: str | ClauseElement, **kwargs: Any) -> ResultIter:
         """Run a statement on the database directly.
 
         Allows for the execution of arbitrary read/write queries. A query can
