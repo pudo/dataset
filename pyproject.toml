@@ -30,7 +30,6 @@ requires-python = ">=3.10"
 dependencies = [
     "sqlalchemy>=1.4.0,<3.0.0",
     "alembic>=0.6.2",
-    "banal>=1.0.1",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +38,7 @@ dev = [
     "build",
     "twine",
     "ruff",
+    "mypy",
     "psycopg2-binary",
     "PyMySQL",
     "cryptography",

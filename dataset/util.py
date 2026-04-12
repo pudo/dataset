@@ -13,7 +13,7 @@ from sqlalchemy.exc import ResourceClosedError
 QUERY_STEP = 1000
 
 # Type definitions for SQL values and rows
-SQLWriteValue = (
+SQLPlainValue = (
     None  # NULL
     | bool  # BOOLEAN
     | int  # INTEGER, BIGINT
@@ -23,8 +23,11 @@ SQLWriteValue = (
     | Decimal  # NUMERIC, DECIMAL
     | date  # DATE
     | datetime  # DATETIME, TIMESTAMP
-    | dict  # JSON, JSONB
-    | list  # JSON arrays
+)
+SQLWriteValue = (
+    SQLPlainValue
+    | dict[str, SQLPlainValue]  # JSON, JSONB
+    | list[SQLPlainValue]  # JSON arrays
 )
 
 # Type alias for input rows (dict-like with SQL-compatible values)
@@ -37,10 +40,8 @@ RowFactory = Callable[[Iterable[tuple[str, Any]]], OutRow]
 row_factory: RowFactory = OrderedDict
 
 
-def convert_row(row_factory: RowFactory, row: Row) -> OutRow | None:  # pyright: ignore[reportRedeclaration]
-    if row is None:
-        return None
-    return row_factory(row._mapping.items())  # type: ignore[attr-defined]
+def convert_row(factory: RowFactory, row: Row[Any]) -> OutRow:
+    return factory(row._mapping.items())  # type: ignore[arg-type]
 
 
 class DatasetError(Exception):
@@ -51,7 +52,9 @@ class QueryError(DatasetError):
     pass
 
 
-def iter_result_proxy(rp: ResultProxy, step: int | None = None) -> Iterator[Row]:
+def iter_result_proxy(
+    rp: ResultProxy[Any], step: int | None = None
+) -> Iterator[Row[Any]]:
     """Iterate over the ResultProxy."""
     while True:
         chunk = rp.fetchall() if step is None else rp.fetchmany(size=step)
@@ -76,7 +79,7 @@ def make_sqlite_url(
     # https://docs.python.org/3/library/sqlite3.html#sqlite3.connect
     # and
     # https://www.sqlite.org/uri.html
-    params = {}
+    params: dict[str, Any] = {}
     if cache:
         assert cache in ("shared", "private")
         params["cache"] = cache
@@ -104,17 +107,17 @@ class ResultIter(Iterator[OutRow]):
 
     def __init__(
         self,
-        result_proxy: ResultProxy | None,
+        result_proxy: ResultProxy[Any] | None,
         row_type: RowFactory = row_factory,
         step: int | None = None,
         connection: Connection | None = None,
     ):
-        self.row_type: RowFactory = row_type
+        self.row_type = row_type
         self.result_proxy = result_proxy
         self._conn = connection
         if result_proxy is None:
             self.keys: list[str] = []
-            self._iter: Iterator[Row] = iter([])
+            self._iter: Iterator[Row[Any]] = iter([])
         else:
             try:
                 self.keys = list(result_proxy.keys())
@@ -141,6 +144,15 @@ class ResultIter(Iterator[OutRow]):
         if self._conn is not None:
             self._conn.close()
             self._conn = None
+
+
+def ensure_strings(value: str | Iterable[str] | None) -> list[str]:
+    """Normalize a string-or-list-of-strings argument to a list."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    return list(value)
 
 
 def normalize_column_name(name: str) -> str:

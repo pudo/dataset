@@ -8,6 +8,7 @@ test:
 .PHONY: lint
 lint:
 	ruff check dataset test
+	mypy --strict dataset
 
 .PHONY: format
 format:

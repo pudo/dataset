@@ -9,10 +9,10 @@ from sqlalchemy import Connection, Engine, create_engine, event, inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql import text
-from sqlalchemy.sql.expression import ClauseElement
+from sqlalchemy.sql.expression import Executable
 
 from dataset.table import Table
-from dataset.types import Types
+from dataset.types import ColumnType, Types
 from dataset.util import (
     QUERY_STEP,
     ResultIter,
@@ -86,7 +86,7 @@ class Database:
         self.url = url
         self.row_type: RowFactory = row_type
         self.ensure_schema = ensure_schema
-        self._tables = {}
+        self._tables: dict[str, Table] = {}
 
     @property
     def executable(self) -> Connection:
@@ -236,7 +236,7 @@ class Database:
         self,
         table_name: str,
         primary_id: str | Literal[False] | None = None,
-        primary_type: Types | None = None,
+        primary_type: ColumnType | None = None,
         primary_increment: bool | None = None,
     ) -> Table:
         """Create a new table.
@@ -305,7 +305,7 @@ class Database:
         self,
         table_name: str,
         primary_id: str | Literal[False] | None = None,
-        primary_type: Types | None = None,
+        primary_type: ColumnType | None = None,
         primary_increment: bool | None = None,
     ) -> Table:
         """Load or create a table.
@@ -331,7 +331,7 @@ class Database:
         """Completion for table names with IPython."""
         return self.tables
 
-    def query(self, query: str | ClauseElement, **kwargs: Any) -> ResultIter:
+    def query(self, query: str | Executable, **kwargs: Any) -> ResultIter:
         """Run a statement on the database directly.
 
         Allows for the execution of arbitrary read/write queries. A query can

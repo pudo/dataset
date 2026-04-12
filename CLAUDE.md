@@ -82,6 +82,18 @@ dataset/
 - Custom types via `types` parameter in insert/update
 - MySQL-specific: text field indexing uses 10-char prefix
 
+### Type Annotations
+- The codebase passes `mypy --strict` and ships `py.typed` (PEP 561)
+- Key type aliases in `util.py`:
+  - `WriteRow = Mapping[str, SQLWriteValue]` — immutable input type for public API
+  - `MutableRow = dict[str, SQLWriteValue]` — mutable type for internal use (queue items, return values from `_sync_columns`)
+  - `OutRow = Mapping[str, Any]` — query result rows
+  - `RowFactory = Callable[[Iterable[tuple[str, Any]]], OutRow]` — the `row_type` parameter type
+- `ColumnType` in `types.py` is `TypeEngine[Any] | type[TypeEngine[Any]]` — used for `primary_type` and `create_column`
+- Use `WriteRow` at public API boundaries, `MutableRow` internally where mutation happens
+- `ensure_strings()` in `util.py` replaces `banal.ensure_list` — accepts `str | Iterable[str] | None`, returns `list[str]`
+- `QueryError` (subclass of `DatasetError`) is raised for invalid filter values in `_generate_clause`
+
 ## Testing Strategy
 
 ### Test Infrastructure
@@ -109,27 +121,29 @@ DATABASE_URL="postgresql://..." pytest  # Test against specific DB
 ### Tools
 - **Build System:** Hatchling (modern PEP 621 compliant)
 - **Linting & Formatting:** Ruff with default recommended rules
-- **Type Checking:** mypy (cache in `.mypy_cache/`)
+- **Type Checking:** mypy `--strict` (zero errors; runs as part of `make lint`)
 
-### Ruff Configuration
-The project uses ruff's default rule sets including:
+### Running Checks
 
 ```bash
-make lint          # Check for linting issues
+make lint          # ruff + mypy --strict
 make format-check  # Check formatting without applying
 make format        # Apply formatting
 ```
 
-The codebase has been fully formatted and all linting rules pass.
+The codebase passes both ruff and `mypy --strict` with zero errors.
 
 ### Best Practices
 1. **Keep it simple:** The library's strength is simplicity - don't over-engineer
 2. **Thread safety:** Always use locks for schema operations
 3. **Auto-commit:** Remember to call `db._auto_commit()` after writes outside transactions
 4. **Column normalization:** Use `_get_column_name()` for case-insensitive matching
-5. **Error handling:** Use `DatasetError` for dataset-specific errors (renamed from DatasetException)
+5. **Error handling:** Use `DatasetError` for dataset-specific errors; `QueryError` for invalid filters
 6. **Exception naming:** Use `Error` suffix for exception classes (e.g., `InvalidCallbackError`)
-7. **Linting:** Run `make lint` before committing
+7. **Linting:** Run `make lint` before committing (runs both ruff and mypy --strict)
+8. **Backward compatibility:** Do not rename public API parameters or methods — this library is widely deployed. Prefer `# noqa` over breaking changes (e.g., `create_column`'s `type` parameter shadows the builtin, but renaming it would break callers)
+9. **Type annotations:** All new code must pass `mypy --strict`. Use `WriteRow` for public input params, `MutableRow` for internal mutable dicts. Don't copy rows unnecessarily — only copy at the boundary where mutation is needed
+10. **Version management:** Versions are managed by `bump2version`, not by editing `__init__.py` directly
 
 ## Common Development Tasks
 
@@ -169,6 +183,15 @@ The codebase has been fully formatted and all linting rules pass.
 
 ## Migration Notes
 
+### v2.0 (upcoming)
+- Full `mypy --strict` compliance, `py.typed` marker (PEP 561)
+- Removed `banal` dependency (replaced with `ensure_strings` in util.py)
+- `RowFactory` callable type replaces `type` for `row_type` parameter
+- `QueryError` added for invalid filter operations
+- `insert`/`insert_ignore`/`upsert` return `Any` (primary keys can be any type)
+- `primary_type` parameter typed as `ColumnType` instead of `Types`
+- `update_many` no longer mutates input rows
+
 ### Modern Build System (v1.7+)
 - Migrated from setuptools to Hatchling with pyproject.toml (PEP 621)
 - Use `python -m build` instead of `setup.py sdist bdist_wheel`
@@ -191,11 +214,11 @@ The codebase has been fully formatted and all linting rules pass.
 **Core:**
 - `sqlalchemy >= 1.4.0, < 3.0.0` - Database abstraction
 - `alembic >= 0.6.2` - Schema migrations
-- `banal >= 1.0.1` - Utility functions
 
 **Development:**
 - `pytest` - Testing framework
 - `ruff` - Linting and formatting
+- `mypy` - Type checking (strict mode)
 - `build` - Modern Python package builder
 - `twine` - Package upload to PyPI
 - `psycopg2-binary` - PostgreSQL driver
@@ -210,8 +233,7 @@ The codebase has been fully formatted and all linting rules pass.
 
 ## Release Process
 
-1. Update version in [dataset/__init__.py](dataset/__init__.py:14)
-2. Run `bumpversion patch` (or `minor`/`major`) to update version everywhere
+1. Run `bump2version patch` (or `minor`/`major`) to update version everywhere (do NOT edit `__init__.py` version manually)
 3. Update [CHANGELOG.md](CHANGELOG.md) with release notes
 4. Run full test suite: `make test`
 5. Run linting: `make lint`
@@ -240,6 +262,9 @@ The codebase has been fully formatted and all linting rules pass.
 3. Assuming case-sensitive column names
 4. Not handling the difference between SQLite/PostgreSQL/MySQL
 5. Breaking nested transaction semantics
+6. Mutating input rows — always copy to `dict()` before modifying (see `update_many`, `_queue_add`)
+7. Shadowing variable names with processed versions (e.g., `columns` string list vs `columns_` Column objects) — use distinct names
+8. Using `type: ignore` without checking if the underlying issue can be fixed first — only suppress SQLAlchemy stub limitations and `**kwargs` forwarding
 
 ## Use Cases
 

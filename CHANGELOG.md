@@ -3,21 +3,29 @@
 *The changelog has only been started with version 0.3.12, previous
 changes must be reconstructed from revision history.*
 
-* **1.7.0** (2026-03-28): Major modernization release
+* **2.0.0**: Major modernization and type annotations
+  - **Type annotations**: Full `mypy --strict` compliance across all modules
+  - **PEP 561**: Added `py.typed` marker for downstream type checking
+  - **New types**: Exported `OutRow`, `RowFactory`, `QueryError` for downstream use
+  - **`RowFactory`**: The `row_type` parameter is now typed as `Callable[[Iterable[tuple[str, Any]]], OutRow]` instead of `type`
+  - **`QueryError`**: New exception subclass of `DatasetError` for invalid filter operations
+  - **`primary_type`**: Changed from `Types` to `ColumnType` (SQLAlchemy `TypeEngine`) — the actual accepted type
+  - **`insert`/`insert_ignore`/`upsert`**: Return type changed from `int | bool` to `Any` (primary keys can be any type)
+  - **Removed `banal` dependency**: Replaced `ensure_list` with typed `ensure_strings` utility
+  - **`update_many`**: Fixed mutation of input rows — rows are now copied before modification
+  - **Dev tooling**: Added `mypy` to dev dependencies, `make lint` now runs both ruff and mypy
   - **Build system**: Migrated from setuptools to modern pyproject.toml with Hatchling (PEP 621)
   - **Linting**: Replaced flake8 with ruff for faster, more comprehensive linting
-  - **Formatting**: Added ruff format configuration (not yet applied to preserve history)
   - **CI/CD**: Updated GitHub Actions to use modern action versions (checkout@v4, setup-python@v5)
   - **SQLAlchemy 2.x**: Full support for SQLAlchemy 2.0+ with backward compatibility to 1.4.0
   - **Transaction handling**: Fixed autobegin semantics and DDL lock contention for SQLAlchemy 2.x
   - **Testing**: Switched from nose to pytest, improved test fixtures and cleanup
   - **Database support**: Added lock timeout configurations for PostgreSQL and MySQL in CI
-  - **Python support**: Now requires Python 3.9+, tested on 3.9-3.13
+  - **Python support**: Now requires Python 3.10+, tested on 3.10-3.13
   - **Documentation**: Updated installation instructions, copyright year, and added comprehensive CLAUDE.md
   - **Metadata**: Changed development status from Alpha to Production/Stable
   - **License**: Renamed LICENSE.txt to LICENSE for standard convention
   - **Dependencies**: Updated SQLAlchemy constraint to allow versions up to 3.0.0
-  - Contributors: @pudo, @investigativedata, @catileptic, @timgates42, @xqm32, @ammgws, @mijaba, @kapily
 * 1.6.2: Fix distinct() to respect _limit and _offset parameters (#424).
 * 1.6.1: Fix add_column method compatibility with Alembic 1.11+ (#423).
 * 1.6.0: Pin SQLAlchemy below 2.0.0 for compatibility.

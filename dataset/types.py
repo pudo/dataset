@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeEngine, _Binary
 
 MYSQL_LENGTH_TYPES = (String, _Binary)
-ColumnType = TypeEngine | type[TypeEngine]
+ColumnType = TypeEngine[Any] | type[TypeEngine[Any]]
 
 
 class Types:
