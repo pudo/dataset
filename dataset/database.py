@@ -212,7 +212,12 @@ class Database:
             self.rollback()
 
     def close(self) -> None:
-        """Close database connections. Makes this object unusable."""
+        """Close all database connections and dispose of the engine.
+
+        Releases all pooled connections and makes this object unusable.
+        This should be called when the database is no longer needed,
+        especially in multi-threaded or connection-pooled setups.
+        """
         with self.lock:
             for conn in self.connections.values():
                 conn.close()

@@ -95,6 +95,19 @@ Nested transactions are supported too::
         with db as tx2:
             tx2['user'].insert(dict(name='Jane Doe', age=37, country='France', gender='female'))
 
+Closing connections
+-------------------
+
+When you're done with a database, call :py:meth:`close() <dataset.Database.close>`
+to release all connections back to the pool and dispose of the engine::
+
+    db = dataset.connect('sqlite:///mydb.db')
+    # ... do work ...
+    db.close()
+
+This is especially important in multi-threaded applications or when using
+connection-pooled databases (PostgreSQL, MySQL), where open connections
+can accumulate and exhaust the pool.
 
 
 Inspecting databases and tables
