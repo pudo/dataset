@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from datetime import date, datetime
 from decimal import Decimal
 from hashlib import sha1
@@ -30,10 +30,12 @@ SQLWriteValue = (
 
 # Type alias for input rows (dict-like with SQL-compatible values)
 WriteRow = Mapping[str, SQLWriteValue]
+# Mutable row dict — used where rows are built up or mutated in place
+MutableRow = dict[str, SQLWriteValue]
 OutRow = Mapping[str, Any]
 
 
-def convert_row(row_type: type[OutRow], row: Row):  # pyright: ignore[reportRedeclaration]
+def convert_row(row_type: type[OutRow], row: Row) -> OutRow | None:  # pyright: ignore[reportRedeclaration]
     if row is None:
         return None
     return row_type(row._mapping.items())  # type: ignore[attr-defined]
@@ -43,7 +45,11 @@ class DatasetError(Exception):
     pass
 
 
-def iter_result_proxy(rp: ResultProxy, step: int | None = None):
+class QueryError(DatasetError):
+    pass
+
+
+def iter_result_proxy(rp: ResultProxy, step: int | None = None) -> Iterator[Row]:
     """Iterate over the ResultProxy."""
     while True:
         chunk = rp.fetchall() if step is None else rp.fetchmany(size=step)
@@ -90,14 +96,14 @@ def make_sqlite_url(
     return "sqlite:///file:" + path + "?" + urlencode(params)
 
 
-class ResultIter:
+class ResultIter(Iterator[OutRow]):
     """SQLAlchemy ResultProxies are not iterable to get a
     list of dictionaries. This is to wrap them."""
 
     def __init__(
         self,
         result_proxy: ResultProxy | None,
-        row_type=row_type,
+        row_type: type[OutRow] = row_type,
         step: int | None = None,
         connection: Connection | None = None,
     ):
@@ -105,8 +111,8 @@ class ResultIter:
         self.result_proxy = result_proxy
         self._conn = connection
         if result_proxy is None:
-            self.keys = []
-            self._iter = iter([])
+            self.keys: list[str] = []
+            self._iter: Iterator[Row] = iter([])
         else:
             try:
                 self.keys = list(result_proxy.keys())
@@ -115,7 +121,7 @@ class ResultIter:
                 self.keys = []
                 self._iter = iter([])
 
-    def __next__(self):
+    def __next__(self) -> OutRow:
         try:
             return convert_row(self.row_type, next(self._iter))
         except StopIteration:
@@ -124,10 +130,10 @@ class ResultIter:
 
     next = __next__
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[OutRow]:
         return self
 
-    def close(self):
+    def close(self) -> None:
         if self.result_proxy is not None:
             self.result_proxy.close()
         if self._conn is not None:
@@ -185,7 +191,9 @@ def index_name(table: str, columns: list[str]) -> str:
     return f"ix_{table}_{key}"
 
 
-def pad_chunk_columns(chunk: list[dict], columns: list[str]) -> list[dict]:
+def pad_chunk_columns(
+    chunk: list[MutableRow], columns: list[str]
+) -> list[MutableRow]:
     """Given a set of items to be inserted, make sure they all have the
     same columns by padding columns with None if they are missing."""
     for record in chunk:

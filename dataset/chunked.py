@@ -1,4 +1,13 @@
 import itertools
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING
+
+from dataset.util import MutableRow, WriteRow
+
+if TYPE_CHECKING:
+    from dataset.table import Table
+
+_Callback = Callable[[list[MutableRow]], None]
 
 
 class InvalidCallbackError(ValueError):
@@ -6,26 +15,31 @@ class InvalidCallbackError(ValueError):
 
 
 class _Chunker:
-    def __init__(self, table, chunksize, callback):
-        self.queue = []
-        self.table = table
-        self.chunksize = chunksize
+    def __init__(
+        self,
+        table: "Table",
+        chunksize: int,
+        callback: _Callback | None,
+    ) -> None:
+        self.queue: list[MutableRow] = []
+        self.table: Table = table
+        self.chunksize: int = chunksize
         if callback and not callable(callback):
             raise InvalidCallbackError
-        self.callback = callback
+        self.callback: _Callback | None = callback
 
-    def flush(self):
+    def flush(self) -> None:
         self.queue.clear()
 
-    def _queue_add(self, item):
-        self.queue.append(item)
+    def _queue_add(self, item: WriteRow) -> None:
+        self.queue.append(dict(item))
         if len(self.queue) >= self.chunksize:
             self.flush()
 
-    def __enter__(self):
+    def __enter__(self) -> "_Chunker":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         self.flush()
 
 
@@ -40,15 +54,20 @@ class ChunkedInsert(_Chunker):
     inserted into the database
     """
 
-    def __init__(self, table, chunksize=1000, callback=None):
-        self.fields = set()
+    def __init__(
+        self,
+        table: "Table",
+        chunksize: int = 1000,
+        callback: _Callback | None = None,
+    ) -> None:
+        self.fields: set[str] = set()
         super().__init__(table, chunksize, callback)
 
-    def insert(self, item):
+    def insert(self, item: WriteRow) -> None:
         self.fields.update(item.keys())
         super()._queue_add(item)
 
-    def flush(self):
+    def flush(self) -> None:
         for item in self.queue:
             for field in self.fields:
                 item[field] = item.get(field)
@@ -69,14 +88,20 @@ class ChunkedUpdate(_Chunker):
     updated into the database
     """
 
-    def __init__(self, table, keys, chunksize=1000, callback=None):
-        self.keys = keys
+    def __init__(
+        self,
+        table: "Table",
+        keys: Sequence[str],
+        chunksize: int = 1000,
+        callback: _Callback | None = None,
+    ) -> None:
+        self.keys: Sequence[str] = keys
         super().__init__(table, chunksize, callback)
 
-    def update(self, item):
+    def update(self, item: WriteRow) -> None:
         super()._queue_add(item)
 
-    def flush(self):
+    def flush(self) -> None:
         if self.callback is not None:
             self.callback(self.queue)
         self.queue.sort(key=dict.keys)

@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from sqlalchemy import Connection, Engine, create_engine, event, inspect
+from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql import text
 
@@ -12,6 +13,7 @@ from dataset.table import Table
 from dataset.types import Types
 from dataset.util import (
     QUERY_STEP,
+    OutRow,
     ResultIter,
     normalize_table_name,
     row_type,
@@ -30,7 +32,7 @@ class Database:
         schema=None,
         engine_kwargs=None,
         ensure_schema=True,
-        row_type=row_type,
+        row_type: type[OutRow] = row_type,
         sqlite_wal_mode=True,
         on_connect_statements=None,
     ):
@@ -80,12 +82,12 @@ class Database:
 
         self.types = Types(is_postgres=self.is_postgres)
         self.url = url
-        self.row_type = row_type
+        self.row_type: type[OutRow] = row_type
         self.ensure_schema = ensure_schema
         self._tables = {}
 
     @property
-    def executable(self):
+    def executable(self) -> Connection:
         """Connection against which statements will be executed."""
         with self.lock:
             tid = threading.get_ident()
@@ -102,7 +104,7 @@ class Database:
         return Operations(ctx)
 
     @property
-    def inspect(self):
+    def inspect(self) -> Inspector:
         """Get a SQLAlchemy inspector."""
         return inspect(self.executable)
 
@@ -184,7 +186,9 @@ class Database:
         self.begin()
         return self
 
-    def __exit__(self, error_type, error_value, traceback):
+    def __exit__(
+        self, error_type: object, error_value: object, traceback: object
+    ) -> None:
         """End a transaction by committing or rolling back."""
         if error_type is None:
             try:
@@ -325,7 +329,7 @@ class Database:
         """Completion for table names with IPython."""
         return self.tables
 
-    def query(self, query, **kwargs):
+    def query(self, query, **kwargs) -> ResultIter:
         """Run a statement on the database directly.
 
         Allows for the execution of arbitrary read/write queries. A query can

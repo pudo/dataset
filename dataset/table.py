@@ -1,7 +1,7 @@
 import logging
 import threading
 import warnings
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
 from banal import ensure_list
@@ -10,12 +10,15 @@ from sqlalchemy.exc import NoSuchTableError
 from sqlalchemy.schema import Column, Index
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.sql import and_, expression
-from sqlalchemy.sql.expression import ClauseElement, bindparam
+from sqlalchemy.sql.expression import ClauseElement, ColumnElement, bindparam
 
-from dataset.types import MYSQL_LENGTH_TYPES, Types
+from dataset.types import MYSQL_LENGTH_TYPES, ColumnType, Types
 from dataset.util import (
     QUERY_STEP,
     DatasetError,
+    MutableRow,
+    OutRow,
+    QueryError,
     ResultIter,
     SQLWriteValue,
     WriteRow,
@@ -81,7 +84,7 @@ class Table:
         return self._table
 
     @property
-    def _column_keys(self):
+    def _column_keys(self) -> dict[str, str]:
         """Get a dictionary of all columns and their case mapping."""
         if not self.exists:
             return {}
@@ -121,7 +124,12 @@ class Table:
             return name
         return self._column_keys.get(key, name)
 
-    def insert(self, row: WriteRow, ensure=None, types=None) -> int | bool:
+    def insert(
+        self,
+        row: WriteRow,
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
+    ) -> int | bool:
         """Add a ``row`` dict by inserting it into the table.
 
         If ``ensure`` is set, any of the keys of the row are not
@@ -146,7 +154,13 @@ class Table:
             return res.inserted_primary_key[0]
         return True
 
-    def insert_ignore(self, row: WriteRow, keys, ensure=None, types=None) -> int | bool:
+    def insert_ignore(
+        self,
+        row: WriteRow,
+        keys: Sequence[str],
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
+    ) -> int | bool:
         """Add a ``row`` dict into the table if the row does not exist.
 
         If rows with matching ``keys`` exist no change is made.
@@ -173,7 +187,11 @@ class Table:
         return False
 
     def insert_many(
-        self, rows: Sequence[WriteRow], chunk_size=1000, ensure=None, types=None
+        self,
+        rows: Sequence[WriteRow],
+        chunk_size: int = 1000,
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
     ) -> None:
         """Add many rows at a time.
 
@@ -213,7 +231,12 @@ class Table:
                 chunk = []
 
     def update(
-        self, row: WriteRow, keys, ensure=None, types=None, return_count=False
+        self,
+        row: WriteRow,
+        keys: Sequence[str],
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
+        return_count: bool = False,
     ) -> bool | int:
         """Update a row in the table.
 
@@ -246,7 +269,12 @@ class Table:
         return False
 
     def update_many(
-        self, rows: Sequence[WriteRow], keys, chunk_size=1000, ensure=None, types=None
+        self,
+        rows: Sequence[WriteRow],
+        keys: Sequence[str],
+        chunk_size: int = 1000,
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
     ) -> None:
         """Update many rows in the table at a time.
 
@@ -284,7 +312,13 @@ class Table:
                 self.db._auto_commit()
                 chunk = []
 
-    def upsert(self, row: WriteRow, keys, ensure=None, types=None) -> bool | int:
+    def upsert(
+        self,
+        row: WriteRow,
+        keys: Sequence[str],
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
+    ) -> bool | int:
         """An UPSERT is a smart combination of insert and update.
 
         If rows with matching ``keys`` exist they will be updated, otherwise a
@@ -303,7 +337,12 @@ class Table:
         return True
 
     def upsert_many(
-        self, rows: Sequence[WriteRow], keys, chunk_size=1000, ensure=None, types=None
+        self,
+        rows: Sequence[WriteRow],
+        keys: Sequence[str],
+        chunk_size: int = 1000,
+        ensure: bool | None = None,
+        types: dict[str, ColumnType] | None = None,
     ) -> None:
         """
         Sorts multiple input rows into upserts and inserts. Inserts are passed
@@ -317,7 +356,7 @@ class Table:
         for row in rows:
             self.upsert(row, keys, ensure=ensure, types=types)
 
-    def delete(self, *clauses, **filters: SQLWriteValue) -> bool:
+    def delete(self, *clauses: ColumnElement[bool], **filters: SQLWriteValue) -> bool:
         """Delete rows from the table.
 
         Keyword arguments can be used to add column-based filters. The filter
@@ -360,7 +399,7 @@ class Table:
                 stacklevel=2,
             )
 
-    def _sync_table(self, columns) -> None:
+    def _sync_table(self, columns: Iterable[Column]) -> None:
         """Lazy load, create or adapt the table structure in the database.
 
         This method guarantees that self._table will be set to a non-None value
@@ -406,7 +445,12 @@ class Table:
                 self._reflect_table()
                 self.db._auto_commit()
 
-    def _sync_columns(self, row, ensure, types=None):
+    def _sync_columns(
+        self,
+        row: WriteRow,
+        ensure: bool | None,
+        types: dict[str, ColumnType] | None = None,
+    ) -> MutableRow:
         """Create missing columns (or the table) prior to writes.
 
         If automatic schema generation is disabled (``ensure`` is ``False``),
@@ -431,12 +475,14 @@ class Table:
         self._sync_table(sync_columns.values())
         return out
 
-    def _check_ensure(self, ensure):
+    def _check_ensure(self, ensure: bool | None) -> bool:
         if ensure is None:
             return self.db.ensure_schema
         return ensure
 
-    def _generate_clause(self, column, op, value):
+    def _generate_clause(
+        self, column: str, op: str, value: SQLWriteValue
+    ) -> ColumnElement[bool]:
         if op in ("like",):
             return self.table.c[column].like(value)
         if op in ("ilike",):
@@ -458,19 +504,33 @@ class Table:
         if op in ("!=", "<>", "not"):
             return self.table.c[column] != value
         if op in ("in",):
+            if not isinstance(value, (list, tuple, set)):
+                raise QueryError(f"'in' filter requires a list, got {type(value)}")
             return self.table.c[column].in_(value)
         if op in ("notin",):
+            if not isinstance(value, (list, tuple, set)):
+                raise QueryError(f"'notin' filter requires a list, got {type(value)}")
             return self.table.c[column].notin_(value)
         if op in ("between", ".."):
+            if not isinstance(value, (list, tuple)) or len(value) != 2:
+                raise QueryError("'between' filter requires a list of two values")
             start, end = value
             return self.table.c[column].between(start, end)
         if op in ("startswith",):
+            if not isinstance(value, str):
+                raise QueryError("'startswith' filter requires a string")
             return self.table.c[column].like(value + "%")
         if op in ("endswith",):
+            if not isinstance(value, str):
+                raise QueryError("'endswith' filter requires a string")
             return self.table.c[column].like("%" + value)
         return false()
 
-    def _args_to_clause(self, args, clauses=()):
+    def _args_to_clause(
+        self,
+        args: MutableRow,
+        clauses: Iterable[ColumnElement[bool]] = (),
+    ) -> ColumnElement[bool]:
         clauses = list(clauses)
         for column, value in args.items():
             column = self._get_column_name(column)
@@ -485,7 +545,7 @@ class Table:
                 clauses.append(self._generate_clause(column, "=", value))
         return and_(True, *clauses)
 
-    def _args_to_order_by(self, order_by: str | Sequence[str] | None):
+    def _args_to_order_by(self, order_by: str | Sequence[str] | None) -> list:
         orderings: list[str] = []
         for ordering in ensure_list(order_by):
             if ordering is None:
@@ -500,19 +560,23 @@ class Table:
                 orderings.append(self.table.c[column].asc())
         return orderings
 
-    def _keys_to_args(self, row: WriteRow, keys: Sequence[str]):
+    def _keys_to_args(
+        self, row: WriteRow, keys: Sequence[str]
+    ) -> tuple[MutableRow, MutableRow]:
         keys = [self._get_column_name(k) for k in ensure_list(keys)]
         row_ = dict(row)
         args = {k: row_.pop(k, None) for k in keys}
         return args, row_
 
-    def create_column(self, name, type, **kwargs):
+    def create_column(
+        self, name: str, type_: ColumnType, **kwargs: object
+    ) -> None:
         """Create a new column ``name`` of a specified type.
         ::
 
             table.create_column('created_at', db.types.datetime)
 
-        `type` corresponds to an SQLAlchemy type as described by
+        `type_` corresponds to an SQLAlchemy type as described by
         `dataset.db.Types`. Additional keyword arguments are passed
         to the constructor of `Column`, so that default values, and
         options like `nullable` and `unique` can be set.
@@ -525,10 +589,12 @@ class Table:
         if self.has_column(name):
             log.debug(f"Column exists: {name}")
             return
-        self._sync_table((Column(name, type, **kwargs),))
+        self._sync_table((Column(name, type_, **kwargs),))
         self.db._auto_commit()
 
-    def create_column_by_example(self, name, value):
+    def create_column_by_example(
+        self, name: str, value: SQLWriteValue
+    ) -> None:
         """
         Explicitly create a new column ``name`` with a type that is appropriate
         to store the given example ``value``.  The type is guessed in the same
@@ -580,30 +646,32 @@ class Table:
                 self.db._tables.pop(self.name, None)
                 self.db._auto_commit()
 
-    def has_index(self, columns):
+    def has_index(self, columns: Iterable[str]) -> bool:
         """Check if an index exists to cover the given ``columns``."""
         if not self.exists:
             return False
-        columns = {self._get_column_name(c) for c in ensure_list(columns)}
-        if columns in self._indexes:
+        columns_ = {self._get_column_name(c) for c in ensure_list(columns)}
+        if columns_ in self._indexes:
             return True
-        for column in columns:
+        for column in columns_:
             if not self.has_column(column):
                 return False
         indexes = self.db.inspect.get_indexes(self.name, schema=self.db.schema)
         for index in indexes:
             idx_columns = index.get("column_names", [])
-            if len(columns.intersection(idx_columns)) == len(columns):
-                self._indexes.append(columns)
+            if len(columns_.intersection(idx_columns)) == len(columns_):
+                self._indexes.append(columns_)
                 return True
         if self.table.primary_key is not None:
             pk_columns = [c.name for c in self.table.primary_key.columns]
-            if len(columns.intersection(pk_columns)) == len(columns):
-                self._indexes.append(columns)
+            if len(columns_.intersection(pk_columns)) == len(columns_):
+                self._indexes.append(columns_)
                 return True
         return False
 
-    def create_index(self, columns, name=None, **kw):
+    def create_index(
+        self, columns: Sequence[str], name: str | None = None, **kw: object
+    ) -> None:
         """Create an index to speed up queries on a table.
 
         If no ``name`` is given a random name is created.
@@ -641,10 +709,10 @@ class Table:
 
     def find(
         self,
-        *_clauses,
+        *_clauses: ColumnElement[bool],
         _limit: int | None = None,
         _offset: int = 0,
-        order_by=None,
+        order_by: str | Sequence[str] | None = None,
         _streamed: bool = False,
         _step: int | None = QUERY_STEP,
         **kwargs: SQLWriteValue,
@@ -704,7 +772,9 @@ class Table:
             connection=stream_conn,
         )
 
-    def find_one(self, *args, **kwargs: SQLWriteValue):
+    def find_one(
+        self, *args: ColumnElement[bool], **kwargs: SQLWriteValue
+    ) -> OutRow | None:
         """Get a single result from the table.
 
         Works just like :py:meth:`find() <dataset.Table.find>` but returns one
@@ -723,7 +793,7 @@ class Table:
         finally:
             resiter.close()
 
-    def count(self, *_clauses, **kwargs: SQLWriteValue) -> int:
+    def count(self, *_clauses: ColumnElement[bool], **kwargs: SQLWriteValue) -> int:
         """Return the count of results for the given filter set."""
         # NOTE: this does not have support for limit and offset since I can't
         # see how this is useful. Still, there might be compatibility issues
@@ -740,17 +810,17 @@ class Table:
             return res[0]
         return 0
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of rows in the table."""
         return self.count()
 
     def distinct(
         self,
-        *args,
+        *args: str | ColumnElement[bool],
         _limit: int | None = None,
         _offset: int | None = 0,
         **kwargs: SQLWriteValue,
-    ):
+    ) -> ResultIter:
         """Return all the unique (distinct) values for the given ``columns``.
         ::
 
@@ -791,7 +861,7 @@ class Table:
     # Legacy methods for running find queries.
     all = find
 
-    def __iter__(self):
+    def __iter__(self) -> ResultIter:
         """Return all rows of the table as simple dictionaries.
 
         Allows for iterating over all rows in the table without explicitly
@@ -803,6 +873,6 @@ class Table:
         """
         return self.find()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Get table representation."""
         return f"<Table({self.table.name})>"

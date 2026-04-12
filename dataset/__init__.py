@@ -3,7 +3,7 @@ import warnings
 
 from dataset.database import Database
 from dataset.table import Table
-from dataset.util import row_type
+from dataset.util import DatasetError, OutRow, QueryError, row_type
 
 # shut up useless SA warning:
 warnings.filterwarnings("ignore", "Unicode type received non-unicode bind param value.")
@@ -11,7 +11,7 @@ warnings.filterwarnings(
     "ignore", "Skipping unsupported ALTER for creation of implicit constraint"
 )
 
-__all__ = ["Database", "Table", "connect"]
+__all__ = ["Database", "DatasetError", "QueryError", "Table", "connect"]
 __version__ = "1.6.2"
 
 
@@ -20,7 +20,7 @@ def connect(
     schema=None,
     engine_kwargs=None,
     ensure_schema=True,
-    row_type=row_type,
+    row_type: type[OutRow] = row_type,
     sqlite_wal_mode=True,
     on_connect_statements=None,
 ):
