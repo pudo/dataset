@@ -73,9 +73,9 @@ jobs:
           DATABASE_URL: "mysql+pymysql://mysql:mysql@127.0.0.1:${{ job.services.mysql.ports[3306] }}/dataset?charset=utf8"
         run: |
           make test
-      - name: Run ruff to lint
+      - name: Run linters
         run: |
-          ruff check dataset test
+          make lint
       - name: Build a distribution
         run: |
           python -m build
