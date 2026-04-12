@@ -12,7 +12,7 @@ At first you need to import the dataset package :) ::
 
    import dataset
 
-To connect to a database you need to identify it by its `URL <http://docs.sqlalchemy.org/en/latest/core/engines.html#engine-creation-api>`_, which basically is a string of the form ``"dialect://user:password@host/dbname"``. Here are a few examples for different database backends::
+To connect to a database you need to identify it by its `URL <https://docs.sqlalchemy.org/en/latest/core/engines.html#engine-creation-api>`_, which basically is a string of the form ``"dialect://user:password@host/dbname"``. Here are a few examples for different database backends::
 
    # connecting to a SQLite database
    db = dataset.connect('sqlite:///mydatabase.db')
@@ -54,7 +54,7 @@ pass a `dict`_ to *insert*. Note that you don't need to create the columns
    # dataset will create "missing" columns any time you insert a dict with an unknown key
    table.insert(dict(name='Jane Doe', age=37, country='France', gender='female'))
 
-.. _dict: http://docs.python.org/2/library/stdtypes.html#dict
+.. _dict: https://docs.python.org/3/library/stdtypes.html#dict
 
 Updating existing entries is easy, too::
 
@@ -179,7 +179,7 @@ use the full power of SQL queries. Here's how you run them with ``dataset``::
       print(row['country'], row['c'])
 
 The :py:meth:`query() <dataset.Table.query>` method can also be used to
-access the underlying `SQLAlchemy core API <http://docs.sqlalchemy.org/en/latest/orm/query.html#the-query-object>`_, which allows for the
+access the underlying `SQLAlchemy core API <https://docs.sqlalchemy.org/en/21/orm/queryguide/query.html>`_, which allows for the
 programmatic construction of more complex queries::
 
    table = db['user'].table

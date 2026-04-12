@@ -86,4 +86,4 @@ SQL injections::
 For fully programmatic, composable query building, consider using
 `SQLAlchemy core expressions`_ directly.
 
-.. _SQLAlchemy core expressions: https://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting
+.. _SQLAlchemy core expressions: https://docs.sqlalchemy.org/en/21/tutorial/data_select.html#tutorial-selecting-data

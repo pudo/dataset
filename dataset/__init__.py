@@ -54,8 +54,8 @@ def connect(
     to on_connect_statements as a set of strings. You can view a full
     `list of PRAGMAs here`_.
 
-    .. _SQLAlchemy Engine URL: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
-    .. _DB connection timeout: http://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
+    .. _SQLAlchemy Engine URL: https://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
+    .. _DB connection timeout: https://docs.sqlalchemy.org/en/latest/core/pooling.html#setting-pool-recycle
     .. _list of PRAGMAs here: https://www.sqlite.org/pragma.html
     """
     if url is None:

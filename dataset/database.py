@@ -336,7 +336,7 @@ class Database:
 
         Allows for the execution of arbitrary read/write queries. A query can
         either be a plain text string, or a `SQLAlchemy expression
-        <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
+        <https://docs.sqlalchemy.org/en/21/tutorial/data_select.html#tutorial-selecting-data>`_.
         If a plain string is passed in, it will be converted to an expression
         automatically.
 
