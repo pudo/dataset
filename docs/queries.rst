@@ -45,17 +45,28 @@ endswith       String ends with
 Querying for a specific value on a column that does not exist on the table
 will return no results.
 
-You can also pass additional SQLAlchemy clauses into the :py:meth:`table.find() <dataset.Table.find>` method
-by falling back onto the SQLAlchemy core objects wrapped by `dataset`::
+You can also pass `SQLAlchemy core expressions`_ directly into the
+:py:meth:`table.find() <dataset.Table.find>` method as positional arguments.
+Access the underlying SQLAlchemy table via ``table.table`` and its columns
+via ``table.table.columns``::
 
-    # Get the column `city` from the dataset table:
-    column = table.table.columns.city
-    # Define a SQLAlchemy clause:
-    clause = column.ilike('amsterda%')
-    # Query using the clause:
-    results = table.find(clause)
+    from sqlalchemy import or_
 
-This can also be used to define combined OR clauses if needed (e.g. `city = 'Bla' OR country = 'Foo'`).
+    # Get a column object:
+    city = table.table.columns.city
+    # Use a SQLAlchemy clause:
+    results = table.find(city.ilike('amsterda%'))
+
+    # Combine with OR:
+    country = table.table.columns.country
+    results = table.find(or_(city == 'Amsterdam', country == 'Germany'))
+
+    # Combine SQLAlchemy clauses with keyword filters:
+    results = table.find(city.ilike('new%'), country='US')
+
+These clauses also work with :py:meth:`table.count() <dataset.Table.count>`,
+:py:meth:`table.find_one() <dataset.Table.find_one>`, and
+:py:meth:`table.delete() <dataset.Table.delete>`.
 
 Queries using raw SQL
 ---------------------
@@ -63,10 +74,16 @@ Queries using raw SQL
 To run more complex queries with JOINs, or to perform GROUP BY-style
 aggregation, you can also use :py:meth:`db.query() <dataset.Database.query>`
 to run raw SQL queries instead. This also supports parameterisation to avoid
-SQL injections.
+SQL injections::
 
-Finally, you should consider falling back to SQLAlchemy_ core to construct
-queries if you are looking for a programmatic, composable method of generating
-SQL in Python.
+    statement = 'SELECT user, COUNT(*) c FROM photos GROUP BY user'
+    for row in db.query(statement):
+        print(row['user'], row['c'])
 
-.. _SQLALchemy: https://docs.sqlalchemy.org/
+    # With parameter binding:
+    results = db.query('SELECT * FROM users WHERE age > :min_age', min_age=21)
+
+For fully programmatic, composable query building, consider using
+`SQLAlchemy core expressions`_ directly.
+
+.. _SQLAlchemy core expressions: https://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting
