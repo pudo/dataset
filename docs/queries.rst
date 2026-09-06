@@ -23,6 +23,10 @@ A special form is using keyword searches on specific columns::
     # equal to:
     results = table.find(value={'in': ('foo', 'bar')})
 
+Because sets are also valid ``IN`` filters, a set containing an advanced-filter
+operator emits a ``SyntaxWarning``. This catches a common typo such as
+``value={'<=', 10}``; write ``value={'<=': 10}`` for the advanced-filter form.
+
 The following comparison operators are supported:
 
 ============== ============================================================
