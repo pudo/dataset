@@ -9,6 +9,7 @@ changes must be reconstructed from revision history.*
   - **New types**: Exported `OutRow`, `RowFactory`, `QueryError` for downstream use
   - **`RowFactory`**: The `row_type` parameter is now typed as `Callable[[Iterable[tuple[str, Any]]], OutRow]` instead of `type`
   - **`QueryError`**: New exception subclass of `DatasetError` for invalid filter operations
+  - **Filter typo warning**: Set-valued filters containing an advanced operator now emit a `SyntaxWarning`
   - **`primary_type`**: Changed from `Types` to `ColumnType` (SQLAlchemy `TypeEngine`) — the actual accepted type
   - **`insert`/`insert_ignore`/`upsert`**: Return type changed from `int | bool` to `Any` (primary keys can be any type)
   - **Removed `banal` dependency**: Replaced `ensure_list` with typed `ensure_strings` utility

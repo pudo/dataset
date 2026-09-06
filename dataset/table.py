@@ -39,6 +39,35 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+_ADVANCED_FILTER_OPERATORS = frozenset(
+    {
+        "like",
+        "ilike",
+        "notlike",
+        "notilike",
+        ">",
+        "gt",
+        "<",
+        "lt",
+        ">=",
+        "gte",
+        "<=",
+        "lte",
+        "=",
+        "==",
+        "is",
+        "!=",
+        "<>",
+        "not",
+        "in",
+        "notin",
+        "between",
+        "..",
+        "startswith",
+        "endswith",
+    }
+)
+
 
 class Table:
     """Represents a table in a database and exposes common operations."""
@@ -542,6 +571,17 @@ class Table:
         clauses = list(clauses)
         for column, value in args.items():
             column = self._get_column_name(column)
+            if isinstance(value, set):
+                operators = sorted(value.intersection(_ADVANCED_FILTER_OPERATORS))
+                if operators:
+                    warnings.warn(
+                        f"Set-valued filter for {column!r} contains advanced "
+                        f"operator(s) {', '.join(map(repr, operators))}. Sets are "
+                        "interpreted as IN queries; use a mapping for an advanced "
+                        "filter.",
+                        SyntaxWarning,
+                        stacklevel=3,
+                    )
             if not self.has_column(column):
                 clauses.append(false())
             elif isinstance(value, (list, tuple, set)):

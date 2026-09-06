@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 
 import pytest
@@ -216,6 +217,48 @@ def test_find_dsl(table):
     assert len(ds) == 3, ds
     ds = list(table.find(place={"ilike": "%LwAy"}))
     assert len(ds) == 3, ds
+
+
+@pytest.mark.parametrize(
+    "operator",
+    [
+        "like",
+        "ilike",
+        "notlike",
+        "notilike",
+        ">",
+        "gt",
+        "<",
+        "lt",
+        ">=",
+        "gte",
+        "<=",
+        "lte",
+        "=",
+        "==",
+        "is",
+        "!=",
+        "<>",
+        "not",
+        "in",
+        "notin",
+        "between",
+        "..",
+        "startswith",
+        "endswith",
+    ],
+)
+def test_find_warns_for_operators_in_set_filters(table, operator):
+    with pytest.warns(SyntaxWarning, match="Sets are interpreted as IN queries"):
+        list(table.find(temperature={operator, 5}))
+
+
+def test_find_does_not_warn_for_ordinary_set_filters(table):
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        rows = list(table.find(temperature={5, 8}))
+    assert not [warning for warning in caught if warning.category is SyntaxWarning]
+    assert len(rows) == 2
 
 
 def test_startswith_endswith(db):
