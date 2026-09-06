@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.types import BIGINT, TEXT
 
-from dataset import chunked
+from dataset import QueryError, chunked
 
 from .conftest import TEST_CITY_1, TEST_DATA
 
@@ -195,6 +195,32 @@ def test_find(table):
     assert ds[0]["temperature"] == 8, ds
     ds = list(table.find(table.table.columns.temperature > 4))
     assert len(ds) == 3, ds
+
+
+def test_find_column_projection(table):
+    rows = list(
+        table.find(
+            place=TEST_CITY_1,
+            _columns=["place", "temperature"],
+            order_by="temperature",
+        )
+    )
+    assert [list(row) for row in rows] == [
+        ["place", "temperature"],
+        ["place", "temperature"],
+        ["place", "temperature"],
+    ]
+    assert [row["temperature"] for row in rows] == [5, 6, 8]
+
+    row = table.find_one(place=TEST_CITY_1, _columns="temperature")
+    assert row is not None
+    assert list(row) == ["temperature"]
+
+
+@pytest.mark.parametrize("columns", [[], ["missing"]])
+def test_find_rejects_invalid_column_projection(table, columns):
+    with pytest.raises(QueryError):
+        list(table.find(_columns=columns))
 
 
 def test_find_dsl(table):

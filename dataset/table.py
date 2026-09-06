@@ -721,6 +721,7 @@ class Table:
         _limit: int | None = None,
         _offset: int = 0,
         order_by: str | Sequence[str] | None = None,
+        _columns: str | Sequence[str] | None = None,
         _streamed: bool = False,
         _step: int | None = QUERY_STEP,
         **kwargs: SQLWriteValue,
@@ -746,6 +747,10 @@ class Table:
             # return all rows sorted by multiple columns (descending by year)
             results = table.find(order_by=['country', '-year'])
 
+        Use ``_columns`` to return only selected columns::
+
+            results = table.find(country='France', _columns=['name', 'year'])
+
         You can also submit filters based on criteria other than equality,
         see :ref:`advanced_filters` for details.
 
@@ -763,7 +768,20 @@ class Table:
 
         orderings = self._args_to_order_by(order_by)
         args = self._args_to_clause(kwargs, clauses=_clauses)
-        query = self.table.select().where(args).limit(_limit).offset(_offset)
+        if _columns is None:
+            query = self.table.select()
+        else:
+            column_names = ensure_strings(_columns)
+            if not column_names:
+                raise QueryError("_columns must contain at least one column")
+            selected = []
+            for column in column_names:
+                column = self._get_column_name(column)
+                if not self.has_column(column):
+                    raise QueryError(f"Unknown selected column: {column}")
+                selected.append(self.table.c[column])
+            query = select(*selected)
+        query = query.where(args).limit(_limit).offset(_offset)
         if len(orderings):
             query = query.order_by(*orderings)
 
@@ -781,7 +799,10 @@ class Table:
         )
 
     def find_one(
-        self, *args: ColumnElement[bool], **kwargs: SQLWriteValue
+        self,
+        *args: ColumnElement[bool],
+        _columns: str | Sequence[str] | None = None,
+        **kwargs: SQLWriteValue,
     ) -> OutRow | None:
         """Get a single result from the table.
 
@@ -794,7 +815,9 @@ class Table:
         if not self.exists:
             return None
 
-        resiter = self.find(*args, _limit=1, _step=None, **kwargs)  # type: ignore[arg-type]
+        resiter = self.find(
+            *args, _limit=1, _step=None, _columns=_columns, **kwargs  # type: ignore[arg-type]
+        )
         try:
             for row in resiter:
                 return row
