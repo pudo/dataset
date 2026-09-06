@@ -191,6 +191,8 @@ The codebase passes both ruff and `mypy --strict` with zero errors.
 - `insert`/`insert_ignore`/`upsert` return `Any` (primary keys can be any type)
 - `primary_type` parameter typed as `ColumnType` instead of `Types`
 - `update_many` no longer mutates input rows
+- Bulk inserts and updates synchronize columns represented anywhere in the batch;
+  `ensure=False` ignores unknown columns consistently with single-row writes
 
 ### Modern Build System (v1.7+)
 - Migrated from setuptools to Hatchling with pyproject.toml (PEP 621)
