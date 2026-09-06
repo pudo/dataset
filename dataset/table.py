@@ -213,22 +213,18 @@ class Table:
             rows = [dict(name='Dolly')] * 10000
             table.insert_many(rows)
         """
-        # Sync table before inputting rows.
-        sync_row: MutableRow = {}
-        for row in rows:
-            # Only get non-existing columns.
-            sync_keys = list(sync_row.keys())
-            for key in [k for k in row if k not in sync_keys]:
-                # Get a sample of the new column(s) from the row.
-                sync_row[key] = row[key]
-        self._sync_columns(sync_row, ensure, types=types)
-
-        # Get columns name list to be used for padding later.
-        columns = sync_row.keys()
+        columns = self._sync_columns_many(rows, ensure, types=types)
+        column_set = set(columns)
 
         chunk: list[MutableRow] = []
         for index, row in enumerate(rows):
-            chunk.append(dict(row))
+            chunk.append(
+                {
+                    self._get_column_name(key): value
+                    for key, value in row.items()
+                    if self._get_column_name(key) in column_set
+                }
+            )
 
             # Insert when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
@@ -292,17 +288,19 @@ class Table:
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
         """
-        keys = ensure_strings(keys)
+        columns = self._sync_columns_many(rows, ensure, types=types)
+        keys = [self._get_column_name(key) for key in ensure_strings(keys)]
+        column_set = set(columns)
+        update_columns = [column for column in columns if column not in keys]
 
         chunk: list[MutableRow] = []
-        columns: list[str] = []
         for index, row in enumerate(rows):
-            columns.extend(
-                col for col in row if (col not in columns) and (col not in keys)
-            )
-
             # bindparam requires names to not conflict (cannot be "id" for id)
-            row_ = dict(row)
+            row_ = {
+                self._get_column_name(key): value
+                for key, value in row.items()
+                if self._get_column_name(key) in column_set
+            }
             for key in keys:
                 row_[f"_{key}"] = row_[key]
                 row_.pop(key)
@@ -311,11 +309,10 @@ class Table:
             # Update when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
                 cl = [self.table.c[k] == bindparam(f"_{k}") for k in keys]
-                stmt = (
-                    self.table.update()
-                    .where(and_(True, *cl))
-                    .values({col: bindparam(col, required=False) for col in columns})
-                )
+                values: dict[str, Any] = {
+                    col: bindparam(col, required=False) for col in update_columns
+                }
+                stmt = self.table.update().where(and_(True, *cl)).values(values)
                 self.db.executable.execute(stmt, chunk)
                 self.db._auto_commit()
                 chunk = []
@@ -482,6 +479,19 @@ class Table:
                 out[name] = value
         self._sync_table(list(sync_columns.values()))
         return out
+
+    def _sync_columns_many(
+        self,
+        rows: Sequence[WriteRow],
+        ensure: bool | None,
+        types: dict[str, ColumnType] | None = None,
+    ) -> list[str]:
+        """Synchronize every column represented in a batch of rows."""
+        samples: MutableRow = {}
+        for row in rows:
+            for key, value in row.items():
+                samples.setdefault(key, value)
+        return list(self._sync_columns(samples, ensure, types=types))
 
     def _check_ensure(self, ensure: bool | None) -> bool:
         if ensure is None:

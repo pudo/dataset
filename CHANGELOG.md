@@ -13,6 +13,7 @@ changes must be reconstructed from revision history.*
   - **`insert`/`insert_ignore`/`upsert`**: Return type changed from `int | bool` to `Any` (primary keys can be any type)
   - **Removed `banal` dependency**: Replaced `ensure_list` with typed `ensure_strings` utility
   - **`update_many`**: Fixed mutation of input rows — rows are now copied before modification
+  - **Bulk writes**: Synchronize missing columns before `update_many` and consistently ignore unknown columns when `ensure=False`
   - **Dev tooling**: Added `mypy` to dev dependencies, `make lint` now runs both ruff and mypy
   - **Build system**: Migrated from setuptools to modern pyproject.toml with Hatchling (PEP 621)
   - **Linting**: Replaced flake8 with ruff for faster, more comprehensive linting

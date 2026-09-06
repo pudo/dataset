@@ -321,6 +321,36 @@ def test_update_many(db):
     assert tbl.find_one(id=1)["temp"] == tbl.find_one(id=3)["temp"]
 
 
+def test_update_many_creates_missing_columns(db):
+    tbl = db["update_many_new_columns"]
+    tbl.insert_many([{"name": "one"}, {"name": "two"}])
+
+    tbl.update_many(
+        [
+            {"id": 1, "score": 10},
+            {"id": 2, "label": "second"},
+        ],
+        "id",
+    )
+
+    assert tbl.find_one(id=1)["score"] == 10
+    assert tbl.find_one(id=2)["label"] == "second"
+
+
+def test_update_many_without_ensure_ignores_missing_columns(db):
+    tbl = db["update_many_existing_columns"]
+    tbl.insert({"name": "one"})
+
+    tbl.update_many(
+        [{"id": 1, "name": "updated", "missing": "ignored"}],
+        "id",
+        ensure=False,
+    )
+
+    assert tbl.find_one(id=1)["name"] == "updated"
+    assert "missing" not in tbl.columns
+
+
 def test_chunked_update(db):
     tbl = db["update_many_test"]
     tbl.insert_many(
