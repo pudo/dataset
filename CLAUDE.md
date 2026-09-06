@@ -46,8 +46,8 @@ dataset/
 - **update()**: Update rows matching keys
 - **upsert()**: Insert or update based on key columns
 - **delete()**: Delete rows matching filters
-- **find()**: Query with filters, ordering, limit/offset
-- **find_one()**: Return single row or None
+- **find()**: Query with filters, ordering, limit/offset, and optional `_columns` projection
+- **find_one()**: Return one full or `_columns`-projected row, or None
 
 ### 4. Transaction Support
 - Context manager: `with dataset.connect() as tx:`

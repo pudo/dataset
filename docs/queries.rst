@@ -45,6 +45,19 @@ endswith       String ends with
 Querying for a specific value on a column that does not exist on the table
 will return no results.
 
+To return only specific columns, pass a column name or sequence of column names
+using ``_columns``. Filtering and ordering may still use columns that are not
+part of the returned row::
+
+    results = table.find(
+        country='Germany',
+        _columns=['name', 'city'],
+        order_by='name',
+    )
+    row = table.find_one(id=42, _columns='name')
+
+Unknown or empty column selections raise :py:class:`dataset.QueryError`.
+
 You can also pass `SQLAlchemy core expressions`_ directly into the
 :py:meth:`table.find() <dataset.Table.find>` method as positional arguments.
 Access the underlying SQLAlchemy table via ``table.table`` and its columns
