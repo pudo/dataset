@@ -321,6 +321,89 @@ def test_update_many(db):
     assert tbl.find_one(id=1)["temp"] == tbl.find_one(id=3)["temp"]
 
 
+@pytest.mark.parametrize("chunk_size", [1, 10])
+@pytest.mark.parametrize("ensure", [None, True])
+def test_update_many_new_columns(db, chunk_size, ensure):
+    tbl = db["update_many_new_columns"]
+    tbl.insert_many([{"temp": 10}, {"temp": 20}, {"temp": 30}])
+    rows = [
+        {"id": 1, "temp": 50, "location": "Berlin"},
+        {"id": 3, "temp": 60, "location": "Galway", "humidity": 80},
+    ]
+    original_rows = [dict(row) for row in rows]
+    if ensure is True:
+        db.ensure_schema = False
+
+    tbl.update_many(rows, "id", chunk_size=chunk_size, ensure=ensure)
+
+    assert tbl.find_one(id=1) == {
+        "id": 1,
+        "temp": 50,
+        "location": "Berlin",
+        "humidity": None,
+    }
+    assert tbl.find_one(id=2) == {
+        "id": 2,
+        "temp": 20,
+        "location": None,
+        "humidity": None,
+    }
+    assert tbl.find_one(id=3) == {
+        "id": 3,
+        "temp": 60,
+        "location": "Galway",
+        "humidity": 80,
+    }
+    assert rows == original_rows
+
+
+def test_update_many_column_types(db):
+    tbl = db["update_many_column_types"]
+    tbl.insert({"temp": 10})
+
+    tbl.update_many(
+        [{"id": 1, "humidity": 80}], "id", types={"humidity": db.types.float}
+    )
+
+    assert isinstance(tbl.table.c.humidity.type, db.types.float)
+    assert tbl.find_one(id=1)["humidity"] == 80.0
+
+
+@pytest.mark.parametrize("ensure, ensure_schema", [(None, False), (False, True)])
+def test_update_many_without_ensure(db, ensure, ensure_schema):
+    tbl = db["update_many_without_ensure"]
+    tbl.insert_many([{"temp": 10}, {"temp": 20}])
+    db.ensure_schema = ensure_schema
+
+    tbl.update_many(
+        [{"id": 1, "temp": 50, "location": "Berlin"}, {"id": 2, "location": "Galway"}],
+        "id",
+        ensure=ensure,
+    )
+
+    assert tbl.columns == ["id", "temp"]
+    assert tbl.find_one(id=1)["temp"] == 50
+    assert tbl.find_one(id=2)["temp"] == 20
+
+
+def test_update_many_without_writable_columns(db):
+    tbl = db["update_many_without_writable_columns"]
+    tbl.insert({"temp": 10})
+
+    tbl.update_many([{"id": 1, "location": "Berlin"}], "id", ensure=False)
+
+    assert tbl.find_one(id=1) == {"id": 1, "temp": 10}
+
+
+def test_update_many_cased_columns(db):
+    tbl = db["update_many_cased_columns"]
+    tbl.insert({"Temp": 10})
+
+    tbl.update_many([{"ID": 1, "TEMP": 50}], "ID")
+
+    assert tbl.find_one(id=1) == {"id": 1, "Temp": 50}
+
+
 def test_chunked_update(db):
     tbl = db["update_many_test"]
     tbl.insert_many(

@@ -291,25 +291,31 @@ class Table:
 
         See :py:meth:`update() <dataset.Table.update>` for details on
         the other parameters.
+        ::
+
+            rows = [dict(id=1, title='Banana'), dict(id=2, title='Apple')]
+            table.update_many(rows, ['id'])
         """
         keys = ensure_strings(keys)
 
         chunk: list[MutableRow] = []
         columns: list[str] = []
         for index, row in enumerate(rows):
-            columns.extend(
-                col for col in row if (col not in columns) and (col not in keys)
-            )
+            row_ = self._sync_columns(row, ensure, types=types)
+            keys = [self._get_column_name(key) for key in keys]
+            row_columns = [col for col in row_ if col not in keys]
+            # With ensure=False, a row may have no writable columns left.
+            if row_columns:
+                columns.extend(col for col in row_columns if col not in columns)
 
-            # bindparam requires names to not conflict (cannot be "id" for id)
-            row_ = dict(row)
-            for key in keys:
-                row_[f"_{key}"] = row_[key]
-                row_.pop(key)
-            chunk.append(row_)
+                # bindparam requires names to not conflict (cannot be "id" for id)
+                for key in keys:
+                    row_[f"_{key}"] = row_[key]
+                    row_.pop(key)
+                chunk.append(row_)
 
             # Update when chunk_size is fulfilled or this is the last row
-            if len(chunk) == chunk_size or index == len(rows) - 1:
+            if chunk and (len(chunk) == chunk_size or index == len(rows) - 1):
                 cl = [self.table.c[k] == bindparam(f"_{k}") for k in keys]
                 stmt = (
                     self.table.update()
