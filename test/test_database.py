@@ -151,8 +151,9 @@ def test_thread_connections_released():
     """Connections should be released after a transaction ends (issue #425)."""
     # Use a file-based SQLite database — in-memory SQLite uses
     # SingletonThreadPool which doesn't support real multi-threading.
-    with tempfile.NamedTemporaryFile(suffix=".db") as f:
-        db = connect(f"sqlite:///{f.name}")
+    # Let SQLite open the file itself (required on Windows).
+    with tempfile.TemporaryDirectory() as directory:
+        db = connect(f"sqlite:///{directory}/test.db")
         # Create the table on the main thread to avoid schema races.
         db["thread_test"].insert({"value": 0})
 
