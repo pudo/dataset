@@ -83,7 +83,7 @@ def make_sqlite_url(
     if cache:
         assert cache in ("shared", "private")
         params["cache"] = cache
-    if timeout:
+    if timeout is not None:
         # Note: if timeout is None, it uses the default timeout
         params["timeout"] = timeout
     if mode:

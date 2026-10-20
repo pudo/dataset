@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from dataset import connect
+from dataset.util import make_sqlite_url
 
 from .conftest import TEST_DATA
 
@@ -18,6 +19,15 @@ def test_valid_database_url(db):
 def test_database_url_query_string(db):
     db = connect("sqlite:///:memory:/?cached_statements=1")
     assert "cached_statements" in db.url, db.url
+
+
+@pytest.mark.parametrize("timeout, expected", [(None, 5000), (0, 0), (2, 2000)])
+def test_sqlite_url_timeout(tmp_path, timeout, expected):
+    db = connect(make_sqlite_url(str(tmp_path / "timeout.db"), timeout=timeout))
+    try:
+        assert list(db.query("PRAGMA busy_timeout")) == [{"timeout": expected}]
+    finally:
+        db.close()
 
 
 def test_tables(db, table):
