@@ -18,6 +18,30 @@ def test_insert(table):
     assert table.find_one(id=last_id)["place"] == "Berlin"
 
 
+@pytest.mark.parametrize("method", ["insert", "insert_many"])
+@pytest.mark.parametrize(
+    ("primary_id", "row_key", "column_name"),
+    [
+        (None, "ID", "id"),
+        ("id", "ID", "id"),
+        ("ID", "id", "ID"),
+        ("User_ID", "user_id", "User_ID"),
+    ],
+)
+def test_initial_insert_cased_primary_key(db, method, primary_id, row_key, column_name):
+    table = db.create_table("cased_primary", primary_id=primary_id)
+    rows = [{row_key: 71, "name": "first"}, {row_key: 72, "name": "second"}]
+    if method == "insert":
+        for row in rows:
+            assert table.insert(row) == row[row_key]
+    else:
+        table.insert_many(rows, chunk_size=1)
+
+    assert table.columns == [column_name, "name"]
+    assert [row[column_name] for row in table.find(order_by=column_name)] == [71, 72]
+    assert rows == [{row_key: 71, "name": "first"}, {row_key: 72, "name": "second"}]
+
+
 def test_insert_ignore(table):
     table.insert_ignore(
         {"date": datetime(2011, 1, 2), "temperature": -10, "place": "Berlin"},
