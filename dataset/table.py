@@ -129,6 +129,12 @@ class Table:
         key = normalize_column_key(name)
         if key is None:
             return name
+        if (
+            self._primary_id is not False
+            and key == normalize_column_key(self._primary_id)
+            and not self.exists
+        ):
+            return self._primary_id
         return self._column_keys.get(key, name)
 
     def insert(
@@ -221,14 +227,14 @@ class Table:
             for key in [k for k in row if k not in sync_keys]:
                 # Get a sample of the new column(s) from the row.
                 sync_row[key] = row[key]
-        self._sync_columns(sync_row, ensure, types=types)
+        sync_row = self._sync_columns(sync_row, ensure, types=types)
 
         # Get columns name list to be used for padding later.
         columns = sync_row.keys()
 
         chunk: list[MutableRow] = []
         for index, row in enumerate(rows):
-            chunk.append(dict(row))
+            chunk.append({self._get_column_name(k): v for k, v in row.items()})
 
             # Insert when chunk_size is fulfilled or this is the last row
             if len(chunk) == chunk_size or index == len(rows) - 1:
