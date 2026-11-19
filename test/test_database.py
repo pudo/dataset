@@ -1,6 +1,7 @@
 import tempfile
 import threading
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import pytest
@@ -175,4 +176,51 @@ def test_thread_connections_released():
         assert len(db.connections) <= 1, (
             f"Expected at most 1 connection, got {len(db.connections)}"
         )
+        db.close()
+
+
+@pytest.mark.parametrize("operation", ["count", "find"])
+def test_concurrent_initial_reflection(tmp_path, monkeypatch, operation):
+    """Concurrent readers must keep columns from the same reflected table."""
+    db = connect(f"sqlite:///{tmp_path / 'reflection.db'}")
+    db["weather"].insert_many(TEST_DATA)
+    db.close()
+
+    db = connect(f"sqlite:///{tmp_path / 'reflection.db'}")
+    table = db["weather"]
+    lock = db.lock
+    waiting = threading.Event()
+    resume = threading.Event()
+    main_thread = threading.get_ident()
+
+    class DelayedLock:
+        def __enter__(self):
+            # Pause the first reader after its cache miss, before it acquires
+            # the reflection lock. Another reader can then populate the cache.
+            if threading.get_ident() != main_thread and not waiting.is_set():
+                waiting.set()
+                assert resume.wait(5), "The other reader did not finish reflection"
+            lock.acquire()
+
+        def __exit__(self, *args):
+            lock.release()
+
+    monkeypatch.setattr(db, "lock", DelayedLock())
+    try:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            pending = executor.submit(lambda: table.table)
+            try:
+                assert waiting.wait(5), "The first reader did not reach reflection"
+                clause = table.table.c.place == TEST_DATA[0]["place"]
+            finally:
+                resume.set()
+            pending.result(timeout=5)
+
+        # Replacing the reflected table while the clause was being built
+        # produces two different FROM objects with the same table name.
+        if operation == "count":
+            assert table.count(clause) == 3
+        else:
+            assert len(list(table.find(clause))) == 3
+    finally:
         db.close()
