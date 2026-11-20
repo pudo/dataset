@@ -415,8 +415,10 @@ class Table:
         it raises DatasetError.
         """
         if self._table is None:
-            # Load an existing table from the database.
-            self._reflect_table()
+            with self.db.lock:
+                # Another thread may have loaded the table while we waited.
+                if self._table is None:
+                    self._reflect_table()
         if self._table is None:
             # Create the table with an initial set of columns.
             if not self._auto_create:
